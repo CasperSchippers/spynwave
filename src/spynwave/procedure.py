@@ -1,6 +1,7 @@
 import logging
 
 from time import time, sleep
+from datetime import datetime
 
 from pymeasure.experiment import Procedure, Parameter, FloatParameter, BooleanParameter, \
     IntegerParameter, ListParameter, Metadata
@@ -40,7 +41,7 @@ class PSWSProcedure(Procedure):
         default="PSWS",
     )
 
-    # Type of measurement
+    # General measurement settings
     measurement_type = ListParameter(
         "Type of measurement",
         choices=[
@@ -48,6 +49,56 @@ class PSWSProcedure(Procedure):
             "Frequency sweep",
         ],
     )
+    averages = IntegerParameter(
+        "Number of averages",
+        default=4,
+        minimum=1,
+    )
+    average_nr = IntegerParameter(
+        "Average number",
+        default=0,
+    )
+
+    # Basic parameters
+    rf_frequency = FloatParameter(
+        "RF Frequency",
+        default=15e9,
+        minimum=0,  # TODO: find minimum frequency
+        maximum=40e9,  # TODO: find maximum frequency
+        units="Hz",
+        group_by="measurement_type",
+        group_condition=lambda v: v != "Frequency sweep",
+    )
+
+    magnetic_field = FloatParameter(
+        "Magnetic field",
+        default=0,
+        minimum=-1,  # TODO: find minimum field
+        maximum=+1,  # TODO: find maximum field
+        units="T",
+        group_by="measurement_type",
+        group_condition=lambda v: v != "Field sweep",
+    )
+
+    # VNA settings
+    rf_power = FloatParameter(
+        "RF output power",
+        units="dBm",
+        default=0,
+        minimum=-30,  # TODO: find minimum power
+        maximum=+20,  # TODO: find maximum power
+    )
+    rf_bandwidth = FloatParameter(
+        "RF bandwidth",
+        units="Hz",
+        default=100,
+        minimum=1,  # TODO: find minimum bandwidth
+        maximum=1e6,  # TODO: find maximum bandwidth
+    )
+
+    # Metadata to be stored in the file
+    measurement_date = Metadata("Measurement date", fget=datetime.now)
+    start_time = Metadata("Measurement timestamp", fget=time)
 
     # Define data columns
     DATA_COLUMNS = [
@@ -70,8 +121,6 @@ class PSWSProcedure(Procedure):
     zMFLI = None
     oxITC = None
 
-    start_time = None
-
     r"""
           ____    _    _   _______   _        _____   _   _   ______
          / __ \  | |  | | |__   __| | |      |_   _| | \ | | |  ____|
@@ -88,9 +137,6 @@ class PSWSProcedure(Procedure):
         The devices are connected and the default parameters are set.
         """
         ## Connect to instruments
-
-
-        self.start_time = time()
 
     # Define measurement procedure
     def execute(self):
