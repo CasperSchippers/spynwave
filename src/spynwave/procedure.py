@@ -106,6 +106,8 @@ class PSWSProcedure(Procedure):
     measurement_date = Metadata("Measurement date", fget=datetime.now)
     start_time = Metadata("Measurement timestamp", fget=time)
 
+    # TODO: query calibration status, date, and (possibly) other atributes
+
     # Define data columns
     DATA_COLUMNS = [
         "Timestamp (s)",
