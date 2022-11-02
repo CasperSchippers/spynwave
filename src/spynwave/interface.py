@@ -1,3 +1,7 @@
+"""
+This file is part of the SpynWave package.
+"""
+
 import os
 import logging
 import ctypes

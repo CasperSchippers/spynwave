@@ -1,5 +1,5 @@
 """
-This file is part of the spynwave package.
+This file is part of the SpynWave package.
 
 This package provides software for performing propagating spinwave spectroscopy measurements
 in the PSWS setups at FNA.

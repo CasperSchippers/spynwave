@@ -1,3 +1,7 @@
+"""
+This file is part of the SpynWave package.
+"""
+
 import logging
 
 from time import time, sleep
