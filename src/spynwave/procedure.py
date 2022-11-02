@@ -1,5 +1,3 @@
-import os
-import sys
 import logging
 
 from time import time, sleep
@@ -11,10 +9,6 @@ from pymeasure.experiment import Procedure, Parameter, FloatParameter, BooleanPa
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
-# Get project dir
-project_dir = os.path.dirname(os.path.realpath(__file__))
-
-
 # Instrument addresses
 gpib_address = "GPIB::"
 k2700_address = gpib_address + "30"
@@ -25,7 +19,7 @@ itc503_address = gpib_address + "23"  # for temperature control with ITC503
 delta_address = gpib_address + "08"  # for magnetic field control with delta elektronica SM7045D
 
 
-class Procedure(Procedure):
+class PSWSProcedure(Procedure):
     r"""
      _____        _____            __  __ ______ _______ ______ _____   _____
     |  __ \ /\   |  __ \     /\   |  \/  |  ____|__   __|  ____|  __ \ / ____|

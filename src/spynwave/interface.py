@@ -1,29 +1,25 @@
 import os
-import sys
 import logging
 import ctypes
 
 from pymeasure.display.windows import ManagedWindow
 from pymeasure.experiment import Results, unique_filename, replace_placeholders
 
-from spynwave.procedure import Procedure
+from spynwave.procedure import PSWSProcedure
 
-# Get project dir
-project_dir = os.path.dirname(os.path.realpath(__file__))
 
 # Setup logging
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 # Register as separate software
-myappid = "fna.MeasurementSoftware.SpynWave"
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("fna.MeasurementSoftware.SpynWave")
 
 
 class Window(ManagedWindow):
     def __init__(self):
         super().__init__(
-            procedure_class=Procedure,
+            procedure_class=PSWSProcedure,
             inputs=(
             ),
             x_axis="Field (T)",
