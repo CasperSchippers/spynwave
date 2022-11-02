@@ -21,6 +21,8 @@ class Window(ManagedWindow):
         super().__init__(
             procedure_class=PSWSProcedure,
             inputs=(
+                "AB_filename_base",
+                "measurement_type",
             ),
             x_axis="Field (T)",
             y_axis="S11 real",

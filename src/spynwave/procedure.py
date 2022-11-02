@@ -29,6 +29,8 @@ class PSWSProcedure(Procedure):
     |_| /_/    \_\_|  \_\/_/    \_\_|  |_|______|  |_|  |______|_|  \_\_____/
 
     """
+
+    # Filename and folder
     AA_folder = Parameter(
         "Folder",
         default=".",
@@ -36,6 +38,15 @@ class PSWSProcedure(Procedure):
     AB_filename_base = Parameter(
         "Filename base",
         default="PSWS",
+    )
+
+    # Type of measurement
+    measurement_type = ListParameter(
+        "Type of measurement",
+        choices=[
+            "Field sweep",
+            "Frequency sweep",
+        ],
     )
 
     # Define data columns
