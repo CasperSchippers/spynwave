@@ -74,6 +74,7 @@ class VNA(AnritsuMS4644B):
         #         for channel 1
         #         for continue (CONT)
         #         :SENS%d:HOLD:FUNC %s;
+        self.ch_1.hold_function = "CONT"
 
         #     1G (disabled): write to VNA
         #         DD0
@@ -81,13 +82,17 @@ class VNA(AnritsuMS4644B):
         # 2: VNA get freq range VI
         #     :SENS%d:FREQ:STAR?;
         #     :SENS%d:FREQ:STOP?;
+        self.ch_1.frequency_start
+        self.ch_1.frequency_stop
 
         # 3: VNA query IF bandwidth
         #     :SENS%d:BWID?;
+        self.ch_1.bandwidth
 
         # 4: VNA query power
         #     for source 1 and port 1
         #     SOUR%d:POW:PORT%d?;
+        self.power
 
 
     def shutdown(self):

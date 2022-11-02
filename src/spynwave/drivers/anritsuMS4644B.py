@@ -10,8 +10,42 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
+class PortChannel(Channel):
+    def write(self, command, **kwargs):
+        # TODO: check if ch="{ch}" is the best way to approach this
+        self.parent.write(command.format(pt=self.id, ch="{ch}"), **kwargs)
+
+    def write_binary_values(self, command, values, *args, **kwargs):
+        self.parent.write_binary_values(command.format(pt=self.id, ch="{ch}"), values, *args, **kwargs)
+    def check_errors(self):
+        return self.parent.check_errors()
+
+    # TODO: Have a look if this can also be transformed into a sort of sub-channel
+    power_level = Channel.control(
+        "SOUR{ch}:POW:PORT{pt}?", "SOUR{ch}:POW:PORT{pt} ",
+        """ A float property that controls the power level (in dBm) of the indicated port on the
+        indicated channel.
+        """,  # TODO: check units: dB or dBm
+        values=[-3E1, 3E1],
+        validator=strict_range,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
 class MeasurementChannel(Channel):
+    FREQUENCY_RANGE = [1E7, 4E10]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for pt in self.parent.PORT_LIST:
+            self.add_child(PortChannel, pt, collection="ports", prefix="pt")
+
+    def check_errors(self):
+        return self.parent.check_errors()
+
     def activate(self):
+        """ Sets the indicated channel as the active channel. """
         self.write(":DISP:WIND{ch}:ACT")
 
     application_type = Channel.control(
@@ -25,8 +59,142 @@ class MeasurementChannel(Channel):
         check_set_errors=True,
     )
 
-    def check_errors(self):
-        return self.parent.check_errors()
+    hold_function = Channel.control(
+        ":SENS{ch}:HOLD:FUNC?", ":SENS{ch}:HOLD:FUNC %s",
+        """ A string property that controls the hold function of the specified channel. Can be set; 
+        valid values are:
+
+        =====   =================================================
+        value   description
+        =====   =================================================
+        CONT    Perform continuous sweeps on all channels
+        HOLD    Hold the sweep on all channels
+        SING    Perform a single sweep and then hold all channels
+        =====   =================================================
+        """,
+        values=["CONT", "HOLD", "SING"],
+        validator=strict_discrete_set,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    frequency_start = Channel.control(
+        ":SENS{ch}:FREQ:STAR?", ":SENS{ch}:FREQ:STAR %g",
+        """ A float property that controls the start value of the sweep range of the indicated
+        channel in hertz. Can be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz]
+        (i.e. 40 GHz). 
+        """,
+        values=FREQUENCY_RANGE,
+        validator=strict_range,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    frequency_stop = Channel.control(
+        ":SENS{ch}:FREQ:STOP?", ":SENS{ch}:FREQ:STOP %g",
+        """ A float property that controls the stop value of the sweep range of the indicated
+        channel in hertz. Can be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz]
+        (i.e. 40 GHz). 
+        """,
+        values=FREQUENCY_RANGE,
+        validator=strict_range,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    frequency_span = Channel.control(
+        ":SENS{ch}:FREQ:SPAN?", ":SENS{ch}:FREQ:SPAN %g",
+        """ A float property that controls the span value of the sweep range of the indicated
+        channel in hertz. Can be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz]
+        (i.e. 40 GHz). 
+        """,
+        values=FREQUENCY_RANGE,
+        validator=strict_range,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    frequency_center = Channel.control(
+        ":SENS{ch}:FREQ:CENT?", ":SENS{ch}:FREQ:CENT %g",
+        """ A float property that controls the center value of the sweep range of the indicated
+        channel in hertz. Can be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz]
+        (i.e. 40 GHz). 
+        """,
+        values=FREQUENCY_RANGE,
+        validator=strict_range,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    frequency_CW = Channel.control(
+        ":SENS{ch}:FREQ:CW?", ":SENS{ch}:FREQ:CW %g",
+        """ A float property that controls the CW frequency of the indicated channel in hertz. Can
+        be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz] (i.e. 40 GHz). 
+        """,
+        values=FREQUENCY_RANGE,
+        validator=strict_range,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    def clear_average_count(self):
+        """ Clears and restarts the averaging sweep count of the indicated channel. """
+        self.write(":SENS{ch}:AVER:CLE")
+
+    average_count = Channel.control(
+        ":SENS{ch}:AVER:COUN?", ":SENS{ch}:AVER:COUN %d",
+        """ An integer property that controls the averaging count for the indicated channel. The channel
+        must be turned on. Valid values are between 1 and 1024; can be set.
+        """,
+        values=[1, 1024],
+        validator=strict_range,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    average_sweep_count = Channel.measurement(
+        ":SENS{ch}:AVER:SWE?",
+        """ An integer property that returns the averaging sweep count for the indicated channel.
+        """,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    average_type = Channel.control(
+        ":SENS{ch}:AVER:TYP?", ":SENS{ch}:AVER:TYP %s",
+        """ A string property that controls the averaging type to point-by-point (POIN) or
+        sweep-by-sweep (SWE) for the indicated channel. Can be set. 
+        """,
+        values=["POIN", "SWE"],
+        validator=strict_discrete_set,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    averaging_enabled = Channel.control(
+        ":SENS{ch}:AVER?", ":SENS{ch}:AVER %d",
+        """ A boolean property that controls whether the averaging is turned on for the indicated
+        channel. Can be set.
+        """,
+        values={True: 1, False: 0},
+        map_values=True,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    bandwidth = Channel.control(
+        ":SENS{ch}:BWID?", ":SENS{ch}:BWID %g",
+        """ A float property that controls the IF bandwidth for the indicated channel. Valid values
+        are between 1 [Hz] and 1E6 [Hz] (i.e. 1 MHz). The system will automatically select the
+        closest IF bandwidth from the available options (1, 3, 10 ... 1E5, 3E5, 1E6). Can be set.
+        """,
+        values=[1, 1E6],
+        validator=strict_range,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
 
 
 class AnritsuMS4644B(Instrument):
@@ -35,6 +203,8 @@ class AnritsuMS4644B(Instrument):
     """
     CHANNELS = 16
     CHANNEL_LIST = list(range(1, CHANNELS+1))
+    PORTS = 4  # TODO: check number: 4 or 7/8
+    PORT_LIST = list(range(1, PORTS+1))
 
     def __init__(self, adapter, **kwargs):
         super().__init__(
@@ -64,8 +234,24 @@ class AnritsuMS4644B(Instrument):
         return errors
 
     def return_to_local(self):
-        """ Set instrument to local operation. """
+        """ Returns the instrument to local operation. """
         self.write("RTL")
+
+    # TODO: use this value to determine the number of channels
+    max_number_of_points = Instrument.control(
+        ":SYST:POIN:MAX?", ":SYST:POIN:MAX %d",
+        """ An integer property that controls the maximum number of points the instrument can
+        measure in a sweep. Note that when this value is changed, the instrument will be rebooted.
+        Valid values are 25000 and 100000. When 25000 points is selected, the instrument supports 16
+        channels with 16 traces each; when 100000 is selected, the instrument supports 1 channel
+        with 16 traces.
+        """,
+        values=[25000, 100000],
+        validator=strict_discrete_set,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
 
     active_channel = Instrument.control(
         ":DISP:WIND:ACT?",":DISP:WIND%d:ACT",
@@ -133,13 +319,31 @@ class AnritsuMS4644B(Instrument):
         check_set_errors=True,
     )
 
-
     external_trigger_handshake = Instrument.control(
         ":TRIG:EXT:HAND?", ":TRIG:EXT:HAND %s",
         """ A boolean property that controls status of the external trigger handshake. Can be set.
         """,
         values={True: 1, False: 0},
         map_values=True,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    hold_function_all_channels = Instrument.control(
+        ":SENS:HOLD:FUNC?", ":SENS:HOLD:FUNC %s",
+        """ A string property that controls the hold function of all channels. Can be set; valid
+        values are:
+
+        =====   =================================================
+        value   description
+        =====   =================================================
+        CONT    Perform continuous sweeps on all channels
+        HOLD    Hold the sweep on all channels
+        SING    Perform a single sweep and then hold all channels
+        =====   =================================================
+        """,
+        values=["CONT", "HOLD", "SING"],
+        validator=strict_discrete_set,
         check_get_errors=True,
         check_set_errors=True,
     )
