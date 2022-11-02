@@ -10,6 +10,8 @@ from datetime import datetime
 from pymeasure.experiment import Procedure, Parameter, FloatParameter, BooleanParameter, \
     IntegerParameter, ListParameter, Metadata
 
+from spynwave.drivers import Magnet, VNA
+
 # Setup logging
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -120,10 +122,8 @@ class PSWSProcedure(Procedure):
     ]
 
     # initiate instrument attributes
-    VNA = None
-    k6221 = None
-    zMFLI = None
-    oxITC = None
+    vna = None
+    magnet = None
 
     r"""
           ____    _    _   _______   _        _____   _   _   ______
@@ -140,6 +140,8 @@ class PSWSProcedure(Procedure):
         """ Set up the properties and devices required for the measurement.
         The devices are connected and the default parameters are set.
         """
+        self.vna = VNA()
+        self.magnet = Magnet()
         ## Connect to instruments
 
     # Define measurement procedure
@@ -161,7 +163,12 @@ class PSWSProcedure(Procedure):
     def shutdown(self):
         """ Wrap up the measurement.
         """
-        pass
+
+        if self.vna is not None:
+            self.vna.shutdown()
+
+        if self.magnet is not None:
+            self.magnet.shutdown()
 
     r"""
          _    _   ______   _        _____    ______   _____     _____
