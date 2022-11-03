@@ -29,7 +29,6 @@ class NestedChannel(Channel):
         return self.parent.check_errors()
 
 
-
 class PortChannel(NestedChannel):
     power_level = Channel.control(
         "SOUR{ch}:POW:PORT{pt}?", "SOUR{ch}:POW:PORT{pt} ",
@@ -41,6 +40,7 @@ class PortChannel(NestedChannel):
         check_get_errors=True,
         check_set_errors=True,
     )
+
 
 class MeasurementChannel(NestedChannel):
     FREQUENCY_RANGE = [1E7, 4E10]
@@ -226,7 +226,6 @@ class AnritsuMS4644B(Instrument):
         for ch in self.CHANNEL_LIST:
             self.add_child(MeasurementChannel, ch)
 
-
     def check_errors(self):
         """ Read all errors from the instrument.
 
@@ -243,9 +242,99 @@ class AnritsuMS4644B(Instrument):
                 break
         return errors
 
+    output_data_format = Instrument.control(
+        "FDHX?", "FDH%d",
+        """ An integer property that controls the way the arbitrary block header for output data is
+        formed. Can be set; valid values are:
+        
+        =====    ===========================================================
+        value    description
+        =====    ===========================================================
+        0        A block header with arbitrary length will be sent. 
+        1        The block header will have a fixed length of 11 characters.
+        2        No block header will be sent. Not IEEE 488.2 compliant. 
+        =====    ===========================================================
+        """,
+        values=[0, 1, 2],
+        validator=strict_discrete_set,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    data_drawing_enabled = Instrument.control(
+        "DD1?", "DD%d",  # TODO: see if there is an SCPI command for this
+        """ A boolean property that controls whether data drawing is enabled (True) or not (False).
+        Can be set.
+        """,
+        values={True: 1, False: 0},
+        map_values=True,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    event_status_enable_bits = Instrument.control(
+        "*ESE?", "*ESE %d",
+        """ An integer property that controls the Standard Event Status Enable Register bits (which
+        can be queried using the ~`query_event_status_register` method). Can be set; valid values are
+        between 0 and 255. Refer to the instrument manual for an explanation of the bits.
+        """,
+        values=[0, 255],
+        validator=strict_range,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    def query_event_status_register(self):
+        """ Query the value of the Standard Event Status Register. Note that querying this value,
+        clears the register. Refer to the instrument manual for an explanation of the returned
+        value.
+        """
+        return self.values("*ESR?", cast=int)[0]
+
+    service_request_enable_bits = Instrument.control(
+        "*SRE?", "*SRE %d",
+        """ An integer property that controls the Service Request Enable Register bits. Can be set;
+        valid values are between 0 and 255; setting 0 performs a register reset. Refer to the
+        instrument manual for an explanation of the bits.
+        """,
+        values=[0, 255],
+        validator=strict_range,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    installed_options = Instrument.measurement(
+        "*OPT?",
+        """ An integer property that returns the options that have been installed on the instrument.
+        Refer to the user manual for explanation of the option numbers.
+        """,
+        cast=int,
+    )
+
     def return_to_local(self):
         """ Returns the instrument to local operation. """
         self.write("RTL")
+
+    binary_data_byte_order = Instrument.control(
+        ":FORM:BORD?", ":FORM:BORD NORM",
+        """ A string property that controls the binary numeric I/O data byte order. Can be set;
+        valid values are:
+        
+        =====   =========================================
+        value   description
+        =====   =========================================
+        NORM    The most significant byte (MSB) is first
+        SWAP    The least significant byte (LSB) is first
+        =====   =========================================
+        """,
+        values=["NORM", "SWAP"],
+        validator=strict_discrete_set,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
 
     # TODO: use this value to determine the number of channels
     max_number_of_points = Instrument.control(
@@ -258,6 +347,21 @@ class AnritsuMS4644B(Instrument):
         """,
         values=[25000, 100000],
         validator=strict_discrete_set,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    number_of_channels = Instrument.control(
+        ":DISP:COUN?", ":DISP:COUN %d",
+        """ An integer property that controls the number of displayed (and therefore accessible)
+        channels. When the system is in 25000 points mode, the number of channels can be 1, 2, 3, 4,
+        6, 8, 9, 10, 12, or 16; when the system is in 100000 points mode, the system only supports 1
+        channel. If a value is provided that is not valid in the present mode, the instrument is set
+        to the next higher channel number. Can be set.
+        """,
+        values=[1, 16],
+        validator=strict_range,
         cast=int,
         check_get_errors=True,
         check_set_errors=True,
