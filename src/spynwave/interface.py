@@ -29,7 +29,11 @@ class Window(ManagedWindow):
             inputs=(
                 "AB_filename_base",
                 "measurement_type",
+                "frequency_start",
+                "frequency_stop",
+                "frequency_step",
                 "averages",
+                "average_type",
                 "rf_frequency",
                 "magnetic_field",
                 "rf_power",
@@ -39,7 +43,7 @@ class Window(ManagedWindow):
             y_axis="S11 real",
             displays=(
                 "measurement_type",
-                "average_nr",
+                "averages",
             ),
             sequencer=True,
             inputs_in_scrollarea=True,
@@ -49,6 +53,29 @@ class Window(ManagedWindow):
         self.directory_line.setText(os.getcwd())
 
     def queue(self, *args, procedure=None):
+        if procedure is None:
+            procedure = self.make_procedure()
+
+        folder = self.directory
+        filename = procedure.AB_filename_base
+
+        procedure.set_parameters({
+            "AA_folder": folder,
+        })
+
+        filename = unique_filename(
+            folder,
+            prefix=filename,
+            ext="txt",
+            datetimeformat="",
+            procedure=procedure
+        )
+
+        results = Results(procedure, filename)
+        experiment = self.new_experiment(results)
+        self.manager.queue(experiment)
+
+    def queue_repeated(self, *args, procedure=None):
         if procedure is None:
             main_procedure = self.make_procedure()
         else:
@@ -64,7 +91,7 @@ class Window(ManagedWindow):
 
             procedure.set_parameters({
                 "AA_folder": folder,
-                "average_nr": i + 1,
+                # "average_nr": i + 1,
             })
 
             filename = unique_filename(

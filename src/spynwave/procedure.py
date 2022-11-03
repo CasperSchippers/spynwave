@@ -17,13 +17,7 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 # Instrument addresses
-gpib_address = "GPIB::"
-k2700_address = gpib_address + "30"
-k6221_address = gpib_address + "13"
-mfli_id = "dev4285"  # for probing with MFLI
-sr830_address = gpib_address + "06"  # for probing with SR830
-itc503_address = gpib_address + "23"  # for temperature control with ITC503
-delta_address = gpib_address + "08"  # for magnetic field control with delta elektronica SM7045D
+vna_address = "visa://131.155.124.201/TCPIP0::VS1513648::inst0::INSTR"
 
 
 class PSWSProcedure(Procedure):
@@ -48,22 +42,39 @@ class PSWSProcedure(Procedure):
     )
 
     # General measurement settings
+    measurement_ports = ListParameter(
+        "Measurement ports",
+        choices=[
+            "2-port",
+            "1-port: S11",
+            "1-port: S22",
+        ],
+        default="2-port"
+    )
     measurement_type = ListParameter(
         "Type of measurement",
         choices=[
             "Field sweep",
             "Frequency sweep",
         ],
+        default="Frequency sweep"
     )
     averages = IntegerParameter(
         "Number of averages",
         default=4,
         minimum=1,
     )
-    average_nr = IntegerParameter(
-        "Average number",
-        default=0,
+    average_type = ListParameter(
+        "Averaging type",
+        choices=[
+            "point-by-point",
+            "sweep-by-sweep",
+        ]
     )
+    # average_nr = IntegerParameter(
+    #     "Average number",
+    #     default=0,
+    # )
 
     # Basic parameters
     rf_frequency = FloatParameter(
@@ -101,6 +112,36 @@ class PSWSProcedure(Procedure):
         minimum=1,  # TODO: find minimum bandwidth
         maximum=1e6,  # TODO: find maximum bandwidth
     )
+
+    # Frequency sweep settings
+    frequency_start = FloatParameter(
+        "Start frequency",
+        default=5e9,
+        minimum=0,  # TODO: find minimum frequency
+        maximum=40e9,  # TODO: find maximum frequency
+        units="Hz",
+        group_by="measurement_type",
+        group_condition="Frequency sweep",
+    )
+    frequency_stop = FloatParameter(
+        "Stop frequency",
+        default=15e9,
+        minimum=0,  # TODO: find minimum frequency
+        maximum=40e9,  # TODO: find maximum frequency
+        units="Hz",
+        group_by="measurement_type",
+        group_condition="Frequency sweep",
+    )
+    frequency_step = FloatParameter(
+        "Frequency steps",
+        default=1e8,
+        minimum=0,  # TODO: find minimum frequency
+        maximum=40e9,  # TODO: find maximum frequency
+        units="Hz",
+        group_by="measurement_type",
+        group_condition="Frequency sweep",
+    )
+
 
     # Metadata to be stored in the file
     measurement_date = Metadata("Measurement date", fget=datetime.now)
@@ -142,9 +183,31 @@ class PSWSProcedure(Procedure):
         """ Set up the properties and devices required for the measurement.
         The devices are connected and the default parameters are set.
         """
-        self.vna = VNA()
-        self.magnet = Magnet()
         ## Connect to instruments
+        self.vna = VNA(vna_address)
+        # self.magnet = Magnet()
+
+        ## Run general startup procedure
+        self.vna.startup()
+        self.vna.set_measurement_ports(self.measurement_ports)
+        # self.magnet.startup()
+
+        ## Run measurement-type-specific startup
+        if self.measurement_type == "Field sweep":
+            self.vna.prepare_field_sweep()
+        elif self.measurement_type == "Frequency sweep":
+            self.vna.prepare_frequency_sweep(
+                frequency_start=self.frequency_start,
+                frequency_stop=self.frequency_stop,
+                frequency_step_size=self.frequency_step,
+                averaging_type=self.average_type,
+                averages=self.averages,
+                bandwidth=self.rf_bandwidth,
+                power_level=self.rf_power,
+            )
+        else:
+            raise NotImplementedError(f"Measurement type {self.measurement_type} "
+                                      f"not yet implemented")
 
     # Define measurement procedure
     def execute(self):
