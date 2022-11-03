@@ -28,6 +28,7 @@ class Window(ManagedWindow):
             procedure_class=PSWSProcedure,
             inputs=(
                 "AB_filename_base",
+                "measurement_ports",
                 "measurement_type",
                 "frequency_start",
                 "frequency_stop",

@@ -193,21 +193,21 @@ class PSWSProcedure(Procedure):
         # self.magnet.startup()
 
         ## Run measurement-type-specific startup
-        if self.measurement_type == "Field sweep":
-            self.vna.prepare_field_sweep()
-        elif self.measurement_type == "Frequency sweep":
-            self.vna.prepare_frequency_sweep(
-                frequency_start=self.frequency_start,
-                frequency_stop=self.frequency_stop,
-                frequency_step_size=self.frequency_step,
-                averaging_type=self.average_type,
-                averages=self.averages,
-                bandwidth=self.rf_bandwidth,
-                power_level=self.rf_power,
-            )
-        else:
-            raise NotImplementedError(f"Measurement type {self.measurement_type} "
-                                      f"not yet implemented")
+        # if self.measurement_type == "Field sweep":
+        #     self.vna.prepare_field_sweep()
+        # elif self.measurement_type == "Frequency sweep":
+        #     self.vna.prepare_frequency_sweep(
+        #         frequency_start=self.frequency_start,
+        #         frequency_stop=self.frequency_stop,
+        #         frequency_step_size=self.frequency_step,
+        #         averaging_type=self.average_type,
+        #         averages=self.averages,
+        #         bandwidth=self.rf_bandwidth,
+        #         power_level=self.rf_power,
+        #     )
+        # else:
+        #     raise NotImplementedError(f"Measurement type {self.measurement_type} "
+        #                               f"not yet implemented")
 
     # Define measurement procedure
     def execute(self):
@@ -215,7 +215,7 @@ class PSWSProcedure(Procedure):
         the measurement is defined, all the actual activities are handled by
         helper functions (in the helpers section of this class).
         """
-        pass
+        sleep(2)
 
     def get_datapoint(self):
         data = {

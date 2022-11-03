@@ -49,6 +49,34 @@ class VNA(AnritsuMS4644B):
         self.ch_1.bandwidth
         self.ch_1.pt_1.power_level
 
+    def set_measurement_ports(self, measurement_ports):
+        if measurement_ports == "2-port":
+            self.ch_1.number_of_traces = 4
+            self.ch_1.tr_1.measurement_parameter = "S11"
+            self.ch_1.tr_2.measurement_parameter = "S12"
+            self.ch_1.tr_3.measurement_parameter = "S21"
+            self.ch_1.tr_4.measurement_parameter = "S22"
+
+        else:  # 1-port measurement
+            self.ch_1.number_of_traces = 1
+            self.ch_1.tr_1.measurement_parameter = measurement_ports[-3:]
+
+    def prepare_field_sweep(self):
+        raise NotImplementedError("Field sweep not yet implemented")
+
+    def prepare_frequency_sweep(
+            self,
+            frequency_start=None,
+            frequency_stop=None,
+            frequency_step_size=None,
+            power_level=None,
+            bandwidth=None,
+            averaging_type=None,
+            averages=None,
+    ):
+        raise NotImplementedError("Frequency sweep not yet implemented")
+
+
     def shutdown(self):
         # 5A: stop counter and triggering tasks
         #     TODO: uitzoeken hoe dit werkt
@@ -57,7 +85,8 @@ class VNA(AnritsuMS4644B):
         self.trigger_source = "AUTO"
 
         # Return control to front interface and enable data drawing
-        self.data_drawing_enabled = True
+        if not self.data_drawing_enabled:
+            self.data_drawing_enabled = True
         self.return_to_local()
 
         super().shutdown()

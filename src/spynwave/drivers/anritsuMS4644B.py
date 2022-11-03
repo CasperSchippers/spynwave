@@ -29,9 +29,9 @@ class NestedChannel(Channel):
         return self.parent.check_errors()
 
 
-class PortChannel(NestedChannel):
+class Port(NestedChannel):
     power_level = Channel.control(
-        "SOUR{ch}:POW:PORT{pt}?", "SOUR{ch}:POW:PORT{pt} ",
+        "SOUR{ch}:POW:PORT{pt}?", "SOUR{ch}:POW:PORT{pt} %g",
         """ A float property that controls the power level (in dBm) of the indicated port on the
         indicated channel.
         """,  # TODO: check units: dB or dBm
@@ -42,14 +42,50 @@ class PortChannel(NestedChannel):
     )
 
 
+class Trace(NestedChannel):
+    SPARAM_LIST = ["S11", "S12", "S21", "S22",
+                   "S13", "S23", "S33", "S31",
+                   "S32", "S14", "S24", "S34",
+                   "S41", "S42", "S43", "S44",]
+
+    measurement_parameter = Channel.control(
+        ":CALC{ch}:PAR{tr}:DEF?", ":CALC{ch}:PAR{tr}:DEF %s",
+        """ A string property that controls the measurement parameter of the indicated trace. Can be
+        set; valid values are any S-parameter (e.g. S11, S12, S41) for 4 ports, or one of the
+        following:
+        
+        =====   ================================================================
+        value   description
+        =====   ================================================================
+        Sxx     S-parameters (1-4 for both x)
+        MIX     Response Mixed Mode
+        NFIG    Noise Figure trace response (only with option 41 or 48)
+        NPOW    Noise Power trace response (only with option 41 or 48)
+        NTEMP   Noise Temperature trace response (only with option 41 or 48)
+        AGA     Noise Figure Available Gain trace response (only with option 48)
+        IGA     Noise Figure Insertion Gain trace response (only with option 48)
+        =====   ================================================================
+        
+        
+        """,
+        values=SPARAM_LIST + ["MIX", "NFIG", "NPOW", "NTEMP", "AGA", "IGA"],
+        validator=strict_discrete_set,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+
 class MeasurementChannel(NestedChannel):
     FREQUENCY_RANGE = [1E7, 4E10]
+    TRACES = 16
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         for pt in self.parent.PORT_LIST:
-            self.add_child(PortChannel, pt, collection="ports", prefix="pt", placeholder="pt")
+            self.add_child(Port, pt, collection="ports", prefix="pt", placeholder="pt")
+        for tr in self.parent.TRACE_LIST:
+            self.add_child(Trace, tr, collection="traces", prefix="tr", placeholder="tr")
 
     def check_errors(self):
         return self.parent.check_errors()
@@ -57,6 +93,18 @@ class MeasurementChannel(NestedChannel):
     def activate(self):
         """ Sets the indicated channel as the active channel. """
         self.write(":DISP:WIND{ch}:ACT")
+
+    number_of_traces = Channel.control(
+        ":CALC{ch}:PAR:COUN?", ":CALC{ch}:PAR:COUN %d",
+        """ An integer property that controls the number of traces on the specified channel. Valid
+        values are between 1 and 16; can be set.
+        """,
+        values=[1, TRACES],
+        validator=strict_range,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
 
     application_type = Channel.control(
         ":CALC{ch}:APPL:MEAS:TYP?", ":CALC{ch}:APPL:MEAS:TYP %s",
@@ -213,6 +261,8 @@ class AnritsuMS4644B(Instrument):
     """
     CHANNELS = 16
     CHANNEL_LIST = list(range(1, CHANNELS+1))
+    TRACES = 16
+    TRACE_LIST = list(range(1, TRACES+1))
     PORTS = 4  # TODO: check number: 4 or 7/8
     PORT_LIST = list(range(1, PORTS+1))
 
