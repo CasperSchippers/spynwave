@@ -9,18 +9,28 @@ from pymeasure.instruments.validators import (
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+# TODO: check if this is still up to date with the channels implementation
+class NestedChannel(Channel):
+    def __init__(self, *args, placeholder='ch', **kwargs):
+        self.placeholder = placeholder
+        super().__init__(*args, **kwargs)
 
-class PortChannel(Channel):
+    class SafeDict(dict):
+        def __missing__(self, key):
+            return '{' + key + '}'
+
     def write(self, command, **kwargs):
         # TODO: check if ch="{ch}" is the best way to approach this
-        self.parent.write(command.format(pt=self.id, ch="{ch}"), **kwargs)
+        self.parent.write(command.format_map(self.SafeDict({self.placeholder: self.id})), **kwargs)
 
     def write_binary_values(self, command, values, *args, **kwargs):
-        self.parent.write_binary_values(command.format(pt=self.id, ch="{ch}"), values, *args, **kwargs)
+        self.parent.write_binary_values(command.format_map(self.SafeDict({self.placeholder: self.id})), values, *args, **kwargs)
     def check_errors(self):
         return self.parent.check_errors()
 
-    # TODO: Have a look if this can also be transformed into a sort of sub-channel
+
+
+class PortChannel(NestedChannel):
     power_level = Channel.control(
         "SOUR{ch}:POW:PORT{pt}?", "SOUR{ch}:POW:PORT{pt} ",
         """ A float property that controls the power level (in dBm) of the indicated port on the
@@ -32,14 +42,14 @@ class PortChannel(Channel):
         check_set_errors=True,
     )
 
-class MeasurementChannel(Channel):
+class MeasurementChannel(NestedChannel):
     FREQUENCY_RANGE = [1E7, 4E10]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         for pt in self.parent.PORT_LIST:
-            self.add_child(PortChannel, pt, collection="ports", prefix="pt")
+            self.add_child(PortChannel, pt, collection="ports", prefix="pt", placeholder="pt")
 
     def check_errors(self):
         return self.parent.check_errors()
