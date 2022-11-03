@@ -319,7 +319,7 @@ class AnritsuMS4644B(Instrument):
         self.write("RTL")
 
     binary_data_byte_order = Instrument.control(
-        ":FORM:BORD?", ":FORM:BORD NORM",
+        ":FORM:BORD?", ":FORM:BORD %s",
         """ A string property that controls the binary numeric I/O data byte order. Can be set;
         valid values are:
         
