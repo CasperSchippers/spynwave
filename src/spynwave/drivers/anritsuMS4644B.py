@@ -44,6 +44,10 @@ class Port(NestedChannel):
 
 
 class Trace(NestedChannel):
+    def activate(self):
+        """ Sets the indicated trace as the active one. """
+        self.write(":CALC{ch}:PAR{tr}:SEL")
+
     SPARAM_LIST = ["S11", "S12", "S21", "S22",
                    "S13", "S23", "S33", "S31",
                    "S32", "S14", "S24", "S34",
@@ -107,6 +111,15 @@ class MeasurementChannel(NestedChannel):
         check_set_errors=True,
     )
 
+    active_trace = Instrument.setting(
+        ":CALC{ch}:PAR%d:SEL",
+        """ An integer property that sets the active trace on the indicated channel.
+        """,
+        values=TRACES,
+        validator=strict_range,
+        check_set_errors=True,
+    )
+
     display_layout = Channel.control(
         ":DISP:WIND{ch}:SPL?", ":DISP:WIND{ch}:SPL %s",
         """ A string property that controls the trace display layout in a Row-by-Column format for
@@ -152,6 +165,41 @@ class MeasurementChannel(NestedChannel):
         """,
         values=["CONT", "HOLD", "SING"],
         validator=strict_discrete_set,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    cw_mode_enabled = Channel.control(
+        ":SENS{ch}:SWE:CW?", ":SENS{ch}:SWE:CW %d",
+        """ A bool property that controls the state of the CW sweep mode of the indicated channel.
+        Can be set.
+        """,
+        values={True: 1, False: 0},
+        map_values=True,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    cw_number_of_points = Channel.control(
+        ":SENS{ch}:SWE:CW:POIN?", ":SENS{ch}:SWE:CW:POIN %g",
+        """ An integer property that controls the CW sweep mode number of points of the indicated
+        channel. Can be set; valid values are between 1 and 25000 or 100000 depending on the maximum
+        points setting.
+        """,
+        values=[1, 100000],
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    number_of_points = Channel.control(
+        "SENS{ch}:SWE:POIN?", "SENS{ch}:SWE:POIN %g",
+        """ An integer property that controls the number of measurement points in a frequency sweep of
+        the indicated channel. Can be set; valid values are between 1 and 25000 or 100000 depending on
+        the maximum points setting.
+        """,
+        values=[1, 100000],
+        cast=int,
         check_get_errors=True,
         check_set_errors=True,
     )
@@ -221,8 +269,8 @@ class MeasurementChannel(NestedChannel):
 
     average_count = Channel.control(
         ":SENS{ch}:AVER:COUN?", ":SENS{ch}:AVER:COUN %d",
-        """ An integer property that controls the averaging count for the indicated channel. The channel
-        must be turned on. Valid values are between 1 and 1024; can be set.
+        """ An integer property that controls the averaging count for the indicated channel. The
+        channel must be turned on. Valid values are between 1 and 1024; can be set.
         """,
         values=[1, 1024],
         validator=strict_range,
@@ -282,6 +330,7 @@ class AnritsuMS4644B(Instrument):
     CHANNELS = [1, 16]
     TRACES = [1, 16]
     PORTS = [1, 4]  # TODO: check number: 4 or 7/8
+    TRIGGER_TYPES = ["POIN", "SWE", "CHAN", "ALL"]
 
     def __init__(self, adapter, **kwargs):
         super().__init__(
@@ -373,14 +422,6 @@ class AnritsuMS4644B(Instrument):
         check_set_errors=True,
     )
 
-    installed_options = Instrument.measurement(
-        "*OPT?",
-        """ An integer property that returns the options that have been installed on the instrument.
-        Refer to the user manual for explanation of the option numbers.
-        """,
-        cast=int,
-    )
-
     def return_to_local(self):
         """ Returns the instrument to local operation. """
         self.write("RTL")
@@ -453,12 +494,22 @@ class AnritsuMS4644B(Instrument):
     )
 
     active_channel = Instrument.control(
-        ":DISP:WIND:ACT?",":DISP:WIND%d:ACT",
+        ":DISP:WIND:ACT?", ":DISP:WIND%d:ACT",
         """ An integer property that controls the active channel. This property can be set.
         """,
         values=CHANNELS,
         validator=strict_range,
         cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    bandwidth_enhancer_enabled = Instrument.control(
+        ":SENS:BAND:ENH?", ":SENS:BAND:ENH %d",
+        """ A boolean property that controls the state of the IF bandwidth enhancer. Can be set.
+        """,
+        values={True: 1, False: 0},
+        map_values=True,
         check_get_errors=True,
         check_set_errors=True,
     )
@@ -486,10 +537,11 @@ class AnritsuMS4644B(Instrument):
 
     external_trigger_type = Instrument.control(
         ":TRIG:EXT:TYP?", ":TRIG:EXT:TYP %s",
-        """ A string property that controls the source of the sweep/measurement triggering. Can be
-        set; valid values are POIN (for point), SWE (for sweep), CHAN (for channel), and ALL.
+        """ A string property that controls the type of trigger that will be associated with the 
+        external trigger. Can be set; valid values are POIN (for point), SWE (for sweep), CHAN 
+        (for channel), and ALL.
         """,
-        values=["POIN", "SWE", "CHAN", "ALL"],
+        values=TRIGGER_TYPES,
         validator=strict_discrete_set,
         check_get_errors=True,
         check_set_errors=True,
@@ -527,6 +579,44 @@ class AnritsuMS4644B(Instrument):
         check_get_errors=True,
         check_set_errors=True,
     )
+
+    remote_trigger_type = Instrument.control(
+        ":TRIG:REM:TYP?", ":TRIG:REM:TYP %s",
+        """ A string property that controls the type of trigger that will be associated with the 
+        remote trigger. Can be set; valid values are POIN (for point), SWE (for sweep), CHAN 
+        (for channel), and ALL.
+        """,
+        values=TRIGGER_TYPES,
+        validator=strict_discrete_set,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    manual_trigger_type = Instrument.control(
+        ":TRIG:MAN:TYP?", ":TRIG:MAN:TYP %s",
+        """ A string property that controls the type of trigger that will be associated with the 
+        manual trigger. Can be set; valid values are POIN (for point), SWE (for sweep), CHAN 
+        (for channel), and ALL.
+        """,
+        values=TRIGGER_TYPES,
+        validator=strict_discrete_set,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    def trigger(self):
+        """ Triggers a continuous sweep from the remote interface. """
+        self.write("*TRG")
+
+    def trigger_single(self):
+        """ Triggers a single sweep with synchronization from the remote interface. """
+        self.write(":TRIG:SING")
+
+    def trigger_continuous(self):
+        """ Triggers a continuous sweep from the remote interface. """
+        self.write(":TRIG")
+
+
 
     hold_function_all_channels = Instrument.control(
         ":SENS:HOLD:FUNC?", ":SENS:HOLD:FUNC %s",
