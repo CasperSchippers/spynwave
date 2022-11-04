@@ -60,6 +60,7 @@ class Window(ManagedWindow):
 
         folder = self.directory
         filename = procedure.AB_filename_base
+        measurement_type = procedure.measurement_type
 
         procedure.set_parameters({
             "AA_folder": folder,
@@ -84,6 +85,14 @@ class Window(ManagedWindow):
 
         experiment = self.new_experiment(results)
         self.manager.queue(experiment)
+
+        # Adjust graph depending on the measurement type
+        if measurement_type == "Frequency sweep":
+            self.plot_widget.columns_x.setCurrentText("Frequency (Hz)")
+            self.plot_widget.plot_frame.change_x_axis("Frequency (Hz)")
+        elif measurement_type == "Field sweep":
+            self.plot_widget.columns_x.setCurrentText("Field (T)")
+            self.plot_widget.plot_frame.change_x_axis("Field (T)")
 
     def queue_repeated(self, *args, procedure=None):
         if procedure is None:
