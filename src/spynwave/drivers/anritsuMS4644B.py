@@ -25,6 +25,7 @@ class NestedChannel(Channel):
 
     def write_binary_values(self, command, values, *args, **kwargs):
         self.parent.write_binary_values(command.format_map(self.SafeDict({self.placeholder: self.id})), values, *args, **kwargs)
+
     def check_errors(self):
         return self.parent.check_errors()
 
@@ -77,15 +78,15 @@ class Trace(NestedChannel):
 
 class MeasurementChannel(NestedChannel):
     FREQUENCY_RANGE = [1E7, 4E10]
-    TRACES = 16
+    TRACES = [1, 16]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        for pt in self.parent.PORT_LIST:
-            self.add_child(Port, pt, collection="ports", prefix="pt", placeholder="pt")
-        for tr in self.parent.TRACE_LIST:
-            self.add_child(Trace, tr, collection="traces", prefix="tr", placeholder="tr")
+        for pt in range(self.parent.PORTS[1]):
+            self.add_child(Port, pt + 1, collection="ports", prefix="pt", placeholder="pt")
+        for tr in range(self.TRACES[1]):
+            self.add_child(Trace, tr + 1, collection="traces", prefix="tr", placeholder="tr")
 
     def check_errors(self):
         return self.parent.check_errors()
@@ -99,8 +100,27 @@ class MeasurementChannel(NestedChannel):
         """ An integer property that controls the number of traces on the specified channel. Valid
         values are between 1 and 16; can be set.
         """,
-        values=[1, TRACES],
+        values=TRACES,
         validator=strict_range,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    display_layout = Channel.control(
+        ":DISP:WIND{ch}:SPL?", ":DISP:WIND{ch}:SPL %s",
+        """ A string property that controls the trace display layout in a Row-by-Column format for
+        the indicated channel. Can be set; valid values are: R1C1, R1C2, R2C1, R1C3, R3C1, R2C2C1,
+        R2C1C2, C2R2R1, C2R1R2, R1C4, R4C1, R2C2, R2C3, R3C2, R2C4, R4C2, R3C3, R5C2, R2C5, R4C3,
+        R3C4, R4C4. The number following the R indicates the number of rows, following the C the
+        number of columns.
+        """,
+        values=["R1C1", "R1C2", "R2C1", "R1C3", "R3C1",
+                "R2C2C1", "R2C1C2", "C2R2R1", "C2R1R2",
+                "R1C4", "R4C1", "R2C2", "R2C3", "R3C2",
+                "R2C4", "R4C2", "R3C3", "R5C2", "R2C5",
+                "R4C3", "R3C4", "R4C4"],
+        validator=strict_discrete_set,
         cast=int,
         check_get_errors=True,
         check_set_errors=True,
@@ -259,12 +279,9 @@ class AnritsuMS4644B(Instrument):
     """ A class representing the Anritsu MS4644B Vector Network Analyzer (VNA).
 
     """
-    CHANNELS = 16
-    CHANNEL_LIST = list(range(1, CHANNELS+1))
-    TRACES = 16
-    TRACE_LIST = list(range(1, TRACES+1))
-    PORTS = 4  # TODO: check number: 4 or 7/8
-    PORT_LIST = list(range(1, PORTS+1))
+    CHANNELS = [1, 16]
+    TRACES = [1, 16]
+    PORTS = [1, 4]  # TODO: check number: 4 or 7/8
 
     def __init__(self, adapter, **kwargs):
         super().__init__(
@@ -273,8 +290,8 @@ class AnritsuMS4644B(Instrument):
             **kwargs,
         )
 
-        for ch in self.CHANNEL_LIST:
-            self.add_child(MeasurementChannel, ch)
+        for ch in range(self.CHANNELS[1]):
+            self.add_child(MeasurementChannel, ch+1)
 
     def check_errors(self):
         """ Read all errors from the instrument.
@@ -417,12 +434,30 @@ class AnritsuMS4644B(Instrument):
         check_set_errors=True,
     )
 
+    display_layout = Channel.control(
+        ":DISP:SPL?", ":DISP:SPL %s",
+        """ A string property that controls the channel display layout in a Row-by-Column format. 
+        Can be set; valid values are: R1C1, R1C2, R2C1, R1C3, R3C1, R2C2C1, R2C1C2, C2R2R1, C2R1R2,
+        R1C4, R4C1, R2C2, R2C3, R3C2, R2C4, R4C2, R3C3, R5C2, R2C5, R4C3, R3C4, R4C4. The number
+        following the R indicates the number of rows, following the C the number of columns.
+        """,
+        values=["R1C1", "R1C2", "R2C1", "R1C3", "R3C1",
+                "R2C2C1", "R2C1C2", "C2R2R1", "C2R1R2",
+                "R1C4", "R4C1", "R2C2", "R2C3", "R3C2",
+                "R2C4", "R4C2", "R3C3", "R5C2", "R2C5",
+                "R4C3", "R3C4", "R4C4"],
+        validator=strict_discrete_set,
+        cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
     active_channel = Instrument.control(
         ":DISP:WIND:ACT?",":DISP:WIND%d:ACT",
         """ An integer property that controls the active channel. This property can be set.
         """,
-        validator=strict_discrete_set,
-        values=CHANNEL_LIST,
+        values=CHANNELS,
+        validator=strict_range,
         cast=int,
         check_get_errors=True,
         check_set_errors=True,

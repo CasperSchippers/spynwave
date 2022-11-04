@@ -52,6 +52,7 @@ class VNA(AnritsuMS4644B):
     def set_measurement_ports(self, measurement_ports):
         if measurement_ports == "2-port":
             self.ch_1.number_of_traces = 4
+            self.ch_1.display_layout = "R2C2"
             self.ch_1.tr_1.measurement_parameter = "S11"
             self.ch_1.tr_2.measurement_parameter = "S12"
             self.ch_1.tr_3.measurement_parameter = "S21"
@@ -59,6 +60,7 @@ class VNA(AnritsuMS4644B):
 
         else:  # 1-port measurement
             self.ch_1.number_of_traces = 1
+            self.ch_1.display_layout = "R1C1"
             self.ch_1.tr_1.measurement_parameter = measurement_ports[-3:]
 
     def prepare_field_sweep(self):
@@ -75,7 +77,6 @@ class VNA(AnritsuMS4644B):
             averages=None,
     ):
         raise NotImplementedError("Frequency sweep not yet implemented")
-
 
     def shutdown(self):
         # 5A: stop counter and triggering tasks
