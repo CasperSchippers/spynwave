@@ -229,14 +229,19 @@ class PSWSProcedure(Procedure):
 
     def execute_frequency_sweep(self):
         self.vna.trigger_frequency_sweep()
+        start = time()
         while not self.should_stop():
             cnt = self.vna.ch_1.average_sweep_count
             self.emit("progress", cnt/self.averages * 100)
             if cnt >= self.averages:
                 break
             self.sleep()
+        stop = time()
 
         data = self.vna.grab_data()
+
+        data["Timestamp (s)"] = (stop + start) / 2
+
         self.emit("results", data)
 
     def get_datapoint(self):

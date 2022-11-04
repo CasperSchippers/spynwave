@@ -103,21 +103,33 @@ class VNA(AnritsuMS4644B):
         if self.use_DAQmx:
             NotImplementedError("Triggering using DAQmx not yet implemented")
         else:
-            self.trigger()
+            self.trigger_continuous()
 
     def grab_data(self):
         # TODO: check if this can be done using SCPI commands
+
+        # Set output format
+        self.datablock_header_format = 2
+        self.datafile_numeric_format = "ASC"
+        self.datafile_include_heading = True
+        self.datafile_frequency_unit = "HZ"
+        self.datafile_parameter_format = "REIM"
+
+        # Check for errors before continuing
         self.check_errors()
 
-        # Output the S2P file data.
-        self.write("OS2P")
+        if self.datablock_header_format == 2:
+            # Output the S2P file data.
+            raw = self.ask("OS2P")
+        else:
+            self.write("OS2P")
 
-        # Determine the amount of bytes to read from the buffer
-        length = int(self.read_bytes(2).decode('ascii')[1])
-        length = int(self.read_bytes(length).decode('ascii')) + 1
+            # Determine the amount of bytes to read from the buffer
+            length = int(self.read_bytes(2).decode('ascii')[1])
+            length = int(self.read_bytes(length).decode('ascii')) + 1
 
-        # Read the data
-        raw = self.read_bytes(length).decode('ascii')
+            # Read the data
+            raw = self.read_bytes(length).decode('ascii')
 
         self.check_errors()
 
@@ -129,7 +141,7 @@ class VNA(AnritsuMS4644B):
         filtered = "\n".join(filtered)
 
         data = pd.read_csv(StringIO(filtered), delim_whitespace=True).rename(columns={
-            "FREQ.GHZ": "Frequency (Hz)",
+            "FREQ.HZ": "Frequency (Hz)",
             "S11RE": "S11 real",
             "S11IM": "S11 imag",
             "S21RE": "S21 real",
@@ -139,7 +151,6 @@ class VNA(AnritsuMS4644B):
             "S22RE": "S22 real",
             "S22IM": "S22 imag",
         })
-        data["Frequency (Hz)"] *= 1E6
 
         return data
 
@@ -147,7 +158,7 @@ class VNA(AnritsuMS4644B):
         # 5A: stop counter and triggering tasks
         #     TODO: uitzoeken hoe dit werkt
 
-        self.output_data_format = 1
+        self.datablock_header_format = 1
         self.trigger_source = "AUTO"
 
         # Return control to front interface and enable data drawing

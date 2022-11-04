@@ -358,7 +358,7 @@ class AnritsuMS4644B(Instrument):
                 break
         return errors
 
-    output_data_format = Instrument.control(
+    datablock_header_format = Instrument.control(
         "FDHX?", "FDH%d",
         """ An integer property that controls the way the arbitrary block header for output data is
         formed. Can be set; valid values are:
@@ -374,6 +374,65 @@ class AnritsuMS4644B(Instrument):
         values=[0, 1, 2],
         validator=strict_discrete_set,
         cast=int,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    datafile_frequency_unit = Instrument.control(
+        ":FORM:SNP:FREQ?", ":FORM:SNP:FREQ %s",
+        """ A string property that controls the frequency unit displayed in an SNP data file. Can be
+        set; valid values are HZ, KHZ, MHZ, GHZ.
+        """,
+        values=["HZ", "KHZ", "MHZ", "GHZ"],
+        validator=strict_discrete_set,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    datafile_numeric_format = Instrument.control(
+        ":FORM:DATA?", ":FORM:DATA %s",
+        """ A string property that controls format for numeric I/O data representation. Can be set;
+        valid values are:
+        
+        ======   ==========================================================================
+        value    description
+        ======   ==========================================================================
+        ASC      An ASCII number of 20 or 21 characters long with floating point notation.
+        REAL     8 Bytes of binary floating point number representation limited to 64 bits.
+        REAL32   4 Bytes of floating point number representation.
+        ======   ==========================================================================
+        """,
+        values=["ASC", "REAL", "REAL32"],
+        validator=strict_discrete_set,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    datafile_include_heading = Instrument.control(
+        ":FORM:DATA:HEAD?", ":FORM:DATA:HEAD %d",
+        """ A boolean property that controls whether a heading is included in the data files.
+        """,
+        values={True: 1, False: 0},
+        map_values=True,
+        check_get_errors=True,
+        check_set_errors=True,
+    )
+
+    datafile_parameter_format = Instrument.control(
+        ":FORM:SNP:PAR?", ":FORM:SNP:PAR %s",
+        """ A string property that controls the parameter format displayed in an SNP data file. Can 
+        be set; valid values are:
+        
+        =====   ===========================
+        value   description
+        =====   ===========================
+        LINPH   Linear and Phase.
+        LOGPH   Log and Phase.
+        REIM    Real and Imaginary Numbers.
+        =====   ===========================
+        """,
+        values=["LINPH", "LOGPH", "REIM"],
+        validator=strict_discrete_set,
         check_get_errors=True,
         check_set_errors=True,
     )
