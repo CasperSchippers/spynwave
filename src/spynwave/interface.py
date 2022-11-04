@@ -12,6 +12,7 @@ from pymeasure.display.windows import ManagedWindow
 from pymeasure.experiment import Results, unique_filename, replace_placeholders
 
 from spynwave.procedure import PSWSProcedure
+from spynwave.pymeasure_patches.pandas_formatter import CSVFormatterPandas
 
 
 # Setup logging
@@ -73,6 +74,14 @@ class Window(ManagedWindow):
         )
 
         results = Results(procedure, filename)
+
+        # Can be changed when the CSVFormatterPandas is merged
+        results.formatter = CSVFormatterPandas(
+            columns=results.procedure.DATA_COLUMNS,
+            delimiter=results.DELIMITER,
+            line_break=results.LINE_BREAK
+            )
+
         experiment = self.new_experiment(results)
         self.manager.queue(experiment)
 
