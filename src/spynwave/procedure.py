@@ -61,7 +61,7 @@ class PSWSProcedure(Procedure):
     )
     averages = IntegerParameter(
         "Number of averages",
-        default=4,
+        default=2,
         minimum=1,
     )
     average_type = ListParameter(
@@ -69,7 +69,8 @@ class PSWSProcedure(Procedure):
         choices=[
             "point-by-point",
             "sweep-by-sweep",
-        ]
+        ],
+        default="sweep-by-sweep",
     )
     # average_nr = IntegerParameter(
     #     "Average number",
@@ -132,12 +133,11 @@ class PSWSProcedure(Procedure):
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
-    frequency_step = FloatParameter(
-        "Frequency steps",
-        default=1e8,
-        minimum=0,  # TODO: find minimum frequency
-        maximum=40e9,  # TODO: find maximum frequency
-        units="Hz",
+    frequency_points = IntegerParameter(
+        "Frequency points",
+        default=201,
+        minimum=1,  # TODO: find minimum frequency steps
+        maximum=100000,  # TODO: find maximum frequency steps
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
@@ -160,8 +160,8 @@ class PSWSProcedure(Procedure):
         "S21 imag",
         "S12 real",
         "S12 imag",
-        "S22 imag",
         "S22 real",
+        "S22 imag",
     ]
 
     # initiate instrument attributes
@@ -190,24 +190,30 @@ class PSWSProcedure(Procedure):
         ## Run general startup procedure
         self.vna.startup()
         self.vna.set_measurement_ports(self.measurement_ports)
+        self.vna.general_measurement_settings(
+            bandwidth=self.rf_bandwidth,
+            power_level=self.rf_power,
+        )
+        self.vna.configure_averaging(
+            enabled=True,
+            average_count=self.averages,
+            averaging_type=self.average_type,
+        )
+
         # self.magnet.startup()
 
         ## Run measurement-type-specific startup
-        # if self.measurement_type == "Field sweep":
-        #     self.vna.prepare_field_sweep()
-        # elif self.measurement_type == "Frequency sweep":
-        #     self.vna.prepare_frequency_sweep(
-        #         frequency_start=self.frequency_start,
-        #         frequency_stop=self.frequency_stop,
-        #         frequency_step_size=self.frequency_step,
-        #         averaging_type=self.average_type,
-        #         averages=self.averages,
-        #         bandwidth=self.rf_bandwidth,
-        #         power_level=self.rf_power,
-        #     )
-        # else:
-        #     raise NotImplementedError(f"Measurement type {self.measurement_type} "
-        #                               f"not yet implemented")
+        if self.measurement_type == "Frequency sweep":
+            self.vna.prepare_frequency_sweep(
+                frequency_start=self.frequency_start,
+                frequency_stop=self.frequency_stop,
+                frequency_points=self.frequency_points,
+            )
+        else:
+            raise NotImplementedError(f"Measurement type {self.measurement_type} "
+                                      f"not yet implemented")
+
+        self.vna.reset_to_measure()
 
     # Define measurement procedure
     def execute(self):
@@ -215,7 +221,23 @@ class PSWSProcedure(Procedure):
         the measurement is defined, all the actual activities are handled by
         helper functions (in the helpers section of this class).
         """
-        sleep(2)
+        if self.measurement_type == "Frequency sweep":
+            self.execute_frequency_sweep()
+        else:
+            raise NotImplementedError(f"Measurement type {self.measurement_type} "
+                                      f"not yet implemented")
+
+    def execute_frequency_sweep(self):
+        self.vna.trigger_frequency_sweep()
+        while not self.should_stop():
+            cnt = self.vna.ch_1.average_sweep_count
+            self.emit("progress", cnt/self.averages * 100)
+            if cnt >= self.averages:
+                break
+            self.sleep()
+
+        data = self.vna.grab_data()
+        self.emit("results", data)
 
     def get_datapoint(self):
         data = {
@@ -245,14 +267,11 @@ class PSWSProcedure(Procedure):
 
     """
 
-    def sleep(self, duration=None):
-        if duration is None:
-            duration = self.delay
-
+    def sleep(self, duration=0.1):
         t0 = time()
         while time() - t0 < duration and not self.should_stop():
             sleep(0.01)
 
-    def get_estimates(self, sequence_length=0):
-        estimates = list()
-        return estimates
+    # def get_estimates(self, sequence_length=0):
+    #     estimates = list()
+    #     return estimates

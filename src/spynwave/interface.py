@@ -33,7 +33,7 @@ class Window(ManagedWindow):
                 "measurement_type",
                 "frequency_start",
                 "frequency_stop",
-                "frequency_step",
+                "frequency_points",
                 "averages",
                 "average_type",
                 "rf_frequency",
