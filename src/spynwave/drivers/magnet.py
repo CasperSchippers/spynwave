@@ -5,6 +5,9 @@ This file is part of the SpynWave package.
 import pandas as pd
 from scipy.interpolate import interp1d
 
+# TODO: should be updated on pymeasure
+from spynwave.pymeasure_patches.sm7045d import SM7045D
+
 address_magnet = "ASRL3::INSTR"
 
 labjack_settings = {
