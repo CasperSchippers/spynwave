@@ -9,28 +9,31 @@ from pymeasure.instruments.validators import (
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+
 # TODO: check if this is still up to date with the channels implementation
 class NestedChannel(Channel):
-    def __init__(self, *args, placeholder='ch', **kwargs):
-        self.placeholder = placeholder
-        super().__init__(*args, **kwargs)
-
+    placeholder = "ch"
     class SafeDict(dict):
         def __missing__(self, key):
             return '{' + key + '}'
 
-    def write(self, command, **kwargs):
+    def replace_placeholder(self, command):
         # TODO: check if ch="{ch}" is the best way to approach this
-        self.parent.write(command.format_map(self.SafeDict({self.placeholder: self.id})), **kwargs)
+        return command.format_map(self.SafeDict({self.placeholder: self.id}))
+
+    def write(self, command, **kwargs):
+        self.parent.write(self.replace_placeholder(command), **kwargs)
 
     def write_binary_values(self, command, values, *args, **kwargs):
-        self.parent.write_binary_values(command.format_map(self.SafeDict({self.placeholder: self.id})), values, *args, **kwargs)
+        self.parent.write_binary_values(self.replace_placeholder(command), values, *args, **kwargs)
 
     def check_errors(self):
         return self.parent.check_errors()
 
 
 class Port(NestedChannel):
+    placeholder = "pt"
+
     power_level = Channel.control(
         "SOUR{ch}:POW:PORT{pt}?", "SOUR{ch}:POW:PORT{pt} %g",
         """ A float property that controls the power level (in dBm) of the indicated port on the
@@ -44,6 +47,8 @@ class Port(NestedChannel):
 
 
 class Trace(NestedChannel):
+    placeholder = "tr"
+
     def activate(self):
         """ Sets the indicated trace as the active one. """
         self.write(":CALC{ch}:PAR{tr}:SEL")
@@ -88,9 +93,9 @@ class MeasurementChannel(NestedChannel):
         super().__init__(*args, **kwargs)
 
         for pt in range(self.parent.PORTS[1]):
-            self.add_child(Port, pt + 1, collection="ports", prefix="pt", placeholder="pt")
+            self.add_child(Port, pt + 1, collection="ports", prefix="pt")
         for tr in range(self.TRACES[1]):
-            self.add_child(Trace, tr + 1, collection="traces", prefix="tr", placeholder="tr")
+            self.add_child(Trace, tr + 1, collection="traces", prefix="tr")
 
     def check_errors(self):
         return self.parent.check_errors()
