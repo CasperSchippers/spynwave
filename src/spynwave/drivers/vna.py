@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 from io import StringIO
 
-from spynwave.drivers.anritsuMS4644B import AnritsuMS4644B
+from spynwave.pymeasure_patches.anritsuMS4644B import AnritsuMS4644B
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
