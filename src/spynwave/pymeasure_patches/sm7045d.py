@@ -106,12 +106,14 @@ class SM7045D(Instrument):
         Disable remote shutdown, hence output will be enabled.
         """
         self.write("SO:FU:RSD 0")
+        self.write("SO:FU:OUTP 1")
 
     def disable(self):
         """
         Enables remote shutdown, hence input will be disabled.
         """
         self.write("SO:FU:RSD 1")
+        self.write("SO:FU:OUTP 0")
 
     def ramp_to_current(self, target_current, current_step=0.1):
         """

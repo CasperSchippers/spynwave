@@ -210,6 +210,7 @@ class PSWSProcedure(Procedure):
                 frequency_points=self.frequency_points,
             )
             self.magnet.set_field(self.magnetic_field, method="ramp")
+            self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
         else:
             raise NotImplementedError(f"Measurement type {self.measurement_type} "
                                       f"not yet implemented")
@@ -231,23 +232,33 @@ class PSWSProcedure(Procedure):
     def execute_frequency_sweep(self):
         self.vna.trigger_frequency_sweep()
         start = time()
+
+        field_points = [self.magnet.measure_field()]
+
         while not self.should_stop():
             cnt = self.vna.ch_1.average_sweep_count
             self.emit("progress", cnt/self.averages * 100)
+
+            # Measure the field while waiting
+            field_points.append(self.magnet.measure_field())
+
             if cnt >= self.averages:
                 break
             self.sleep()
+
         stop = time()
 
         data = self.vna.grab_data()
 
         data["Timestamp (s)"] = (stop + start) / 2
+        data["Field (T)"] = sum(field_points) / len(field_points)
 
         self.emit("results", data)
 
     def get_datapoint(self):
         data = {
             "Timestamp (s)": time(),
+            "Field (T)": self.magnet.measure_field()
         }
 
         return data

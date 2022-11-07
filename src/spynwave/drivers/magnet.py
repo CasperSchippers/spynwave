@@ -3,22 +3,36 @@ This file is part of the SpynWave package.
 """
 
 import math
-from time import sleep
+from time import time, sleep
 import pandas as pd
 from scipy.interpolate import interp1d
+
+from pymeasure.instruments.lakeshore import LakeShore421
+import u12  # LabJack library from labjackpython
 
 # TODO: should be updated on pymeasure
 from spynwave.pymeasure_patches.sm7045d import SM7045D
 
-import u12  # LabJack library from labjackpython
 
-address_magnet = "ASRL3::INSTR"
+address_power_supply = "ASRL3::INSTR"
+address_gauss_meter = "ASRL9::INSTR"
 
 labjack_settings = {
     "ID": 0,
     "voltage_channel": 1,
     "positive_polarity_bit": 2,
     "negative_polarity_bit": 1,
+}
+gauss_meter_setting = {
+    "range": 3,  # tesla
+    "fastmode": True,
+    "autorange": "Software",  # "Hardware", "Software", "None"
+    # Note: the hardware auto-range is terrible.
+    # Use 'adjust range' for software auto-ranging.
+    # Auto-range and Adjust-range are mutally exclusive!
+    "fastmode_reading_frequency": 0.1,  # seconds,
+    "normalmode_reading_frequency": 0.1,  # seconds,
+
 }
 calibration_file = "magnet_calibration.txt"
 
@@ -40,8 +54,13 @@ class Magnet:
     bitSelect_positive = 2**labjack_settings["positive_polarity_bit"]
     bitSelect_negative = 2**labjack_settings["negative_polarity_bit"]
 
+    gauss_meter_ranges = [3., 0.3, 0.03, 0.003]
+    gauss_meter_range_edges = [(0.25, 3.5), (0.025, 0.27), (0.0025, 0.027), (0, 0.0027)]
+    gauss_meter_range = 0
+    gauss_meter_software_adjust = gauss_meter_setting["autorange"] == "Software"
+
     def __init__(self):
-        self.power_supply = SM7045D(address_magnet)
+        self.power_supply = SM7045D(address_power_supply)
         self.max_current = self.power_supply.max_current
         self.max_voltage = self.power_supply.max_voltage
 
@@ -55,9 +74,13 @@ class Magnet:
             updateDigital=True
         )
 
+        self.gauss_meter = LakeShore421(address_gauss_meter)
+        self.gauss_meter.check_errors()
+
     def startup(self):
         self.load_calibration()
 
+        ## Prepare current supply and labjack for magnetic field
         self.last_current = self.power_supply.current
         # self.power_supply.voltage
         # self.power_supply.ask("SE:DI:DA?")  # TODO: not sure what this does
@@ -68,11 +91,20 @@ class Magnet:
 
         self.power_supply.voltage = self.max_voltage
         self.power_supply.current = 0
-        self.power_supply.enable()  # TODO: the labview code does not use SO:FU:RSD but SO:FU:OUTP
-        self.power_supply.write("SO:FU:OUTP 1")
+        # TODO: the labview code does not use SO:FU:RSD but SO:FU:OUTP; see what the difference is
+        # Now both are used in the enable and disable methods
+        self.power_supply.enable()
 
         # Set polarity to positive
         self.set_polarity(+1)
+
+        ## Prepare the gauss meter
+        # self.gauss_meter.id
+        self.gauss_meter.unit = "T"
+        self.gauss_meter.fast_mode = gauss_meter_setting["fastmode"]
+        self.gauss_meter.auto_range = gauss_meter_setting["autorange"] == "Hardware"
+        self.gauss_meter.field_range = gauss_meter_setting["range"]
+        self.gauss_meter_range = self.gauss_meter.field_range_raw
 
     def load_calibration(self):
         # TODO: should make this less hardcoded and define standard format for table (with header)
@@ -186,12 +218,10 @@ class Magnet:
     def polarity_needs_changing(self, polarity):
         return polarity != self.polarity
 
-    def set_polarity(self, polarity, should_stop=lambda: False):
+    def set_polarity(self, polarity):
         self.power_supply.disable()
 
-        while not should_stop:
-            if self.power_supply.measure_current == 0.:
-                break
+        while not self.power_supply.measure_current == 0.:
             sleep(0.1)
 
         self.labjack_polarity_pulse(polarity)
@@ -218,12 +248,53 @@ class Magnet:
         return self.polarity * current
 
     def measure_field(self):
-        # TODO: using the gauss-meter
-        pass
+        # First attempt at getting field
+        field = self.gauss_meter.field
+
+        # Simple case if no software adjustment is allowed
+        if not self.gauss_meter_software_adjust:
+            return field
+
+        # Case if software adjustment is allowed.
+        # If overloaded, try increasing the field range
+        range_idx = self.gauss_meter_range
+        if math.isnan(field):
+            for range_idx in reversed(range(self.gauss_meter_range)):
+                self.gauss_meter.field_range_raw = range_idx
+                field = self.gauss_meter.field
+                if not math.isnan(field):
+                    break
+            else:  # return value (nan) if field remains overloaded in all ranges
+                self.gauss_meter_range = self.gauss_meter.field_range_raw
+                return field
+
+        # Retrieve edges
+        inner_edge, outer_edge = self.gauss_meter_range_edges[range_idx]
+
+        # See if the range needs adjustment for the next measurement.
+        if field > outer_edge:  # outer bound
+            self.gauss_meter.field_range_raw = range_idx - 1
+        elif field < inner_edge:  # inner bound
+            self.gauss_meter.field_range_raw = range_idx + 1
+
+        self.gauss_meter_range = self.gauss_meter.field_range_raw
+
+        return field
+
+    def wait_for_stable_field(self, tolerance=0.00025, timeout=None, should_stop=lambda: False):
+        start = time()
+        field = self.measure_field()
+        while not should_stop() and not (timeout is not None and (time() - start) > timeout):
+            if abs(field - (field := self.measure_field())) < tolerance:
+                break
 
     def shutdown(self):
         if self.power_supply is not None:
             self.power_supply.shutdown()
+
         # TODO: shutdown labjack?
+
         if self.gauss_meter is not None:
+            self.gauss_meter.fast_mode = False
+            self.gauss_meter.auto_range = True
             self.gauss_meter.shutdown()
