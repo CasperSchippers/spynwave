@@ -185,7 +185,7 @@ class PSWSProcedure(Procedure):
         """
         ## Connect to instruments
         self.vna = VNA(vna_address)
-        # self.magnet = Magnet()
+        self.magnet = Magnet()
 
         ## Run general startup procedure
         self.vna.startup()
@@ -200,7 +200,7 @@ class PSWSProcedure(Procedure):
             averaging_type=self.average_type,
         )
 
-        # self.magnet.startup()
+        self.magnet.startup()
 
         ## Run measurement-type-specific startup
         if self.measurement_type == "Frequency sweep":
@@ -209,6 +209,7 @@ class PSWSProcedure(Procedure):
                 frequency_stop=self.frequency_stop,
                 frequency_points=self.frequency_points,
             )
+            self.magnet.set_field(self.magnetic_field, method="ramp")
         else:
             raise NotImplementedError(f"Measurement type {self.measurement_type} "
                                       f"not yet implemented")
