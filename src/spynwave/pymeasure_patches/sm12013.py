@@ -26,12 +26,12 @@
 from spynwave.pymeasure_patches.sm_series import SMFamily
 
 
-class SM7045D(SMFamily):
+class SM12013(SMFamily):
     """ This class represents the family of SM power supplies by Delta Elektronika.
 
     .. code-block:: python
 
-        source = SM7045D("GPIB::8")
+        source = SM12013("GPIB::8")
 
         source.ramp_to_zero(1)               # Set output to 0 before enabling
         source.enable()                      # Enables the output
@@ -39,10 +39,12 @@ class SM7045D(SMFamily):
 
     """
 
-    VOLTAGE_RANGE = [0, 70]
-    CURRENT_RANGE = [0, 45]
+    VOLTAGE_RANGE = [0, 120]
+    CURRENT_RANGE = [0, 13]
 
     voltage = VOLTAGE_RANGE
     current = CURRENT_RANGE
     max_voltage = VOLTAGE_RANGE
     max_current = CURRENT_RANGE
+
+

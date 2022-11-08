@@ -11,7 +11,7 @@ from pymeasure.instruments.lakeshore import LakeShore421
 import u12  # LabJack library from labjackpython
 
 # TODO: should be updated on pymeasure
-from spynwave.pymeasure_patches.sm7045d import SM7045D
+from spynwave.pymeasure_patches.sm12013 import SM12013
 
 
 address_power_supply = "ASRL3::INSTR"
@@ -60,7 +60,7 @@ class Magnet:
     gauss_meter_software_adjust = gauss_meter_setting["autorange"] == "Software"
 
     def __init__(self):
-        self.power_supply = SM7045D(address_power_supply)
+        self.power_supply = SM12013(address_power_supply)
         self.max_current = self.power_supply.max_current
         self.max_voltage = self.power_supply.max_voltage
 
