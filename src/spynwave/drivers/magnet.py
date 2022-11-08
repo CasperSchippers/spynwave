@@ -36,6 +36,7 @@ gauss_meter_setting = {
 }
 calibration_file = "magnet_calibration.txt"
 
+
 class Magnet:
     labjack = None
     power_supply = None
