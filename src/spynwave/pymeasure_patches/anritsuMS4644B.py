@@ -26,8 +26,6 @@ class Port(VNAChannel):
         """,  # TODO: check units: dB or dBm
         values=[-3E1, 3E1],
         validator=strict_range,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
 
@@ -65,8 +63,6 @@ class Trace(VNAChannel):
         """,
         values=SPARAM_LIST + ["MIX", "NFIG", "NPOW", "NTEMP", "AGA", "IGA"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
 
@@ -97,8 +93,6 @@ class MeasurementChannel(VNAChannel):
         values=TRACES,
         validator=strict_range,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     active_trace = Instrument.setting(
@@ -107,7 +101,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=TRACES,
         validator=strict_range,
-        check_set_errors=True,
     )
 
     display_layout = Channel.control(
@@ -154,9 +147,9 @@ class MeasurementChannel(VNAChannel):
         =====   =================================================
         """,
         values=["CONT", "HOLD", "SING"],
-        validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
+            validator=strict_discrete_set,
+            check_get_errors=True,
+            check_set_errors=True,
     )
 
     cw_mode_enabled = Channel.control(
@@ -166,8 +159,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values={True: 1, False: 0},
         map_values=True,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     cw_number_of_points = Channel.control(
@@ -178,8 +169,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=[1, 100000],
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     number_of_points = Channel.control(
@@ -190,8 +179,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=[1, 100000],
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     frequency_start = Channel.control(
@@ -202,8 +189,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     frequency_stop = Channel.control(
@@ -214,8 +199,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     frequency_span = Channel.control(
@@ -226,8 +209,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     frequency_center = Channel.control(
@@ -238,8 +219,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     frequency_CW = Channel.control(
@@ -249,8 +228,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     def clear_average_count(self):
@@ -265,8 +242,6 @@ class MeasurementChannel(VNAChannel):
         values=[1, 1024],
         validator=strict_range,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     average_sweep_count = Channel.measurement(
@@ -274,8 +249,6 @@ class MeasurementChannel(VNAChannel):
         """ An integer property that returns the averaging sweep count for the indicated channel.
         """,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     average_type = Channel.control(
@@ -285,8 +258,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=["POIN", "SWE"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     averaging_enabled = Channel.control(
@@ -296,8 +267,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values={True: 1, False: 0},
         map_values=True,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     bandwidth = Channel.control(
@@ -308,8 +277,6 @@ class MeasurementChannel(VNAChannel):
         """,
         values=[1, 1E6],
         validator=strict_range,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
 
@@ -364,8 +331,6 @@ class AnritsuMS4644B(Instrument):
         values=[0, 1, 2],
         validator=strict_discrete_set,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     datafile_frequency_unit = Instrument.control(
@@ -375,8 +340,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=["HZ", "KHZ", "MHZ", "GHZ"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     datafile_numeric_format = Instrument.control(
@@ -394,8 +357,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=["ASC", "REAL", "REAL32"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     datafile_include_heading = Instrument.control(
@@ -404,8 +365,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values={True: 1, False: 0},
         map_values=True,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     datafile_parameter_format = Instrument.control(
@@ -423,8 +382,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=["LINPH", "LOGPH", "REIM"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     data_drawing_enabled = Instrument.control(
@@ -434,8 +391,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values={True: 1, False: 0},
         map_values=True,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     event_status_enable_bits = Instrument.control(
@@ -447,8 +402,6 @@ class AnritsuMS4644B(Instrument):
         values=[0, 255],
         validator=strict_range,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     def query_event_status_register(self):
@@ -467,8 +420,6 @@ class AnritsuMS4644B(Instrument):
         values=[0, 255],
         validator=strict_range,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     def return_to_local(self):
@@ -489,8 +440,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=["NORM", "SWAP"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     # TODO: use this value to determine the number of channels
@@ -505,8 +454,6 @@ class AnritsuMS4644B(Instrument):
         values=[25000, 100000],
         validator=strict_discrete_set,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     number_of_channels = Instrument.control(
@@ -520,8 +467,6 @@ class AnritsuMS4644B(Instrument):
         values=[1, 16],
         validator=strict_range,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     display_layout = Channel.control(
@@ -538,8 +483,6 @@ class AnritsuMS4644B(Instrument):
                 "R4C3", "R3C4", "R4C4"],
         validator=strict_discrete_set,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     active_channel = Instrument.control(
@@ -549,8 +492,6 @@ class AnritsuMS4644B(Instrument):
         values=CHANNELS,
         validator=strict_range,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     bandwidth_enhancer_enabled = Instrument.control(
@@ -559,8 +500,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values={True: 1, False: 0},
         map_values=True,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     trigger_source = Instrument.control(
@@ -580,8 +519,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=["AUTO", "MAN", "EXTT", "EXT", "REM"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     external_trigger_type = Instrument.control(
@@ -592,8 +529,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=TRIGGER_TYPES,
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     external_trigger_delay = Instrument.control(
@@ -603,8 +538,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=[0, 10],
         validator=strict_range,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     external_trigger_edge = Instrument.control(
@@ -615,8 +548,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=["POS", "NEG"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     external_trigger_handshake = Instrument.control(
@@ -625,8 +556,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values={True: 1, False: 0},
         map_values=True,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     remote_trigger_type = Instrument.control(
@@ -637,8 +566,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=TRIGGER_TYPES,
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     manual_trigger_type = Instrument.control(
@@ -649,8 +576,6 @@ class AnritsuMS4644B(Instrument):
         """,
         values=TRIGGER_TYPES,
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     def trigger(self):
@@ -682,6 +607,4 @@ class AnritsuMS4644B(Instrument):
         """,
         values=["CONT", "HOLD", "SING"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
