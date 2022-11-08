@@ -111,8 +111,7 @@ class Magnet:
         ## Prepare the gauss meter
         # self.gauss_meter.id
         self.gauss_meter.unit = "T"
-        self.gauss_meter.fast_mode = gauss_meter_setting["fastmode"]
-        self.gauss_meter_fast_mode = self.gauss_meter.fast_mode
+        self.gauss_meter_set_fast_mode(gauss_meter_setting["fastmode"])
         self.gauss_meter.auto_range = gauss_meter_setting["autorange"] == "Hardware"
         self.gauss_meter.field_range = gauss_meter_setting["range"]
         self.gauss_meter_range = self.gauss_meter.field_range_raw
@@ -274,6 +273,11 @@ class Magnet:
             sleep_fn(update_delay)
             if should_stop():
                 break
+
+    def gauss_meter_set_fast_mode(self, enabled=True):
+        self.gauss_meter.fast_mode = enabled
+        sleep(0.4)
+        self.gauss_meter_fast_mode = self.gauss_meter.fast_mode
 
     def measure_field(self):
         # First attempt at getting field
