@@ -84,8 +84,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
     rf_frequency = FloatParameter(
         "CW Frequency",
         default=15e9,
-        minimum=0,  # TODO: find minimum frequency
-        maximum=40e9,  # TODO: find maximum frequency
+        minimum=0,
+        maximum=40e9,
         units="Hz",
         group_by="measurement_type",
         group_condition=lambda v: v != "Frequency sweep",
@@ -94,8 +94,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
     magnetic_field = FloatParameter(
         "Magnetic field",
         default=0,
-        minimum=-1,  # TODO: find minimum field
-        maximum=+1,  # TODO: find maximum field
+        minimum=-0.686,
+        maximum=+0.686,
         units="T",
         group_by="measurement_type",
         group_condition=lambda v: v != "Field sweep",
@@ -106,15 +106,15 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         "RF output power",
         units="dBm",
         default=0,
-        minimum=-30,  # TODO: find minimum power
-        maximum=+20,  # TODO: find maximum power
+        minimum=-30,
+        maximum=+20,
     )
     rf_bandwidth = FloatParameter(
         "RF bandwidth",
         units="Hz",
         default=100,
-        minimum=1,  # TODO: find minimum bandwidth
-        maximum=1e6,  # TODO: find maximum bandwidth
+        minimum=1,
+        maximum=1e6,
     )
 
     # Metadata to be stored in the file
@@ -128,6 +128,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         "Timestamp (s)",
         "Field (T)",
         "Frequency (Hz)",
+        "Temperature (K)",
+        "DC voltage (V)",
+        "DC current (A)",
         "S11 real",
         "S11 imag",
         "S21 real",
