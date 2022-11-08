@@ -82,7 +82,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
 
     # Basic parameters
     rf_frequency = FloatParameter(
-        "RF Frequency",
+        "CW Frequency",
         default=15e9,
         minimum=0,  # TODO: find minimum frequency
         maximum=40e9,  # TODO: find maximum frequency
@@ -168,6 +168,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
             bandwidth=self.rf_bandwidth,
             power_level=self.rf_power,
         )
+        # TODO: Maybe this needs to be measurement-type
         self.vna.configure_averaging(
             enabled=True,
             average_count=self.averages,
@@ -183,7 +184,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
             self.startup_field_sweep()
         else:
             raise NotImplementedError(f"Measurement type {self.measurement_type} "
-                                      f"not yet implemented")
+                                      f"not implemented")
 
         self.vna.reset_to_measure()
 
@@ -199,7 +200,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
             self.execute_field_sweep()
         else:
             raise NotImplementedError(f"Measurement type {self.measurement_type} "
-                                      f"not yet implemented")
+                                      f"not implemented")
 
     def get_datapoint(self):
         data = {
@@ -215,14 +216,13 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         """
 
         # Perform a measurement-specific shutdown, if necessary
-
         if self.measurement_type == "Frequency sweep":
             self.shutdown_frequency_sweep()
         elif self.measurement_type == "Field sweep":
             self.shutdown_field_sweep()
         else:
             raise NotImplementedError(f"Measurement type {self.measurement_type} "
-                                      f"not yet implemented")
+                                      f"not implemented")
 
         if self.vna is not None:
             self.vna.shutdown()

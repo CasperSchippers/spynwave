@@ -4,7 +4,9 @@ This file is part of the SpynWave package.
 
 import math
 from time import time, sleep
+
 import pandas as pd
+import numpy as np
 from scipy.interpolate import interp1d
 
 from pymeasure.instruments.lakeshore import LakeShore421
@@ -47,7 +49,7 @@ class Magnet:
 
     max_current = 0
     max_voltage = 0
-    current_ramp_rate = 0.2  # A/s
+    current_ramp_rate = 1  # A/s
     max_current_step = 0.5  # A
     last_current = 0  # attribute to store the last applied current
 
@@ -60,23 +62,23 @@ class Magnet:
     gauss_meter_range = 0
     gauss_meter_software_adjust = gauss_meter_setting["autorange"] == "Software"
 
-    def __init__(self):
-        self.power_supply = SM12013(address_power_supply)
-        self.max_current = self.power_supply.max_current
-        self.max_voltage = self.power_supply.max_voltage
-
-        self.labjack = u12.U12(id=labjack_settings["ID"])
-        # Set the correct channels on the labjack to output channels for controlling the polarity
-        self.labjack.digitalIO(
-            trisD=self.bitSelect_positive + self.bitSelect_negative,
-            trisIO=0,
-            stateD=0,
-            stateIO=0,
-            updateDigital=True
-        )
-
-        self.gauss_meter = LakeShore421(address_gauss_meter)
-        self.gauss_meter.check_errors()
+    # def __init__(self):
+    #     self.power_supply = SM12013(address_power_supply)
+    #     self.max_current = self.power_supply.max_current
+    #     self.max_voltage = self.power_supply.max_voltage
+    #
+    #     self.labjack = u12.U12(id=labjack_settings["ID"])
+    #     # Set the correct channels on the labjack to output channels for controlling the polarity
+    #     self.labjack.digitalIO(
+    #         trisD=self.bitSelect_positive + self.bitSelect_negative,
+    #         trisIO=0,
+    #         stateD=0,
+    #         stateIO=0,
+    #         updateDigital=True
+    #     )
+    #
+    #     self.gauss_meter = LakeShore421(address_gauss_meter)
+    #     self.gauss_meter.check_errors()
 
     def startup(self):
         self.load_calibration()
@@ -146,6 +148,7 @@ class Magnet:
 
         self.check_current_within_bounds(current)
 
+        print(current)
         return current
 
     def current_to_field(self, current):
@@ -169,21 +172,19 @@ class Magnet:
             raise ValueError(f"Current value ({current} A) out of bounds for power supply (maximum "
                              f"{self.max_current} A).")
 
-    def set_field(self, field, method="ramp"):
+    def set_field(self, field, controlled=True):
         """ Apply a specified magnetic field.
 
         :param field:  Field to apply in tesla.
-        :param method: Method for setting the current, options are "ramp" for a slow but safe and
-            stable approach, or "set" for a faster approach (for use in sweeps)
+        :param controlled: Boolean that controls the method for setting the current, if True a slow
+            but safe and stable approach is used, if False a faster approach (for use in sweeps)
         """
         current = self.field_to_current(field)
 
-        if method == "ramp":
+        if controlled:
             self.ramp_current(current)
-        elif method == "set":
-            self.set_current(current)
         else:
-            raise ValueError("Unknown method for setting field, should be one of 'ramp' or 'set'.")
+            self.set_current(current)
 
     def ramp_current(self, current):
         """ Apply a specified current by nicely ramping to this current. """
@@ -247,6 +248,22 @@ class Magnet:
     def get_set_current(self):
         current = self.power_supply.current
         return self.polarity * current
+
+    def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
+                    sleep_fn=lambda x: sleep(x), should_stop=lambda: False):
+        # Check if fields are within bounds
+        self.field_to_current(start)
+        self.field_to_current(stop)
+
+        sweep_duration = abs((start - stop) / ramp_rate)
+        number_of_updates = math.ceil(sweep_duration / update_delay)
+        field_list = np.linspace(start, stop, number_of_updates + 1)
+
+        for field in field_list:
+            self.set_field(field, controlled=False)
+            sleep_fn(update_delay)
+            if should_stop():
+                break
 
     def measure_field(self):
         # First attempt at getting field

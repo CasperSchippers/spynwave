@@ -41,7 +41,7 @@ class Window(ManagedWindow):
                 "field_stop",
                 "field_ramp_rate",
                 "field_include_mirrored",
-                "field_saturation",
+                "field_saturation_field",
                 "averages",
                 "average_type",
                 "measurement_ports",

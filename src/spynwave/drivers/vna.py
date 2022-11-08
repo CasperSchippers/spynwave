@@ -90,8 +90,10 @@ class VNA(AnritsuMS4644B):
         self.ch_1.clear_average_count()
         self.clear()
 
-    def prepare_field_sweep(self):
-        raise NotImplementedError("Field sweep not yet implemented")
+    def prepare_field_sweep(self, cw_frequency):
+        self.ch_1.cw_mode_enabled = True
+
+        self.ch_1.frequency_CW = cw_frequency
 
     def prepare_frequency_sweep(self, frequency_start, frequency_stop, frequency_points):
         self.ch_1.cw_mode_enabled = False

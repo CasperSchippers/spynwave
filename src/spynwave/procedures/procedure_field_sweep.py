@@ -45,8 +45,8 @@ class MixinFieldSweep:
         group_by="measurement_type",
         group_condition="Field sweep",
     )
-    field_saturation = FloatParameter(
-        "Stop field",
+    field_saturation_field = FloatParameter(
+        "Saturation field",
         default=0.2,
         minimum=-0.660,
         maximum=+0.660,
@@ -54,13 +54,53 @@ class MixinFieldSweep:
         group_by="measurement_type",
         group_condition="Field sweep",
     )
+    field_saturation_time = FloatParameter(
+        "Saturation ",
+        default=2,
+        minimum=0,
+        maximum=120,
+        units="s",
+        group_by="measurement_type",
+        group_condition="Field sweep",
+    )
 
     def startup_field_sweep(self):
-        pass
+        self.saturate_field()
+        self.vna.prepare_field_sweep(cw_frequency=self.rf_frequency)
+        self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
+
+        # Prepare the parallel methods for the sweep
 
     def execute_field_sweep(self):
+        # And these three methods below need to run parallel in the end
+        self.parallel_field_sweep()
+        self.parallel_field_measurement()
+        self.parallel_cw_measurement()
+
         pass
 
     def shutdown_field_sweep(self):
         pass
+
+    ####################
+    # Helper functions #
+    ####################
+
+    def saturate_field(self):
+        # Saturate the magnetic field (after saturation, go already to the starting field
+        self.magnet.set_field(self.field_saturation_field)
+        self.sleep(self.field_saturation_time)
+        self.magnet.set_field(self.field_start)
+
+    def parallel_field_sweep(self):
+        self.magnet.sweep_field(self.field_start, self.field_stop, self.field_ramp_rate,
+                                sleep_fn=self.sleep, should_stop=self.should_stop)
+
+    def parallel_field_measurement(self, update_rate=0.1):
+        while not self.should_stop():
+            field = self.magnet.measure_field()
+
+    def parallel_cw_measurement(self):
+        pass
+
 
