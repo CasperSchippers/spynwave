@@ -142,5 +142,13 @@ class SMFamily(Instrument):
         super().__init__(
             adapter,
             "Delta Elektronika SM-family",
+            asrl=dict(
+                baud_rate=9600,
+                data_bits=8,
+                stop_bits=10,
+                parity=0,
+                read_termination='\x04',
+                write_termination='\n',
+            ),
             **kwargs
         )
