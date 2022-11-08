@@ -179,6 +179,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         ## Run measurement-type-specific startup
         if self.measurement_type == "Frequency sweep":
             self.startup_frequency_sweep()
+        elif self.measurement_type == "Field sweep":
+            self.startup_field_sweep()
         else:
             raise NotImplementedError(f"Measurement type {self.measurement_type} "
                                       f"not yet implemented")
@@ -193,6 +195,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         """
         if self.measurement_type == "Frequency sweep":
             self.execute_frequency_sweep()
+        elif self.measurement_type == "Field sweep":
+            self.execute_field_sweep()
         else:
             raise NotImplementedError(f"Measurement type {self.measurement_type} "
                                       f"not yet implemented")
@@ -209,6 +213,16 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
     def shutdown(self):
         """ Wrap up the measurement.
         """
+
+        # Perform a measurement-specific shutdown, if necessary
+
+        if self.measurement_type == "Frequency sweep":
+            self.shutdown_frequency_sweep()
+        elif self.measurement_type == "Field sweep":
+            self.shutdown_field_sweep()
+        else:
+            raise NotImplementedError(f"Measurement type {self.measurement_type} "
+                                      f"not yet implemented")
 
         if self.vna is not None:
             self.vna.shutdown()

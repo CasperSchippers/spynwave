@@ -24,20 +24,27 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("fna.MeasurementSo
 
 
 class Window(ManagedWindow):
+    # TODO: this also needs an more complicated sequencer, maybe as a tabwidget??
+    #  Or see if I can make tabs for the input-widget
     def __init__(self):
         super().__init__(
             procedure_class=PSWSProcedure,
             inputs=(
                 "AB_filename_base",
-                "measurement_ports",
                 "measurement_type",
+                "rf_frequency",
+                "magnetic_field",
                 "frequency_start",
                 "frequency_stop",
                 "frequency_points",
+                "field_start",
+                "field_stop",
+                "field_ramp_rate",
+                "field_include_mirrored",
+                "field_saturation",
                 "averages",
                 "average_type",
-                "rf_frequency",
-                "magnetic_field",
+                "measurement_ports",
                 "rf_power",
                 "rf_bandwidth",
             ),
