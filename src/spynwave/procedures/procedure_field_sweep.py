@@ -1,12 +1,17 @@
 """
 This file is part of the SpynWave package.
 """
+import logging
 from time import time, sleep
 
 from pymeasure.experiment import (
     Procedure, Parameter, FloatParameter, BooleanParameter,
     IntegerParameter, ListParameter, Metadata
 )
+
+# Setup logging
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 
 class MixinFieldSweep:
@@ -39,7 +44,7 @@ class MixinFieldSweep:
         group_condition="Field sweep",
     )
     # TODO: implement mirrored fields to generate a second measurement
-    field_mirrored = BooleanParameter(
+    field_include_mirrored = BooleanParameter(
         "Include mirrored fields",
         default=False,
         group_by="measurement_type",

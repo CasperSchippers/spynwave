@@ -1,12 +1,17 @@
 """
 This file is part of the SpynWave package.
 """
+import logging
 from time import time, sleep
 
 from pymeasure.experiment import (
     Procedure, Parameter, FloatParameter, BooleanParameter,
     IntegerParameter, ListParameter, Metadata
 )
+
+# Setup logging
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 
 class MixinFrequencySweep:
@@ -44,7 +49,9 @@ class MixinFrequencySweep:
             frequency_stop=self.frequency_stop,
             frequency_points=self.frequency_points,
         )
-        self.magnet.set_field(self.magnetic_field, method="ramp")
+        log.info(f"Ramping field to {self.magnetic_field} T")
+        self.magnet.set_field(self.magnetic_field, controlled=True)
+        log.info(f"Waiting for field to stabilize")
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
     def execute_frequency_sweep(self):

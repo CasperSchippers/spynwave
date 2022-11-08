@@ -33,11 +33,10 @@ gauss_meter_setting = {
     "range": 3,  # tesla
     "fastmode": True,
     "autorange": "Software",  # "Hardware", "Software", "None"
-    # Note: the hardware auto-range is terrible.
-    # Use 'adjust range' for software auto-ranging.
-    # Auto-range and Adjust-range are mutally exclusive!
+    # Note: the hardware auto-range is terrible. Use autorange = "Software" for
+    # a faster auto-ranging
     "fastmode_reading_frequency": 0.1,  # seconds,
-    "normalmode_reading_frequency": 0.1,  # seconds,
+    "normalmode_reading_frequency": 0.4,  # seconds,
 
 }
 calibration_file = "magnet_calibration.txt"
@@ -65,6 +64,9 @@ class Magnet:
     gauss_meter_range_edges = [(0.25, 3.5), (0.025, 0.27), (0.0025, 0.027), (0, 0.0027)]
     gauss_meter_range = 0
     gauss_meter_software_adjust = gauss_meter_setting["autorange"] == "Software"
+    gauss_meter_fast_mode = False
+    gauss_meter_delay = {True: gauss_meter_setting["fastmode_reading_frequency"],
+                         False: gauss_meter_setting["normalmode_reading_frequency"]}
 
     def __init__(self):
         self.power_supply = SM12013(address_power_supply)
@@ -110,6 +112,7 @@ class Magnet:
         # self.gauss_meter.id
         self.gauss_meter.unit = "T"
         self.gauss_meter.fast_mode = gauss_meter_setting["fastmode"]
+        self.gauss_meter_fast_mode = self.gauss_meter.fast_mode
         self.gauss_meter.auto_range = gauss_meter_setting["autorange"] == "Hardware"
         self.gauss_meter.field_range = gauss_meter_setting["range"]
         self.gauss_meter_range = self.gauss_meter.field_range_raw
@@ -140,7 +143,7 @@ class Magnet:
 
     def field_to_current(self, field):
         # Check if value within range of calibration
-        if not self.cal_data["min_field"] < field < self.cal_data["max_field"]:
+        if not self.cal_data["min_field"] <= field <= self.cal_data["max_field"]:
             raise ValueError(f"Field value ({field} T) out of bounds; should be between "
                              f"{self.cal_data['min_field']} T and {self.cal_data['max_field']} T "
                              f"(with the present calibration).")
@@ -157,7 +160,7 @@ class Magnet:
 
     def current_to_field(self, current):
         # Check if value within range of calibration
-        if not self.cal_data["min_current"] > current > self.cal_data["max_current"]:
+        if not self.cal_data["min_current"] >= current >= self.cal_data["max_current"]:
             raise ValueError(f"Current value ({current} A) out of bounds; should be between "
                              f"{self.cal_data['min_current']} A and {self.cal_data['max_current']} "
                              f"A (with the present calibration).")
@@ -282,25 +285,30 @@ class Magnet:
 
         # Case if software adjustment is allowed.
         # If overloaded, try increasing the field range
+        self.gauss_meter_range = self.gauss_meter.field_range_raw
         range_idx = self.gauss_meter_range
         if math.isnan(field):
             for range_idx in reversed(range(self.gauss_meter_range)):
                 self.gauss_meter.field_range_raw = range_idx
+                self.gauss_meter_range = range_idx
+                sleep(self.gauss_meter_delay[self.gauss_meter_fast_mode])
                 field = self.gauss_meter.field
                 if not math.isnan(field):
                     break
             else:  # return value (nan) if field remains overloaded in all ranges
-                self.gauss_meter_range = self.gauss_meter.field_range_raw
+                # self.gauss_meter_range = self.gauss_meter.field_range_raw
                 return field
 
         # Retrieve edges
         inner_edge, outer_edge = self.gauss_meter_range_edges[range_idx]
 
         # See if the range needs adjustment for the next measurement.
-        if field > outer_edge:  # outer bound
+        if abs(field) > outer_edge:  # outer bound
             self.gauss_meter.field_range_raw = range_idx - 1
-        elif field < inner_edge:  # inner bound
+            # self.gauss_meter_range = range_idx - 1
+        elif abs(field) < inner_edge:  # inner bound
             self.gauss_meter.field_range_raw = range_idx + 1
+            # self.gauss_meter_range = range_idx + 1
 
         self.gauss_meter_range = self.gauss_meter.field_range_raw
 
