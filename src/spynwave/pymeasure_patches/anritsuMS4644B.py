@@ -11,31 +11,16 @@ log.addHandler(logging.NullHandler())
 
 
 # TODO: check if this is still up to date with the channels implementation
-class NestedChannel(Channel):
-    placeholder = "ch"
-    class SafeDict(dict):
-        def __missing__(self, key):
-            return '{' + key + '}'
-
-    def replace_placeholder(self, command):
-        # TODO: check if ch="{ch}" is the best way to approach this
-        return command.format_map(self.SafeDict({self.placeholder: self.id}))
-
-    def write(self, command, **kwargs):
-        self.parent.write(self.replace_placeholder(command), **kwargs)
-
-    def write_binary_values(self, command, values, *args, **kwargs):
-        self.parent.write_binary_values(self.replace_placeholder(command), values, *args, **kwargs)
-
+class VNAChannel(Channel):
     def check_errors(self):
         return self.parent.check_errors()
 
 
-class Port(NestedChannel):
+class Port(VNAChannel):
     placeholder = "pt"
 
     power_level = Channel.control(
-        "SOUR{ch}:POW:PORT{pt}?", "SOUR{ch}:POW:PORT{pt} %g",
+        "SOUR{{ch}}:POW:PORT{pt}?", "SOUR{{ch}}:POW:PORT{pt} %g",
         """ A float property that controls the power level (in dBm) of the indicated port on the
         indicated channel.
         """,  # TODO: check units: dB or dBm
@@ -46,12 +31,12 @@ class Port(NestedChannel):
     )
 
 
-class Trace(NestedChannel):
+class Trace(VNAChannel):
     placeholder = "tr"
 
     def activate(self):
         """ Sets the indicated trace as the active one. """
-        self.write(":CALC{ch}:PAR{tr}:SEL")
+        self.write(":CALC{{ch}}:PAR{tr}:SEL")
 
     SPARAM_LIST = ["S11", "S12", "S21", "S22",
                    "S13", "S23", "S33", "S31",
@@ -59,7 +44,7 @@ class Trace(NestedChannel):
                    "S41", "S42", "S43", "S44",]
 
     measurement_parameter = Channel.control(
-        ":CALC{ch}:PAR{tr}:DEF?", ":CALC{ch}:PAR{tr}:DEF %s",
+        ":CALC{{ch}}:PAR{tr}:DEF?", ":CALC{{ch}}:PAR{tr}:DEF %s",
         """ A string property that controls the measurement parameter of the indicated trace. Can be
         set; valid values are any S-parameter (e.g. S11, S12, S41) for 4 ports, or one of the
         following:
@@ -85,7 +70,7 @@ class Trace(NestedChannel):
     )
 
 
-class MeasurementChannel(NestedChannel):
+class MeasurementChannel(VNAChannel):
     FREQUENCY_RANGE = [1E7, 4E10]
     TRACES = [1, 16]
 
