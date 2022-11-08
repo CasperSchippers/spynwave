@@ -2,8 +2,10 @@
 This file is part of the SpynWave package.
 """
 import logging
-import pandas as pd
+from time import time, sleep
 from io import StringIO
+
+import pandas as pd
 
 # TODO: should be contributed to pymeasure
 from spynwave.pymeasure_patches.anritsuMS4644B import AnritsuMS4644B
@@ -103,16 +105,18 @@ class VNA(AnritsuMS4644B):
         self.ch_1.number_of_points = frequency_points
 
     def trigger_frequency_sweep(self):
+        log.info("Triggering frequency sweep.")
         if self.use_DAQmx:
             NotImplementedError("Triggering using DAQmx not yet implemented")
         else:
+            sleep(0.5)
             self.trigger_continuous()
 
     def grab_data(self):
         # TODO: check if this can be done using SCPI commands
 
         # Set output format
-        self.datablock_header_format = 2
+        self.datablock_header_format = 1
         self.datafile_numeric_format = "ASC"
         self.datafile_include_heading = True
         self.datafile_frequency_unit = "HZ"
@@ -128,11 +132,11 @@ class VNA(AnritsuMS4644B):
             self.write("OS2P")
 
             # Determine the amount of bytes to read from the buffer
-            length = int(self.read_bytes(2).decode('ascii')[1])
-            length = int(self.read_bytes(length).decode('ascii')) + 1
+            length = int(self.read_bytes(2).decode('latin')[1])
+            length = int(self.read_bytes(length).decode('latin')) + 1
 
             # Read the data
-            raw = self.read_bytes(length).decode('ascii')
+            raw = self.read_bytes(length).decode('latin')
 
         self.check_errors()
 
