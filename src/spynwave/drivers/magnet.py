@@ -2,9 +2,11 @@
 This file is part of the SpynWave package.
 """
 
+import logging
 import math
 from time import time, sleep
 
+from pyvisa.errors import VisaIOError, VI_ERROR_TMO
 import pandas as pd
 import numpy as np
 from scipy.interpolate import interp1d
@@ -15,9 +17,11 @@ import u12  # LabJack library from labjackpython
 # TODO: should be updated on pymeasure
 from spynwave.pymeasure_patches.sm12013 import SM12013
 
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
-address_power_supply = "ASRL3::INSTR"
-address_gauss_meter = "ASRL9::INSTR"
+address_power_supply = "visa://131.155.124.201/ASRL3::INSTR"
+address_gauss_meter = "visa://131.155.124.201/ASRL9::INSTR"
 
 labjack_settings = {
     "ID": 0,
@@ -49,8 +53,8 @@ class Magnet:
 
     max_current = 0
     max_voltage = 0
-    current_ramp_rate = 1  # A/s
-    max_current_step = 0.5  # A
+    current_ramp_rate = 0.5  # A/s
+    max_current_step = 1  # A
     last_current = 0  # attribute to store the last applied current
 
     polarity = 0
@@ -62,23 +66,24 @@ class Magnet:
     gauss_meter_range = 0
     gauss_meter_software_adjust = gauss_meter_setting["autorange"] == "Software"
 
-    # def __init__(self):
-    #     self.power_supply = SM12013(address_power_supply)
-    #     self.max_current = self.power_supply.max_current
-    #     self.max_voltage = self.power_supply.max_voltage
-    #
-    #     self.labjack = u12.U12(id=labjack_settings["ID"])
-    #     # Set the correct channels on the labjack to output channels for controlling the polarity
-    #     self.labjack.digitalIO(
-    #         trisD=self.bitSelect_positive + self.bitSelect_negative,
-    #         trisIO=0,
-    #         stateD=0,
-    #         stateIO=0,
-    #         updateDigital=True
-    #     )
-    #
-    #     self.gauss_meter = LakeShore421(address_gauss_meter)
-    #     self.gauss_meter.check_errors()
+    def __init__(self):
+        self.power_supply = SM12013(address_power_supply)
+        self.clear_powersupply_buffer()
+        self.max_current = self.power_supply.max_current
+        self.max_voltage = self.power_supply.max_voltage
+
+        self.labjack = u12.U12(id=labjack_settings["ID"])
+        # Set the correct channels on the labjack to output channels for controlling the polarity
+        self.labjack.digitalIO(
+            trisD=self.bitSelect_positive + self.bitSelect_negative,
+            trisIO=0,
+            stateD=0,
+            stateIO=0,
+            updateDigital=True
+        )
+
+        self.gauss_meter = LakeShore421(address_gauss_meter)
+        # self.gauss_meter.check_errors()
 
     def startup(self):
         self.load_calibration()
@@ -89,8 +94,8 @@ class Magnet:
         # self.power_supply.ask("SE:DI:DA?")  # TODO: not sure what this does
 
         self.power_supply.ramp_to_zero(self.current_ramp_rate)
-        self.power_supply.ask("REM:CV")  # VS "LOC:CV"
-        self.power_supply.ask("REM:CC")  # VS "LOC:CC"
+        self.power_supply.write("REM:CV")  # VS "LOC:CV"
+        self.power_supply.write("REM:CC")  # VS "LOC:CC"
 
         self.power_supply.voltage = self.max_voltage
         self.power_supply.current = 0
@@ -148,7 +153,6 @@ class Magnet:
 
         self.check_current_within_bounds(current)
 
-        print(current)
         return current
 
     def current_to_field(self, current):
@@ -202,16 +206,16 @@ class Magnet:
         """ Apply a specified current by instantly setting the current to the power supply.
         A few check are performed to ensure no breakage of the instruments.
         """
-        if abs(current - self.last_current) > self.max_current_step:
-            raise ValueError(f"Step in current too large: from {self.last_current} A to {current} "
-                             f"A; maximum step-size is {self.max_current_step} A")
+        if abs(abs(current) - abs(self.last_current)) > self.max_current_step:
+            raise ValueError(f"Step in current too large: from {self.last_current} A to"
+                             f"{abs(current)} A; maximum step-size is {self.max_current_step} A")
 
         polarity = self.current_polarity(current)
         if self.polarity_needs_changing(polarity):
             self.set_polarity(polarity)
 
         self.power_supply.current = abs(current)
-        self.last_current = current
+        self.last_current = abs(current)
 
     @staticmethod
     def current_polarity(current):
@@ -221,6 +225,9 @@ class Magnet:
         return polarity != self.polarity
 
     def set_polarity(self, polarity):
+        if self.power_supply.current > self.max_current_step:
+            self.power_supply.ramp_to_zero(self.current_ramp_rate)
+
         self.power_supply.disable()
 
         while not self.power_supply.measure_current == 0.:
@@ -305,6 +312,18 @@ class Magnet:
         while not should_stop() and not (timeout is not None and (time() - start) > timeout):
             if abs(field - (field := self.measure_field())) < tolerance:
                 break
+
+    def clear_powersupply_buffer(self):
+        timeout = self.power_supply.adapter.connection.timeout
+        try:
+            self.power_supply.adapter.connection.timeout = 10
+            while True:
+                log.debug(self.power_supply.adapter.read())
+        except VisaIOError as exc:
+            if not exc.error_code == VI_ERROR_TMO:
+                raise exc
+        finally:
+            self.power_supply.adapter.connection.timeout = timeout
 
     def shutdown(self):
         if self.power_supply is not None:
