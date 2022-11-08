@@ -13,7 +13,7 @@ from pymeasure.experiment import (
 )
 
 from spynwave.drivers import Magnet, VNA
-from spynwave.procedure_mixins import MixinFieldSweep, MixinFrequencySweep
+from spynwave.procedures import MixinFieldSweep, MixinFrequencySweep
 
 # Setup logging
 log = logging.getLogger(__name__)
