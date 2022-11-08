@@ -10,12 +10,12 @@ from pymeasure.experiment import (
 
 
 class MixinFrequencySweep:
-    # Frequency sweep settings
+    # TODO: see if we can update the frequency-limits/steps/etc to the calibration?
     frequency_start = FloatParameter(
         "Start frequency",
         default=5e9,
-        minimum=0,  # TODO: find minimum frequency
-        maximum=40e9,  # TODO: find maximum frequency
+        minimum=0,
+        maximum=40e9,
         units="Hz",
         group_by="measurement_type",
         group_condition="Frequency sweep",
@@ -23,8 +23,8 @@ class MixinFrequencySweep:
     frequency_stop = FloatParameter(
         "Stop frequency",
         default=15e9,
-        minimum=0,  # TODO: find minimum frequency
-        maximum=40e9,  # TODO: find maximum frequency
+        minimum=0,
+        maximum=40e9,
         units="Hz",
         group_by="measurement_type",
         group_condition="Frequency sweep",
@@ -32,8 +32,8 @@ class MixinFrequencySweep:
     frequency_points = IntegerParameter(
         "Frequency points",
         default=201,
-        minimum=1,  # TODO: find minimum frequency steps
-        maximum=100000,  # TODO: find maximum frequency steps
+        minimum=1,
+        maximum=100000,
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
