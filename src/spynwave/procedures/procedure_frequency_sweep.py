@@ -44,6 +44,7 @@ class MixinFrequencySweep:
     )
 
     def startup_frequency_sweep(self):
+        self.magnet.gauss_meter_set_fast_mode(False)
         self.vna.prepare_frequency_sweep(
             frequency_start=self.frequency_start,
             frequency_stop=self.frequency_stop,
