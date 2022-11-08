@@ -6,6 +6,7 @@ from time import time, sleep
 from io import StringIO
 
 import pandas as pd
+import nidaqmx
 
 # TODO: should be contributed to pymeasure
 from spynwave.pymeasure_patches.anritsuMS4644B import AnritsuMS4644B
@@ -13,16 +14,30 @@ from spynwave.pymeasure_patches.anritsuMS4644B import AnritsuMS4644B
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+daqmx_settings = {
+    "trigger line": "Dev1/port0/line7",
+    "counter channel": "Dev1/ctr0",
+    "counter edge": "/Dev1/PFI0",
+}
+
 
 class VNA:
     vectorstar = None
+    trigger_task = None
+    counter_task = None
+
     def __init__(self, adapter, use_DAQmx=False, **kwargs):
 
         self.vectorstar = AnritsuMS4644B(adapter, **kwargs)
 
         self.use_DAQmx = use_DAQmx
         if self.use_DAQmx:
-            NotImplementedError("Using DAQmx to trigger measurements is not yet implemented.")
+            self.trigger_task = nidaqmx.Task("Trigger task")
+            self.trigger_task.do_channels.add_do_chan(daqmx_settings["trigger line"])
+            self.trigger_task.write(False)
+
+
+        #     NotImplementedError("Using DAQmx to trigger measurements is not yet implemented.")
 
     def startup(self, reset=False):
         # self.id
@@ -109,7 +124,8 @@ class VNA:
     def trigger_frequency_sweep(self):
         log.info("Triggering frequency sweep.")
         if self.use_DAQmx:
-            NotImplementedError("Triggering using DAQmx not yet implemented")
+            self.trigger_task.write(True)
+            self.trigger_task.write(False)
         else:
             sleep(0.5)
             self.vectorstar.trigger_continuous()
@@ -166,6 +182,12 @@ class VNA:
     def shutdown(self):
         # 5A: stop counter and triggering tasks
         #     TODO: uitzoeken hoe dit werkt
+
+        if self.trigger_task is not None:
+            self.trigger_task.close()
+
+        if self.counter_task is not None:
+            self.counter_task.close()
 
         if self.vectorstar is not None:
             self.vectorstar.datablock_header_format = 1
