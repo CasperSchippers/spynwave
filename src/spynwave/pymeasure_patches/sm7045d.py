@@ -42,7 +42,7 @@ class SM7045D(SMFamily):
     VOLTAGE_RANGE = [0, 70]
     CURRENT_RANGE = [0, 45]
 
-    voltage = VOLTAGE_RANGE
-    current = CURRENT_RANGE
-    max_voltage = VOLTAGE_RANGE
-    max_current = CURRENT_RANGE
+    voltage_values = VOLTAGE_RANGE
+    current_values = CURRENT_RANGE
+    max_voltage_values = VOLTAGE_RANGE
+    max_current_values = CURRENT_RANGE

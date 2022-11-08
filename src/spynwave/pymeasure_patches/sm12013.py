@@ -42,9 +42,9 @@ class SM12013(SMFamily):
     VOLTAGE_RANGE = [0, 120]
     CURRENT_RANGE = [0, 13]
 
-    voltage = VOLTAGE_RANGE
-    current = CURRENT_RANGE
-    max_voltage = VOLTAGE_RANGE
-    max_current = CURRENT_RANGE
+    voltage_values = VOLTAGE_RANGE
+    current_values = CURRENT_RANGE
+    max_voltage_values = VOLTAGE_RANGE
+    max_current_values = CURRENT_RANGE
 
 
