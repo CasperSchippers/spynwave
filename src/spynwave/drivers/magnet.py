@@ -259,7 +259,8 @@ class Magnet:
         return self.polarity * current
 
     def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
-                    sleep_fn=lambda x: sleep(x), should_stop=lambda: False):
+                    sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
+                    callback_fn=lambda x: True):
         # Check if fields are within bounds
         self.field_to_current(start)
         self.field_to_current(stop)
@@ -270,6 +271,7 @@ class Magnet:
 
         for field in field_list:
             self.set_field(field, controlled=False)
+            callback_fn(field)
             sleep_fn(update_delay)
             if should_stop():
                 break
@@ -315,6 +317,10 @@ class Magnet:
             # self.gauss_meter_range = range_idx + 1
 
         self.gauss_meter_range = self.gauss_meter.field_range_raw
+
+        if range_idx != self.gauss_meter_range:
+            log.info("Changed range: sleeping a full delay time")
+            sleep(self.gauss_meter_delay[self.gauss_meter_fast_mode])
 
         return field
 

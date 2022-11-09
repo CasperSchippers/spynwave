@@ -2,12 +2,16 @@
 This file is part of the SpynWave package.
 """
 import logging
+import queue
 from time import time, sleep
+import numpy as np
 
 from pymeasure.experiment import (
     Procedure, Parameter, FloatParameter, BooleanParameter,
     IntegerParameter, ListParameter, Metadata
 )
+
+from spynwave.drivers import InstrumentThread
 
 # Setup logging
 log = logging.getLogger(__name__)
@@ -69,23 +73,74 @@ class MixinFieldSweep:
         group_condition="Field sweep",
     )
 
+    field_sweep_thread = None
+    gauss_probe_thread = None
+    vna_control_thread = None
+
     def startup_field_sweep(self):
         self.saturate_field()
         self.vna.prepare_field_sweep(cw_frequency=self.rf_frequency)
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
         # Prepare the parallel methods for the sweep
+        self.field_sweep_thread = FieldSweepThread(self, self.magnet, settings=dict(
+            field_start=self.field_start,
+            field_stop=self.field_stop,
+            field_ramp_rate=self.field_ramp_rate,
+            publish_data=False,
+        ))
+        self.gauss_probe_thread = GaussProbeThread(self, self.magnet, settings=dict(
+            update_rate=0.05,
+        ))
+        # self.vna_control_thread = VNAControlThread()
 
     def execute_field_sweep(self):
-        # And these three methods below need to run parallel in the end
-        self.parallel_field_sweep()
-        self.parallel_field_measurement()
-        self.parallel_cw_measurement()
+        self.field_sweep_thread.start()
+        self.gauss_probe_thread.start()
+        # self.vna_control_thread.start()
 
-        pass
+        set_field = np.nan
+
+        while not self.should_stop() and not self.field_sweep_thread.is_finished():
+            if self.gauss_probe_thread.data_queue.empty():
+                self.sleep(0.05)
+                continue
+
+            # while not self.field_sweep_thread.data_queue.empty():
+            #     _, set_field, _ = self.field_sweep_thread.data_queue.get()
+
+            _, field = self.gauss_probe_thread.data_queue.get()
+
+            data = {
+                "Timestamp (s)": time(),
+                "Field (T)": field,
+                "DC current (A)": set_field,
+            }
+
+            self.emit("results", data)
+
+        self.field_sweep_thread.stop()
+        self.gauss_probe_thread.stop()
+        # self.vna_control_thread.stop()
 
     def shutdown_field_sweep(self):
-        pass
+        if self.field_sweep_thread is not None:
+            try:
+                self.field_sweep_thread.join(2)
+            except RuntimeError as e:
+                log.error(e)
+
+        if self.gauss_probe_thread is not None:
+            try:
+                self.gauss_probe_thread.join(2)
+            except RuntimeError as e:
+                log.error(e)
+
+        if self.vna_control_thread is not None:
+            try:
+                self.vna_control_thread.join(2)
+            except RuntimeError as e:
+                log.error(e)
 
     ####################
     # Helper functions #
@@ -97,15 +152,55 @@ class MixinFieldSweep:
         self.sleep(self.field_saturation_time)
         self.magnet.set_field(self.field_start)
 
-    def parallel_field_sweep(self):
-        self.magnet.sweep_field(self.field_start, self.field_stop, self.field_ramp_rate,
-                                sleep_fn=self.sleep, should_stop=self.should_stop)
-
-    def parallel_field_measurement(self, update_rate=0.1):
-        while not self.should_stop():
-            field = self.magnet.measure_field()
-
     def parallel_cw_measurement(self):
         pass
 
 
+class FieldSweepThread(InstrumentThread):
+    def run(self):
+        log.info("Field sweep Thread: start sweeping.")
+
+        self.instrument.sweep_field(
+            self.settings["field_start"],
+            self.settings["field_stop"],
+            self.settings["field_ramp_rate"],
+            should_stop=self.should_stop,
+            callback_fn=self.field_callback,
+        )
+
+        self.finished()
+        log.info("Field sweep Thread: finished sweeping.")
+
+    def field_callback(self, field):
+        field = np.round(field, 10)  # rounding to remove float-rounding-errors
+        progress = abs((field - self.settings["field_start"]) /
+                       (self.settings["field_stop"] - self.settings["field_start"])) * 100
+
+        if self.settings["publish_data"]:
+            try:
+                self.data_queue.put_nowait((time, field, progress))
+            except queue.Full:
+                log.warning("Field sweep Thread: data-queue is full, continuing without "
+                            "putting field-data to the queue.")
+
+        self.procedure.emit("progress", progress)
+
+
+class GaussProbeThread(InstrumentThread):
+    def run(self):
+        log.info("Gauss probe Thread: start measuring")
+
+        while not self.should_stop():
+            field = self.instrument.measure_field()
+            field = np.round(field, 10)  # rounding to remove float-rounding-errors
+            self.data_queue.put((time(), field))
+            sleep(self.settings["update_rate"])
+
+        log.info("Gauss probe Thread: stopped measuring")
+
+
+class VNAControlThread(InstrumentThread):
+    def run(self):
+        log.info("VNA control Thread: started.")
+        while not self.should_stop():
+            pass

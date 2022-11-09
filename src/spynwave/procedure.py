@@ -60,7 +60,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
             "Field sweep",
             "Frequency sweep",
         ],
-        default="Frequency sweep"
+        default="Field sweep"
     )
     averages = IntegerParameter(
         "Number of averages",
