@@ -74,7 +74,7 @@ class MixinFrequencySweep:
 
         stop = time()
 
-        data = self.vna.grab_data()
+        data = self.vna.grab_data(CW_mode=False)
 
         data["Timestamp (s)"] = (stop + start) / 2
         data["Field (T)"] = sum(field_points) / len(field_points)

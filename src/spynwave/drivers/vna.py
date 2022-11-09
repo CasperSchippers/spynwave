@@ -2,6 +2,7 @@
 This file is part of the SpynWave package.
 """
 import logging
+import struct
 from time import time, sleep
 from io import StringIO
 
@@ -29,8 +30,9 @@ class VNA:
     counter_task_reference = 0
 
     cached_average_count = 0
+    cached_measurement_port = "2-port"
 
-    def __init__(self, adapter, use_DAQmx=False, **kwargs):
+    def __init__(self, adapter, use_DAQmx=True, **kwargs):
 
         self.vectorstar = AnritsuMS4644B(adapter, **kwargs)
 
@@ -97,6 +99,8 @@ class VNA:
         # self.vectorstar.ch_1.pt_1.power_level
 
     def set_measurement_ports(self, measurement_ports):
+        self.cached_measurement_port = measurement_ports
+
         if measurement_ports == "2-port":
             self.vectorstar.ch_1.number_of_traces = 4
             self.vectorstar.ch_1.display_layout = "R2C2"
@@ -138,10 +142,12 @@ class VNA:
 
         self.vectorstar.clear()
 
-    def prepare_field_sweep(self, cw_frequency):
+    def prepare_cw_sweep(self, cw_frequency):
         self.vectorstar.ch_1.cw_mode_enabled = True
 
         self.vectorstar.ch_1.frequency_CW = cw_frequency
+
+        # self.vectorstar.datablock_numeric_format = "8byte"
 
     def prepare_frequency_sweep(self, frequency_start, frequency_stop, frequency_points):
         self.vectorstar.ch_1.cw_mode_enabled = False
@@ -152,14 +158,15 @@ class VNA:
 
     def trigger_measurement(self):
         # TODO: check why this is not stable
-        log.info("Triggering frequency sweep.")
+        log.debug(f"Triggering measurement using {'DAQmx' if self.use_DAQmx else 'SCPI'}.")
         if self.use_DAQmx:
             self.daqmx_update_reference_count()
             self.trigger_task.write(True)
             sleep(0.05)
             self.trigger_task.write(False)
         else:
-            sleep(0.5)
+            self.vectorstar.ch_1.clear_average_count()
+            sleep(0.2)
             self.vectorstar.trigger_continuous()
 
     def daqmx_update_reference_count(self):
@@ -187,12 +194,61 @@ class VNA:
     def averages_done(self):
         return self.vectorstar.ch_1.average_sweep_count
 
-    def grab_data(self):
+    def grab_data(self, CW_mode=False, **kwargs):
+        if CW_mode:
+            return self.grab_data_OSC(**kwargs)
+        else:
+            return self.grab_data_S2P()
+
+    def grab_data_OSC(self, headerless=True):
+        # self.cached_measurement_port = "1-port: S11"
+        params = {
+            "1-port: S11": ["S11"],
+            "1-port: S22": ["S22"],
+            "2-port": ["S11", "S21", "S12", "S22"],
+        }[self.cached_measurement_port]
+
+        command = ";".join(["O{}C".format(p) for p in params])
+        self.vectorstar.write(command)
+
+        number_of_traces = 4 if self.cached_measurement_port == "2-port" else 1
+
+        data = {}
+
+        if headerless:
+            number_of_values = number_of_traces * 2
+            number_of_bytes = number_of_values * 8 + number_of_traces
+            # TODO: why the + number_of_traces (or +8 according to labview)
+            raw = self.vectorstar.read_bytes(number_of_bytes)
+            for param in params:
+                subset = raw[:16]
+                data.update({
+                    param + " real": struct.unpack(">d", subset[:8])[0],
+                    param + " imag": struct.unpack(">d", subset[8:])[0],
+                })
+                raw = raw[17:]
+
+        else:
+            for param in params:
+                length = int(self.vectorstar.read_bytes(2).decode('latin')[1])
+                length = int(self.vectorstar.read_bytes(length).decode('latin')) + 1
+
+                # Read the data
+                raw = self.vectorstar.read_bytes(length).decode('latin').strip("; ").split(',')
+
+                data.update({
+                    param + " real": float(raw[0]),
+                    param + " imag": float(raw[1]),
+                })
+
+        return data
+
+    def grab_data_S2P(self):
         # TODO: check if this can be done using SCPI commands
 
         # Set output format
         self.vectorstar.datablock_header_format = 1
-        self.vectorstar.datafile_numeric_format = "ASC"
+        self.vectorstar.datablock_numeric_format = "ASCII"
         self.vectorstar.datafile_include_heading = True
         self.vectorstar.datafile_frequency_unit = "HZ"
         self.vectorstar.datafile_parameter_format = "REIM"
@@ -242,6 +298,7 @@ class VNA:
 
     def shutdown_vectorstar(self):
         if self.vectorstar is not None:
+            self.vectorstar.datablock_format = ""
             self.vectorstar.datablock_header_format = 1
             self.vectorstar.trigger_source = "AUTO"
 

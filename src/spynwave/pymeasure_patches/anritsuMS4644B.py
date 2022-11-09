@@ -342,21 +342,21 @@ class AnritsuMS4644B(Instrument):
         validator=strict_discrete_set,
     )
 
-    datafile_numeric_format = Instrument.control(
+    datablock_numeric_format = Instrument.control(
         ":FORM:DATA?", ":FORM:DATA %s",
         """ A string property that controls format for numeric I/O data representation. Can be set;
         valid values are:
         
-        ======   ==========================================================================
-        value    description
-        ======   ==========================================================================
-        ASC      An ASCII number of 20 or 21 characters long with floating point notation.
-        REAL     8 Bytes of binary floating point number representation limited to 64 bits.
-        REAL32   4 Bytes of floating point number representation.
-        ======   ==========================================================================
+        =====   ==========================================================================
+        value   description
+        =====   ==========================================================================
+        ASCII   An ASCII number of 20 or 21 characters long with floating point notation.
+        8byte   8 bytes of binary floating point number representation limited to 64 bits.
+        4byte   4 bytes of floating point number representation.
+        =====   ==========================================================================
         """,
-        values=["ASC", "REAL", "REAL32"],
-        validator=strict_discrete_set,
+        values={"ASCII": "ASC", "8byte": "REAL", "4byte": "REAL32"},
+        map_values=True,
     )
 
     datafile_include_heading = Instrument.control(

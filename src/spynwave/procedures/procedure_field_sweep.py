@@ -79,7 +79,7 @@ class MixinFieldSweep:
 
     def startup_field_sweep(self):
         self.saturate_field()
-        self.vna.prepare_field_sweep(cw_frequency=self.rf_frequency)
+        self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency)
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
         # Prepare the parallel methods for the sweep
@@ -92,36 +92,33 @@ class MixinFieldSweep:
         self.gauss_probe_thread = GaussProbeThread(self, self.magnet, settings=dict(
             update_rate=0.05,
         ))
-        # self.vna_control_thread = VNAControlThread()
+        self.vna_control_thread = VNAControlThread(self, self.vna, settings=dict(
+            delay=0.001,
+        ))
 
     def execute_field_sweep(self):
         self.field_sweep_thread.start()
         self.gauss_probe_thread.start()
-        # self.vna_control_thread.start()
-
-        set_field = np.nan
+        self.vna_control_thread.start()
 
         while not self.should_stop() and not self.field_sweep_thread.is_finished():
             if self.gauss_probe_thread.data_queue.empty():
                 self.sleep(0.05)
                 continue
 
-            # while not self.field_sweep_thread.data_queue.empty():
-            #     _, set_field, _ = self.field_sweep_thread.data_queue.get()
-
             _, field = self.gauss_probe_thread.data_queue.get()
 
             data = {
                 "Timestamp (s)": time(),
                 "Field (T)": field,
-                "DC current (A)": set_field,
+                "Frequency (Hz)": self.rf_frequency,
             }
 
             self.emit("results", data)
 
         self.field_sweep_thread.stop()
         self.gauss_probe_thread.stop()
-        # self.vna_control_thread.stop()
+        self.vna_control_thread.stop()
 
     def shutdown_field_sweep(self):
         if self.field_sweep_thread is not None:
@@ -201,6 +198,17 @@ class GaussProbeThread(InstrumentThread):
 
 class VNAControlThread(InstrumentThread):
     def run(self):
-        log.info("VNA control Thread: started.")
+        log.info("VNA control Thread: started & triggered measurement")
+        self.instrument.trigger_measurement()
+        sleep(self.settings['delay'])
+
         while not self.should_stop():
-            pass
+            if self.instrument.measurement_done():
+                data = self.instrument.grab_data(CW_mode=True)
+                self.data_queue.put((time, data))
+
+                if not self.should_stop():
+                    self.instrument.trigger_measurement()
+
+            sleep(self.settings['delay'])
+        log.info("VNA control Thread: started")
