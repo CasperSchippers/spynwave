@@ -6,6 +6,7 @@ from time import time, sleep
 from io import StringIO
 
 import pandas as pd
+import nidaqmx.constants
 import nidaqmx
 
 # TODO: should be contributed to pymeasure
@@ -25,6 +26,9 @@ class VNA:
     vectorstar = None
     trigger_task = None
     counter_task = None
+    counter_task_reference = 0
+
+    cached_average_count = 0
 
     def __init__(self, adapter, use_DAQmx=False, **kwargs):
 
@@ -32,9 +36,22 @@ class VNA:
 
         self.use_DAQmx = use_DAQmx
         if self.use_DAQmx:
-            self.trigger_task = nidaqmx.Task("Trigger task")
-            self.trigger_task.do_channels.add_do_chan(daqmx_settings["trigger line"])
-            self.trigger_task.write(False)
+            try:
+                self.trigger_task = nidaqmx.Task("Trigger task")
+                self.trigger_task.do_channels.add_do_chan(daqmx_settings["trigger line"])
+                self.trigger_task.write(False)
+
+                self.counter_task = nidaqmx.Task("Counter task")
+                channel = self.counter_task.ci_channels.add_ci_count_edges_chan(
+                    daqmx_settings["counter channel"], edge=nidaqmx.constants.Edge.FALLING)
+                channel.ci_count_edges_term = daqmx_settings["counter edge"]
+                self.counter_task.start()
+
+                self.daqmx_update_reference_count()
+
+            except Exception as exc:
+                self.shutdown_daqmx()
+                raise exc
 
 
         #     NotImplementedError("Using DAQmx to trigger measurements is not yet implemented.")
@@ -65,7 +82,7 @@ class VNA:
             self.vectorstar.external_trigger_type = "CHAN"
             self.vectorstar.external_trigger_delay = 0
             self.vectorstar.external_trigger_edge = "POS"
-            self.vectorstar.external_trigger_handshake = False
+            self.vectorstar.external_trigger_handshake = True
         else:
             self.vectorstar.trigger_source = "REM"
             self.vectorstar.remote_trigger_type = "CHAN"
@@ -99,14 +116,26 @@ class VNA:
 
         self.vectorstar.ch_1.pt_1.power_level = power_level
 
-    def configure_averaging(self, enabled, average_count, averaging_type):
+    def configure_averaging(self, enabled, average_count=None, averaging_type=None):
         self.vectorstar.ch_1.averaging_enabled = enabled
-        self.vectorstar.ch_1.average_count = average_count
-        self.vectorstar.ch_1.average_type = {"point-by-point": "POIN", "sweep-by-sweep": "SWE"}[averaging_type]
+        if enabled:
+            if average_count is not None:
+                self.vectorstar.ch_1.average_count = average_count
+            if averaging_type is not None:
+                self.vectorstar.ch_1.average_type = {
+                    "point-by-point": "POIN",
+                    "sweep-by-sweep": "SWE",
+                }[averaging_type]
 
     def reset_to_measure(self):
         self.vectorstar.ch_1.tr_1.activate()
         self.vectorstar.ch_1.clear_average_count()
+
+        # Prepare internals of class for measurement
+        if self.use_DAQmx:
+            self.daqmx_update_reference_count()
+        self.cached_average_count = self.vectorstar.ch_1.average_count
+
         self.vectorstar.clear()
 
     def prepare_field_sweep(self, cw_frequency):
@@ -121,14 +150,42 @@ class VNA:
         self.vectorstar.ch_1.frequency_stop = frequency_stop
         self.vectorstar.ch_1.number_of_points = frequency_points
 
-    def trigger_frequency_sweep(self):
+    def trigger_measurement(self):
+        # TODO: check why this is not stable
         log.info("Triggering frequency sweep.")
         if self.use_DAQmx:
+            self.daqmx_update_reference_count()
             self.trigger_task.write(True)
+            sleep(0.05)
             self.trigger_task.write(False)
         else:
             sleep(0.5)
             self.vectorstar.trigger_continuous()
+
+    def daqmx_update_reference_count(self):
+        if not self.use_DAQmx:
+            raise NotImplementedError("Method only used with DAQmx.")
+
+        self.counter_task_reference = self.daqmx_measurement_count(False)
+
+    def daqmx_measurement_count(self, corrected=True):
+        if not self.use_DAQmx:
+            raise NotImplementedError("Method only used with DAQmx.")
+
+        count = self.counter_task.read()
+        if corrected:
+            return count - self.counter_task_reference
+        else:
+            return count
+
+    def measurement_done(self, use_DAQmx=True):
+        if self.use_DAQmx and use_DAQmx:
+            return bool(self.daqmx_measurement_count())
+        else:
+            return self.averages_done() >= self.cached_average_count
+
+    def averages_done(self):
+        return self.vectorstar.ch_1.average_sweep_count
 
     def grab_data(self):
         # TODO: check if this can be done using SCPI commands
@@ -180,15 +237,10 @@ class VNA:
         return data
 
     def shutdown(self):
-        # 5A: stop counter and triggering tasks
-        #     TODO: uitzoeken hoe dit werkt
+        self.shutdown_daqmx()
+        self.shutdown_vectorstar()
 
-        if self.trigger_task is not None:
-            self.trigger_task.close()
-
-        if self.counter_task is not None:
-            self.counter_task.close()
-
+    def shutdown_vectorstar(self):
         if self.vectorstar is not None:
             self.vectorstar.datablock_header_format = 1
             self.vectorstar.trigger_source = "AUTO"
@@ -198,3 +250,10 @@ class VNA:
                 self.vectorstar.data_drawing_enabled = True
             self.vectorstar.return_to_local()
             self.vectorstar.shutdown()
+
+    def shutdown_daqmx(self):
+        if self.trigger_task is not None:
+            self.trigger_task.close()
+
+        if self.counter_task is not None:
+            self.counter_task.close()
