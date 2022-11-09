@@ -82,6 +82,9 @@ class MixinFieldSweep:
         self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency, headerless=True)
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
+        # TODO: remove, just to test this once
+        self.vna.self.instrument.vectorstar.adapter.connection.lock_state()
+
         # Prepare the parallel methods for the sweep
         self.field_sweep_thread = FieldSweepThread(self, self.magnet, settings=dict(
             field_start=self.field_start,
@@ -198,17 +201,29 @@ class GaussProbeThread(InstrumentThread):
 
 class VNAControlThread(InstrumentThread):
     def run(self):
-        log.info("VNA control Thread: started & triggered measurement")
-        self.instrument.trigger_measurement()
-        sleep(self.settings['delay'])
+        try:
+            # Obtain lock to prevent other communication with VNA
+            self.instrument.vectorstar.adapter.connection.lock_excl()
 
-        while not self.should_stop():
-            if self.instrument.measurement_done():
-                data = self.instrument.grab_data(CW_mode=True, headerless=True)
-                self.data_queue.put((time, data))
+            self.instrument.trigger_measurement()
 
-                if not self.should_stop():
-                    self.instrument.trigger_measurement()
+            log.info("VNA control Thread: started & locked & triggered measurement")
 
             sleep(self.settings['delay'])
-        log.info("VNA control Thread: started")
+
+            while not self.should_stop():
+                if self.instrument.measurement_done():
+                    data = self.instrument.grab_data(CW_mode=True, headerless=True)
+                    self.data_queue.put((time, data))
+
+                    if not self.should_stop():
+                        self.instrument.trigger_measurement()
+
+                sleep(self.settings['delay'])
+
+        finally:
+            # Release lock of VNA
+            self.instrument.vectorstar.adapter.connection.unlock()
+
+        log.info("VNA control Thread: stopped")
+
