@@ -79,7 +79,7 @@ class MixinFieldSweep:
 
     def startup_field_sweep(self):
         self.saturate_field()
-        self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency)
+        self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency, headerless=True)
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
         # Prepare the parallel methods for the sweep
@@ -204,7 +204,7 @@ class VNAControlThread(InstrumentThread):
 
         while not self.should_stop():
             if self.instrument.measurement_done():
-                data = self.instrument.grab_data(CW_mode=True)
+                data = self.instrument.grab_data(CW_mode=True, headerless=True)
                 self.data_queue.put((time, data))
 
                 if not self.should_stop():

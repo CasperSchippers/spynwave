@@ -142,12 +142,15 @@ class VNA:
 
         self.vectorstar.clear()
 
-    def prepare_cw_sweep(self, cw_frequency):
+    def prepare_cw_sweep(self, cw_frequency, headerless=False):
         self.vectorstar.ch_1.cw_mode_enabled = True
 
         self.vectorstar.ch_1.frequency_CW = cw_frequency
 
-        # self.vectorstar.datablock_numeric_format = "8byte"
+        if headerless:
+            self.vectorstar.datablock_header_format = 2
+            self.vectorstar.datablock_numeric_format = "8byte"
+
 
     def prepare_frequency_sweep(self, frequency_start, frequency_stop, frequency_points):
         self.vectorstar.ch_1.cw_mode_enabled = False
@@ -200,8 +203,7 @@ class VNA:
         else:
             return self.grab_data_S2P()
 
-    def grab_data_OSC(self, headerless=True):
-        # self.cached_measurement_port = "1-port: S11"
+    def grab_data_OSC(self, headerless=False):
         params = {
             "1-port: S11": ["S11"],
             "1-port: S22": ["S22"],
