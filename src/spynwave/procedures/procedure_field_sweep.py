@@ -5,13 +5,14 @@ import logging
 import queue
 from time import time, sleep
 import numpy as np
+import pandas as pd
 
 from pymeasure.experiment import (
     Procedure, Parameter, FloatParameter, BooleanParameter,
     IntegerParameter, ListParameter, Metadata
 )
 
-from spynwave.drivers import InstrumentThread
+from spynwave.drivers import InstrumentThread, DataThread
 
 # Setup logging
 log = logging.getLogger(__name__)
@@ -99,29 +100,73 @@ class MixinFieldSweep:
             delay=0.001,
         ))
 
+        self.data_thread = DataThread(self, data_queues=[
+            self.gauss_probe_thread.data_queue,
+            self.vna_control_thread.data_queue,
+        ], static_data={"Frequency (Hz)": self.rf_frequency}, time_column="Timestamp (s)",)
+
     def execute_field_sweep(self):
+        self.data_thread.start()
         self.field_sweep_thread.start()
         self.gauss_probe_thread.start()
         self.vna_control_thread.start()
 
+
+        # # This approach assumes the field is probed (significantly) less often than the VNA
+        # timelst_field = []
+        # datalst_field = []
+        #
+        # vna_cached_datapoint = None
+        #
+        # while not self.should_stop() and not self.field_sweep_thread.is_finished():
+        #     if self.gauss_probe_thread.data_queue.empty():
+        #         self.sleep(0.05)
+        #         continue
+        #
+        #     while not self.gauss_probe_thread.data_queue.empty():
+        #         d = self.gauss_probe_thread.data_queue.get()
+        #         timelst_field.append(d["time"])
+        #         datalst_field.append(d["data"])
+        #
+        #     while len(timelst_field) > 1:
+        #         midpoint = (timelst_field[0] + timelst_field[1]) / 2
+        #
+        #         field_data = {
+        #             "Timestamp (s)": timelst_field.pop(0),
+        #             "Field (T)": datalst_field.pop(0),
+        #         }
+        #
+        #         assert not self.vna_control_thread.data_queue.empty(), "queue should not be empty"
+        #
+        #         time_pts, data_pts = [], []
+        #
+        #         if vna_cached_datapoint is not None:
+        #             time_pts.append(vna_cached_datapoint["time"])
+        #             data_pts.append(vna_cached_datapoint["data"])
+        #             vna_cached_datapoint = None
+        #
+        #         while d := self.vna_control_thread.get_datapoint():
+        #             if d["time"] <= midpoint:
+        #                 time_pts.append(d["time"])
+        #                 data_pts.append(d["data"])
+        #             else:
+        #                 vna_cached_datapoint = d
+        #                 break
+        #
+        #         vna_data = pd.DataFrame(data_pts).mean().to_dict()
+        #
+        #         self.emit("results", steady_data | field_data | vna_data)
+
         while not self.should_stop() and not self.field_sweep_thread.is_finished():
-            if self.gauss_probe_thread.data_queue.empty():
-                self.sleep(0.05)
-                continue
-
-            _, field = self.gauss_probe_thread.data_queue.get()
-
-            data = {
-                "Timestamp (s)": time(),
-                "Field (T)": field,
-                "Frequency (Hz)": self.rf_frequency,
-            }
-
-            self.emit("results", data)
+            sleep(0.1)
 
         self.field_sweep_thread.stop()
         self.gauss_probe_thread.stop()
         self.vna_control_thread.stop()
+        self.data_thread.stop()
+
+        # while not self.should_stop() and not self.data_thread.all_data_processed():
+        #     sleep(0.1)
 
     def shutdown_field_sweep(self):
         if self.field_sweep_thread is not None:
@@ -142,6 +187,14 @@ class MixinFieldSweep:
             except RuntimeError as e:
                 log.error(e)
 
+        if self.data_thread is not None:
+            while not self.data_thread.all_data_processed():
+                sleep(0.01)
+            try:
+                self.data_thread.join(2)
+            except RuntimeError as e:
+                log.error(e)
+
     ####################
     # Helper functions #
     ####################
@@ -151,9 +204,6 @@ class MixinFieldSweep:
         self.magnet.set_field(self.field_saturation_field)
         self.sleep(self.field_saturation_time)
         self.magnet.set_field(self.field_start)
-
-    def parallel_cw_measurement(self):
-        pass
 
 
 class FieldSweepThread(InstrumentThread):
@@ -193,7 +243,7 @@ class GaussProbeThread(InstrumentThread):
         while not self.should_stop():
             field = self.instrument.measure_field()
             field = np.round(field, 10)  # rounding to remove float-rounding-errors
-            self.data_queue.put((time(), field))
+            self.put_datapoint({"Field (T)": field})
             sleep(self.settings["update_rate"])
 
         log.info("Gauss probe Thread: stopped measuring")
@@ -214,7 +264,7 @@ class VNAControlThread(InstrumentThread):
             while not self.should_stop():
                 if self.instrument.measurement_done():
                     data = self.instrument.grab_data(CW_mode=True, headerless=True)
-                    self.data_queue.put((time, data))
+                    self.put_datapoint(data)
 
                     if not self.should_stop():
                         self.instrument.trigger_measurement()
