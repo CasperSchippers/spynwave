@@ -65,8 +65,13 @@ class Magnet:
     gauss_meter_range = 0
     gauss_meter_software_adjust = gauss_meter_setting["autorange"] == "Software"
     gauss_meter_fast_mode = False
-    gauss_meter_delay = {True: gauss_meter_setting["fastmode_reading_frequency"],
-                         False: gauss_meter_setting["normalmode_reading_frequency"]}
+
+    @property
+    def gauss_meter_delay(self):
+        return {
+            True: gauss_meter_setting["fastmode_reading_frequency"],
+            False: gauss_meter_setting["normalmode_reading_frequency"]
+        }[self.gauss_meter_fast_mode]
 
     def __init__(self):
         self.power_supply = SM12013(address_power_supply)
@@ -297,7 +302,7 @@ class Magnet:
             for range_idx in reversed(range(self.gauss_meter_range)):
                 self.gauss_meter.field_range_raw = range_idx
                 self.gauss_meter_range = range_idx
-                sleep(self.gauss_meter_delay[self.gauss_meter_fast_mode])
+                sleep(self.gauss_meter_delay)
                 field = self.gauss_meter.field
                 if not math.isnan(field):
                     break
@@ -320,7 +325,7 @@ class Magnet:
 
         if range_idx != self.gauss_meter_range:
             log.info("Changed range: sleeping a full delay time")
-            sleep(self.gauss_meter_delay[self.gauss_meter_fast_mode])
+            sleep(self.gauss_meter_delay)
 
         return field
 

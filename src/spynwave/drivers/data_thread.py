@@ -75,7 +75,7 @@ class DataThread(StoppableThread):
         for struct in self.data_structs[1:]:
             ds = struct.collect_data_within_interval(midpoint)
 
-            assert len(ds) > 1
+            assert len(ds) > 1 or self._should_really_stop
 
             matched_data.append(pd.DataFrame(ds).mean().to_dict())
 

@@ -9,6 +9,7 @@ from io import StringIO
 import pandas as pd
 import nidaqmx.constants
 import nidaqmx
+import pyvisa.constants
 
 # TODO: should be contributed to pymeasure
 from spynwave.pymeasure_patches.anritsuMS4644B import AnritsuMS4644B
@@ -300,6 +301,10 @@ class VNA:
 
     def shutdown_vectorstar(self):
         if self.vectorstar is not None:
+            if not self.vectorstar.adapter.connection.lock_state == \
+                   pyvisa.constants.AccessModes.no_lock:
+                self.vectorstar.adapter.connection.unlock()
+
             self.vectorstar.datablock_format = ""
             self.vectorstar.datablock_header_format = 1
             self.vectorstar.trigger_source = "AUTO"

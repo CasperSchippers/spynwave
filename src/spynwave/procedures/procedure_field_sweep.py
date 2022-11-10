@@ -83,23 +83,14 @@ class MixinFieldSweep:
         self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency, headerless=True)
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
-        # TODO: remove, just to test this once
-        self.vna.self.instrument.vectorstar.adapter.connection.lock_state()
-
         # Prepare the parallel methods for the sweep
-        self.field_sweep_thread = FieldSweepThread(self, self.magnet, settings=dict(
-            field_start=self.field_start,
-            field_stop=self.field_stop,
-            field_ramp_rate=self.field_ramp_rate,
-            publish_data=False,
-        ))
-        self.gauss_probe_thread = GaussProbeThread(self, self.magnet, settings=dict(
-            update_rate=0.05,
-        ))
-        self.vna_control_thread = VNAControlThread(self, self.vna, settings=dict(
-            delay=0.001,
-        ))
-
+        self.field_sweep_thread = FieldSweepThread(self, self.magnet,
+                                                   field_start=self.field_start,
+                                                   field_stop=self.field_stop,
+                                                   field_ramp_rate=self.field_ramp_rate,
+                                                   publish_data=False,)
+        self.gauss_probe_thread = GaussProbeThread(self, self.magnet)
+        self.vna_control_thread = VNAControlThread(self, self.vna, delay=0.001)
         self.data_thread = DataThread(self, data_queues=[
             self.gauss_probe_thread.data_queue,
             self.vna_control_thread.data_queue,
@@ -111,62 +102,16 @@ class MixinFieldSweep:
         self.gauss_probe_thread.start()
         self.vna_control_thread.start()
 
-
-        # # This approach assumes the field is probed (significantly) less often than the VNA
-        # timelst_field = []
-        # datalst_field = []
-        #
-        # vna_cached_datapoint = None
-        #
-        # while not self.should_stop() and not self.field_sweep_thread.is_finished():
-        #     if self.gauss_probe_thread.data_queue.empty():
-        #         self.sleep(0.05)
-        #         continue
-        #
-        #     while not self.gauss_probe_thread.data_queue.empty():
-        #         d = self.gauss_probe_thread.data_queue.get()
-        #         timelst_field.append(d["time"])
-        #         datalst_field.append(d["data"])
-        #
-        #     while len(timelst_field) > 1:
-        #         midpoint = (timelst_field[0] + timelst_field[1]) / 2
-        #
-        #         field_data = {
-        #             "Timestamp (s)": timelst_field.pop(0),
-        #             "Field (T)": datalst_field.pop(0),
-        #         }
-        #
-        #         assert not self.vna_control_thread.data_queue.empty(), "queue should not be empty"
-        #
-        #         time_pts, data_pts = [], []
-        #
-        #         if vna_cached_datapoint is not None:
-        #             time_pts.append(vna_cached_datapoint["time"])
-        #             data_pts.append(vna_cached_datapoint["data"])
-        #             vna_cached_datapoint = None
-        #
-        #         while d := self.vna_control_thread.get_datapoint():
-        #             if d["time"] <= midpoint:
-        #                 time_pts.append(d["time"])
-        #                 data_pts.append(d["data"])
-        #             else:
-        #                 vna_cached_datapoint = d
-        #                 break
-        #
-        #         vna_data = pd.DataFrame(data_pts).mean().to_dict()
-        #
-        #         self.emit("results", steady_data | field_data | vna_data)
-
         while not self.should_stop() and not self.field_sweep_thread.is_finished():
-            sleep(0.1)
+            self.sleep(0.1)
 
         self.field_sweep_thread.stop()
         self.gauss_probe_thread.stop()
         self.vna_control_thread.stop()
         self.data_thread.stop()
 
-        # while not self.should_stop() and not self.data_thread.all_data_processed():
-        #     sleep(0.1)
+        while not self.should_stop() and not self.data_thread.all_data_processed():
+            self.sleep(0.1)
 
     def shutdown_field_sweep(self):
         if self.field_sweep_thread is not None:
@@ -188,10 +133,8 @@ class MixinFieldSweep:
                 log.error(e)
 
         if self.data_thread is not None:
-            while not self.data_thread.all_data_processed():
-                sleep(0.01)
             try:
-                self.data_thread.join(2)
+                self.data_thread.join(5)
             except RuntimeError as e:
                 log.error(e)
 
@@ -240,40 +183,47 @@ class GaussProbeThread(InstrumentThread):
     def run(self):
         log.info("Gauss probe Thread: start measuring")
 
+        last_time = 0
+
         while not self.should_stop():
+            if (sleeptime := -(time() - last_time - self.instrument.gauss_meter_delay)) > 0:
+                sleep(sleeptime)
+
             field = self.instrument.measure_field()
+            last_time = time()
+
             field = np.round(field, 10)  # rounding to remove float-rounding-errors
             self.put_datapoint({"Field (T)": field})
-            sleep(self.settings["update_rate"])
 
         log.info("Gauss probe Thread: stopped measuring")
 
 
 class VNAControlThread(InstrumentThread):
     def run(self):
-        try:
+        # try:
             # Obtain lock to prevent other communication with VNA
-            self.instrument.vectorstar.adapter.connection.lock_excl()
+            # self.instrument.vectorstar.adapter.connection.lock_excl()
 
-            self.instrument.trigger_measurement()
+        self.instrument.trigger_measurement()
 
-            log.info("VNA control Thread: started & locked & triggered measurement")
+        log.info("VNA control Thread: started & locked & triggered measurement")
+
+        sleep(self.settings['delay'])
+
+        while not self.should_stop():
+            if self.instrument.measurement_done():
+                data = self.instrument.grab_data(CW_mode=True, headerless=True)
+                self.put_datapoint(data)
+
+                if not self.should_stop():
+                    self.instrument.trigger_measurement()
 
             sleep(self.settings['delay'])
 
-            while not self.should_stop():
-                if self.instrument.measurement_done():
-                    data = self.instrument.grab_data(CW_mode=True, headerless=True)
-                    self.put_datapoint(data)
-
-                    if not self.should_stop():
-                        self.instrument.trigger_measurement()
-
-                sleep(self.settings['delay'])
-
-        finally:
+        # finally:
+        #     pass
             # Release lock of VNA
-            self.instrument.vectorstar.adapter.connection.unlock()
+            # self.instrument.vectorstar.adapter.connection.unlock()
 
         log.info("VNA control Thread: stopped")
 

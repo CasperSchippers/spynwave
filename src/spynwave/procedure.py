@@ -141,9 +141,10 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         "S22 imag",
     ]
 
-    # initiate instrument attributes
+    # initialize instrument attributes
     vna = None
     magnet = None
+    data_thread = None
 
     r"""
           ____    _    _   _______   _        _____   _   _   ______
