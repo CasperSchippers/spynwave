@@ -189,8 +189,8 @@ class GaussProbeThread(InstrumentThread):
             if (sleeptime := -(time() - last_time - self.instrument.gauss_meter_delay)) > 0:
                 sleep(sleeptime)
 
-            field = self.instrument.measure_field()
             last_time = time()
+            field = self.instrument.measure_field()
 
             field = np.round(field, 10)  # rounding to remove float-rounding-errors
             self.put_datapoint({"Field (T)": field})
