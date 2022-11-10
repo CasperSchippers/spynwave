@@ -16,6 +16,7 @@ log.addHandler(logging.NullHandler())
 
 class DataThread(StoppableThread):
     static_data = {}
+    _should_really_stop = False
 
     def __init__(self, procedure, data_queues, static_data=None, time_column="Timestamp (s)"):
         super().__init__()
@@ -84,8 +85,14 @@ class DataThread(StoppableThread):
     def data_available(self):
         return any([s.data_available for s in self.data_structs])
 
+    def should_stop(self):
+        should_stop = super().should_stop() and self._should_really_stop
+        self._should_really_stop = super().should_stop()
+
+        return should_stop
+
     def run(self):
-        while self.data_available() or not self.should_stop():
+        while not self.should_stop():
             self.get_new_static_data()
 
             for struct in self.data_structs:
