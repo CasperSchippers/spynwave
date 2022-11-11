@@ -20,7 +20,7 @@ class Port(VNAChannel):
     placeholder = "pt"
 
     power_level = Channel.control(
-        "SOUR{{ch}}:POW:PORT{pt}?", "SOUR{{ch}}:POW:PORT{pt} %g",
+        ":SOUR{{ch}}:POW:PORT{pt}?", ":SOUR{{ch}}:POW:PORT{pt} %g",
         """ A float property that controls the power level (in dBm) of the indicated port on the
         indicated channel.
         """,  # TODO: check units: dB or dBm
@@ -173,9 +173,9 @@ class MeasurementChannel(VNAChannel):
 
     number_of_points = Channel.control(
         "SENS{ch}:SWE:POIN?", "SENS{ch}:SWE:POIN %g",
-        """ An integer property that controls the number of measurement points in a frequency sweep of
-        the indicated channel. Can be set; valid values are between 1 and 25000 or 100000 depending on
-        the maximum points setting.
+        """ An integer property that controls the number of measurement points in a frequency sweep
+        of the indicated channel. Can be set; valid values are between 1 and 25000 or 100000
+        depending on the maximum points setting.
         """,
         values=[1, 100000],
         cast=int,
@@ -396,8 +396,8 @@ class AnritsuMS4644B(Instrument):
     event_status_enable_bits = Instrument.control(
         "*ESE?", "*ESE %d",
         """ An integer property that controls the Standard Event Status Enable Register bits (which
-        can be queried using the ~`query_event_status_register` method). Can be set; valid values are
-        between 0 and 255. Refer to the instrument manual for an explanation of the bits.
+        can be queried using the ~`query_event_status_register` method). Can be set; valid values
+        are between 0 and 255. Refer to the instrument manual for an explanation of the bits.
         """,
         values=[0, 255],
         validator=strict_range,

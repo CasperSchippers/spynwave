@@ -107,7 +107,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         units="dBm",
         default=0,
         minimum=-30,
-        maximum=+20,
+        maximum=+30,
     )
     rf_bandwidth = FloatParameter(
         "RF bandwidth",
