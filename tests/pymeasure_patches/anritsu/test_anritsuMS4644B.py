@@ -32,14 +32,20 @@ def test_channel_port_power_level():
     # Test second level channel (port in channel)
     with expected_protocol(
         AnritsuMS4644B,
-        [(":SOUR6:POW:PORT1 3.0e0", None),
+        [(":SOUR6:POW:PORT1 12", None),
          (":SOUR2:POW:PORT4?", "-1.5E1")],
     ) as instr:
-        instr.ch_6.pt_1.power_level = 3.
+        instr.ch_6.pt_1.power_level = 12.
         assert instr.ch_2.pt_4.power_level == -15.
 
-    # power_level = Channel.control(
-    #     "SOUR{{ch}}:POW:PORT{pt}?", "SOUR{{ch}}:POW:PORT{pt} %g",
 
-# Test second level channel (trace in channel)
+def test_channel_trace_measurement_parameter():
+    # Test second level channel (trace in channel)
+    with expected_protocol(
+        AnritsuMS4644B,
+        [(":CALC6:PAR1:DEF S11", None),
+         (":CALC2:PAR6:DEF?", "S21")],
+    ) as instr:
+        instr.ch_6.tr_1.measurement_parameter = "S11"
+        assert instr.ch_2.tr_6.measurement_parameter == "S21"
 

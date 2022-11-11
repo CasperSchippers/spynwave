@@ -74,9 +74,9 @@ class MeasurementChannel(VNAChannel):
         super().__init__(*args, **kwargs)
 
         for pt in range(self.parent.PORTS[1]):
-            self.add_child(Port, pt + 1, collection="ports", prefix="pt")
+            self.add_child(Port, pt + 1, collection="ports", prefix="pt_")
         for tr in range(self.TRACES[1]):
-            self.add_child(Trace, tr + 1, collection="traces", prefix="tr")
+            self.add_child(Trace, tr + 1, collection="traces", prefix="tr_")
 
     def check_errors(self):
         return self.parent.check_errors()
