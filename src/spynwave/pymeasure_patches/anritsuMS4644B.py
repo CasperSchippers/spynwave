@@ -11,12 +11,8 @@ log.addHandler(logging.NullHandler())
 
 
 # TODO: check if this is still up to date with the channels implementation
-class VNAChannel(Channel):
-    def check_errors(self):
-        return self.parent.check_errors()
 
-
-class Port(VNAChannel):
+class Port(Channel):
     placeholder = "pt"
 
     power_level = Channel.control(
@@ -29,7 +25,7 @@ class Port(VNAChannel):
     )
 
 
-class Trace(VNAChannel):
+class Trace(Channel):
     placeholder = "tr"
 
     def activate(self):
@@ -66,7 +62,7 @@ class Trace(VNAChannel):
     )
 
 
-class MeasurementChannel(VNAChannel):
+class MeasurementChannel(Channel):
     FREQUENCY_RANGE = [1E7, 4E10]
     TRACES = [1, 16]
 
@@ -118,8 +114,6 @@ class MeasurementChannel(VNAChannel):
                 "R4C3", "R3C4", "R4C4"],
         validator=strict_discrete_set,
         cast=int,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     application_type = Channel.control(
@@ -129,8 +123,6 @@ class MeasurementChannel(VNAChannel):
         (for PulseView). Can be set.""",
         values=["TRAN", "NFIG", "PULS"],
         validator=strict_discrete_set,
-        check_get_errors=True,
-        check_set_errors=True,
     )
 
     hold_function = Channel.control(
@@ -147,9 +139,7 @@ class MeasurementChannel(VNAChannel):
         =====   =================================================
         """,
         values=["CONT", "HOLD", "SING"],
-            validator=strict_discrete_set,
-            check_get_errors=True,
-            check_set_errors=True,
+        validator=strict_discrete_set,
     )
 
     cw_mode_enabled = Channel.control(
@@ -589,8 +579,6 @@ class AnritsuMS4644B(Instrument):
     def trigger_continuous(self):
         """ Triggers a continuous sweep from the remote interface. """
         self.write(":TRIG")
-
-
 
     hold_function_all_channels = Instrument.control(
         ":SENS:HOLD:FUNC?", ":SENS:HOLD:FUNC %s",
