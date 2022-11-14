@@ -128,7 +128,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         "Temperature (K)",
         "DC voltage (V)",
         "DC current (A)",
-        "DC resistance (Ohm)",
+        "DC resistance (ohm)",
         "S11 real",
         "S11 imag",
         "S21 real",
