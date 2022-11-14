@@ -48,10 +48,8 @@ class Window(ManagedWindow):
                 "rf_power",
                 "rf_bandwidth",
             ),
-            # x_axis="Field (T)",
-            # y_axis="S11 real",
-            x_axis="Timestamp (s)",
-            y_axis="Field (T)",
+            x_axis="Field (T)",
+            y_axis="S11 real",
             displays=(
                 "measurement_type",
                 "averages",
