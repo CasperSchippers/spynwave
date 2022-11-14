@@ -56,7 +56,7 @@ class Window(ManagedWindow):
                 "measurement_type",
                 "averages",
             ),
-            sequencer=True,
+            # sequencer=True,
             inputs_in_scrollarea=True,
             directory_input=True,
         )
