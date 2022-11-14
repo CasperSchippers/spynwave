@@ -10,6 +10,8 @@ from pymeasure.experiment import (
     IntegerParameter, ListParameter, Metadata
 )
 
+from spynwave.drivers import Magnet
+
 # Setup logging
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -99,3 +101,15 @@ class MixinFrequencySweep:
 
     def shutdown_frequency_sweep(self):
         pass
+
+    def get_estimates_frequency_sweep(self, sequence_length=None):
+        overhead = 10  # Just a very poor estimate
+        magnet_time = abs(2 * self.magnetic_field / Magnet.current_ramp_rate)
+
+        # Based on LabVIEW estimates
+        ports = 2.1 if self.measurement_ports == "2-port" else 1.
+        time_per_point = 1.04 / self.rf_bandwidth
+        time_per_sweep = ports * time_per_point * self.frequency_points
+
+        duration = self.frequency_averages * time_per_sweep
+        return duration + overhead + magnet_time

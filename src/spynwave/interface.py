@@ -71,7 +71,6 @@ class Window(ManagedWindow):
                 raise exc
             log.warning("Could not retrieve limits from VNA: timed out.")
 
-
         self.directory_line.setText(os.getcwd())
 
     def queue(self, *args, procedure=None):

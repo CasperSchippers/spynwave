@@ -12,7 +12,7 @@ from pymeasure.experiment import (
     IntegerParameter, ListParameter, Metadata
 )
 
-from spynwave.drivers import InstrumentThread, DataThread
+from spynwave.drivers import InstrumentThread, DataThread, Magnet
 
 # Setup logging
 log = logging.getLogger(__name__)
@@ -148,6 +148,14 @@ class MixinFieldSweep:
         self.sleep(self.field_saturation_time)
         self.magnet.set_field(self.field_start)
 
+    def get_estimates_field_sweep(self, sequence_length=None):
+        overhead = 10  # Just a very poor estimate
+        duration_sat = self.field_saturation_time + \
+                       abs(2 * self.field_saturation_field / Magnet.current_ramp_rate)
+        duration_sweep = abs((self.field_start - self.field_stop) / self.field_ramp_rate) + \
+                         self.field_stop / Magnet.current_ramp_rate
+        return overhead + duration_sat + duration_sweep
+
 
 class FieldSweepThread(InstrumentThread):
     def run(self):
@@ -226,4 +234,3 @@ class VNAControlThread(InstrumentThread):
             # self.instrument.vectorstar.adapter.connection.unlock()
 
         log.info("VNA control Thread: stopped")
-

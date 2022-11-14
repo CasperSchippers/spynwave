@@ -244,6 +244,13 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         while time() - t0 < duration and not self.should_stop():
             sleep(0.01)
 
-    # def get_estimates(self, sequence_length=0):
-    #     estimates = list()
-    #     return estimates
+    def get_estimates(self, sequence_length=None):
+        if self.measurement_type == "Frequency sweep":
+            estimates = self.get_estimates_frequency_sweep(sequence_length)
+        elif self.measurement_type == "Field sweep":
+            estimates = self.get_estimates_field_sweep(sequence_length)
+        else:
+            raise NotImplementedError(f"Measurement type {self.measurement_type} "
+                                      f"not implemented")
+
+        return estimates
