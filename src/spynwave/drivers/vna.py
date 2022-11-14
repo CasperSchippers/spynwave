@@ -38,7 +38,7 @@ class VNA:
         if use_DAQmx is not None:
             self.use_DAQmx = use_DAQmx
         else:
-            self.use_DAQmx = config["vna"]["use daqmx trigger"]
+            self.use_DAQmx = config["vna"]["vectorstar"]["use daqmx trigger"]
 
         if self.use_DAQmx:
             try:
