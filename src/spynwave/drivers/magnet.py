@@ -39,7 +39,9 @@ gauss_meter_setting = {
     "normalmode_reading_frequency": 0.4,  # seconds,
 
 }
-calibration_file = "magnet_calibration.txt"
+
+import pathlib
+calibration_file = pathlib.Path(__file__).parent.resolve() / "magnet_calibration.txt"
 
 
 class Magnet:
