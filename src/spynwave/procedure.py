@@ -20,7 +20,8 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 # Instrument addresses
-vna_address = "visa://131.155.124.201/TCPIP0::VS1513648::inst0::INSTR"
+# visa://131.155.124.201/
+vna_address = "TCPIP0::VS1513648::inst0::INSTR"
 
 
 class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):

@@ -20,8 +20,8 @@ from spynwave.pymeasure_patches.sm12013 import SM12013
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
-address_power_supply = "visa://131.155.124.201/ASRL3::INSTR"
-address_gauss_meter = "visa://131.155.124.201/ASRL9::INSTR"
+address_power_supply = "ASRL3::INSTR"
+address_gauss_meter = "ASRL9::INSTR"
 
 labjack_settings = {
     "ID": 0,
