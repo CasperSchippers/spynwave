@@ -31,9 +31,7 @@ class VNA:
 
     def __init__(self, use_DAQmx=None, **kwargs):
 
-        self.vectorstar = AnritsuMS4644B(
-            config['general']['visa-prefix'] + config['vna']['vectorstar']['address'],
-            **kwargs)
+        self.vectorstar = self.connect_vectorstar(**kwargs)
 
         if use_DAQmx is not None:
             self.use_DAQmx = use_DAQmx
@@ -58,8 +56,14 @@ class VNA:
                 self.shutdown_daqmx()
                 raise exc
 
+    @staticmethod
+    def connect_vectorstar(**kwargs):
+        vectorstar = AnritsuMS4644B(
+            config['general']['visa-prefix'] + config['vna']['vectorstar']['address'],
+            **kwargs
+        )
 
-        #     NotImplementedError("Using DAQmx to trigger measurements is not yet implemented.")
+        return vectorstar
 
     def startup(self, reset=False):
         # self.id
@@ -163,7 +167,7 @@ class VNA:
         self.vectorstar.ch_1.number_of_points = frequency_points
 
     def trigger_measurement(self):
-        # TODO: check why this is not stable
+        # TODO: check why this is not stable, especially for frequency sweeps
         log.debug(f"Triggering measurement using {'DAQmx' if self.use_DAQmx else 'SCPI'}.")
         if self.use_DAQmx:
             self.daqmx_update_reference_count()

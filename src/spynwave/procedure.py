@@ -49,7 +49,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
             "1-port: S11",
             "1-port: S22",
         ],
-        default="2-port"
+        default="2-port",
+        group_by="rf_advanced_settings",
     )
     measurement_type = ListParameter(
         "Type of measurement",
@@ -58,19 +59,6 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
             "Frequency sweep",
         ],
         default="Field sweep"
-    )
-    averages = IntegerParameter(
-        "Number of averages",
-        default=2,
-        minimum=1,
-    )
-    average_type = ListParameter(
-        "Averaging type",
-        choices=[
-            "point-by-point",
-            "sweep-by-sweep",
-        ],
-        default="sweep-by-sweep",
     )
     # average_nr = IntegerParameter(
     #     "Average number",
@@ -99,12 +87,17 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
     )
 
     # VNA settings
+    rf_advanced_settings = BooleanParameter(
+        "Advanced RF settings",
+        default=False,
+    )
     rf_power = FloatParameter(
         "RF output power",
         units="dBm",
         default=0,
         minimum=-30,
         maximum=+30,
+        group_by="rf_advanced_settings",
     )
     rf_bandwidth = FloatParameter(
         "RF bandwidth",
@@ -112,6 +105,16 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         default=100,
         minimum=1,
         maximum=1e6,
+        group_by="rf_advanced_settings",
+    )
+    average_type = ListParameter(
+        "Averaging type",
+        choices=[
+            "point-by-point",
+            "sweep-by-sweep",
+        ],
+        default="sweep-by-sweep",
+        group_by="rf_advanced_settings",
     )
 
     # Metadata to be stored in the file
@@ -171,12 +174,6 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
             power_level=self.rf_power,
         )
         # TODO: Maybe this needs to be measurement-type
-        self.vna.configure_averaging(
-            enabled=True,
-            average_count=self.averages,
-            averaging_type=self.average_type,
-        )
-
         self.magnet.startup()
 
         ## Run measurement-type-specific startup

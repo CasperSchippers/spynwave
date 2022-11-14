@@ -43,14 +43,29 @@ class MixinFrequencySweep:
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
+    frequency_averages = IntegerParameter(
+        "Number of averages (VNA)",
+        default=2,
+        minimum=1,
+        group_by="measurement_type",
+        group_condition="Frequency sweep",
+    )
 
     def startup_frequency_sweep(self):
         self.magnet.gauss_meter_set_fast_mode(False)
+
+        self.vna.configure_averaging(
+            enabled=True,
+            average_count=self.frequency_averages,
+            averaging_type=self.average_type,
+        )
+
         self.vna.prepare_frequency_sweep(
             frequency_start=self.frequency_start,
             frequency_stop=self.frequency_stop,
             frequency_points=self.frequency_points,
         )
+
         log.info(f"Ramping field to {self.magnetic_field} T")
         self.magnet.set_field(self.magnetic_field, controlled=True)
         log.info(f"Waiting for field to stabilize")
@@ -64,12 +79,12 @@ class MixinFrequencySweep:
 
         while not self.should_stop():
             cnt = self.vna.averages_done()
-            self.emit("progress", cnt/self.averages * 100)
+            self.emit("progress", cnt/self.frequency_averages * 100)
 
             # Measure the field while waiting
             field_points.append(self.magnet.measure_field())
 
-            if cnt >= self.averages:
+            if cnt >= self.frequency_averages:
                 break
             self.sleep()
 
