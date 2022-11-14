@@ -29,13 +29,17 @@ class VNA:
     cached_average_count = 0
     cached_measurement_port = "2-port"
 
-    def __init__(self, use_DAQmx=True, **kwargs):
+    def __init__(self, use_DAQmx=None, **kwargs):
 
         self.vectorstar = AnritsuMS4644B(
             config['general']['visa-prefix'] + config['vna']['vectorstar']['address'],
             **kwargs)
 
-        self.use_DAQmx = use_DAQmx
+        if use_DAQmx is not None:
+            self.use_DAQmx = use_DAQmx
+        else:
+            self.use_DAQmx = config["vna"]["use daqmx trigger"]
+
         if self.use_DAQmx:
             try:
                 self.trigger_task = nidaqmx.Task("Trigger task")

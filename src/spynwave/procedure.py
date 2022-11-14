@@ -160,7 +160,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         The devices are connected and the default parameters are set.
         """
         ## Connect to instruments
-        self.vna = VNA(use_DAQmx=True)
+        self.vna = VNA()
         self.magnet = Magnet()
 
         ## Run general startup procedure

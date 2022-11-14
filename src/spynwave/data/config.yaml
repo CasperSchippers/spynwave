@@ -9,6 +9,7 @@ general:
 vna:
   vectorstar:
     address: "TCPIP0::VS1513648::inst0::INSTR"
+    use daqmx trigger: True
 
   # Only change these if you know what you are doing
   daqmx:
