@@ -7,9 +7,12 @@ import logging
 import ctypes
 from copy import deepcopy
 
+from pyvisa import VisaIOError
+from pyvisa.constants import VI_ERROR_TMO
+
 from pymeasure.display.Qt import QtWidgets
 from pymeasure.display.windows import ManagedWindow
-from pymeasure.experiment import Results, unique_filename, replace_placeholders
+from pymeasure.experiment import Results, unique_filename
 
 from spynwave.procedure import PSWSProcedure
 from spynwave.drivers import VNA
@@ -61,7 +64,13 @@ class Window(ManagedWindow):
             directory_input=True,
         )
 
-        self.update_inputs_from_VNA()
+        try:
+            self.update_inputs_from_VNA()
+        except VisaIOError as exc:
+            if not exc.error_code == VI_ERROR_TMO:
+                raise exc
+            log.warning("Could not retrieve limits from VNA: timed out.")
+
 
         self.directory_line.setText(os.getcwd())
 

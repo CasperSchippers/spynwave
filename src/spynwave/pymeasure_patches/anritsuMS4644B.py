@@ -283,7 +283,7 @@ class AnritsuMS4644B(Instrument):
         super().__init__(
             adapter,
             "Anritsu MS4644B Vector Network Analyzer",
-            timeout=3000,
+            timeout=10000,
             **kwargs,
         )
 
