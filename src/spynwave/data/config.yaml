@@ -1,0 +1,44 @@
+#
+# This file is part of the SpynWave package.
+#
+
+general:
+  remote connection: False
+  remote visa-prefix: "visa://131.155.124.201/"
+
+vna:
+  vectorstar:
+    address: "TCPIP0::VS1513648::inst0::INSTR"
+
+  # Only change these if you know what you are doing
+  daqmx:
+    trigger line: "Dev1/port0/line7"
+    counter channel: "Dev1/ctr0"
+    counter edge: "/Dev1/PFI0"
+
+
+in-plane magnet:
+  calibration: "file"
+  calibration filename: "magnet_calibration.txt"
+
+  power-supply:
+    address: "ASRL3::INSTR"
+
+  # Only change these if you know what you are doing
+  labjack:
+    ID: 0
+    voltage channel: 1  # TODO: this seems not used
+    positive polarity bit: 2
+    negative polarity bit: 1
+
+  gauss-meter:
+    address: "ASRL9::INSTR"
+    range: 3  # Tesla
+    fastmode: True
+    autorange: "Software"  # can be one of: "Hardware", "Software", "None"
+    # Note: the "hardware" auto-range is terrible. Use "Software" for a faster auto-ranging
+    fastmode reading frequency: 0.1  # seconds
+    normalmode reading frequency: 0.4  # seconds
+
+#out-of-plane magnet:
+#  visa-address: "TCPIP0::VS1513648::inst0::INSTR"

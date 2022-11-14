@@ -11,17 +11,13 @@ import nidaqmx.constants
 import nidaqmx
 import pyvisa.constants
 
+from spynwave.constants import config
+
 # TODO: should be contributed to pymeasure
 from spynwave.pymeasure_patches.anritsuMS4644B import AnritsuMS4644B
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
-
-daqmx_settings = {
-    "trigger line": "Dev1/port0/line7",
-    "counter channel": "Dev1/ctr0",
-    "counter edge": "/Dev1/PFI0",
-}
 
 
 class VNA:
@@ -33,21 +29,23 @@ class VNA:
     cached_average_count = 0
     cached_measurement_port = "2-port"
 
-    def __init__(self, adapter, use_DAQmx=True, **kwargs):
+    def __init__(self, use_DAQmx=True, **kwargs):
 
-        self.vectorstar = AnritsuMS4644B(adapter, **kwargs)
+        self.vectorstar = AnritsuMS4644B(
+            config['general']['visa-prefix'] + config['vna']['vectorstar']['address'],
+            **kwargs)
 
         self.use_DAQmx = use_DAQmx
         if self.use_DAQmx:
             try:
                 self.trigger_task = nidaqmx.Task("Trigger task")
-                self.trigger_task.do_channels.add_do_chan(daqmx_settings["trigger line"])
+                self.trigger_task.do_channels.add_do_chan(config['vna']['daqmx']["trigger line"])
                 self.trigger_task.write(False)
 
                 self.counter_task = nidaqmx.Task("Counter task")
                 channel = self.counter_task.ci_channels.add_ci_count_edges_chan(
-                    daqmx_settings["counter channel"], edge=nidaqmx.constants.Edge.FALLING)
-                channel.ci_count_edges_term = daqmx_settings["counter edge"]
+                    config['vna']['daqmx']["counter channel"], edge=nidaqmx.constants.Edge.FALLING)
+                channel.ci_count_edges_term = config['vna']['daqmx']["counter edge"]
                 self.counter_task.start()
 
                 self.daqmx_update_reference_count()

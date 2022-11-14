@@ -19,10 +19,6 @@ from spynwave.procedures import MixinFieldSweep, MixinFrequencySweep
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
-# Instrument addresses
-# visa://131.155.124.201/
-vna_address = "TCPIP0::VS1513648::inst0::INSTR"
-
 
 class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
     r"""
@@ -163,7 +159,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         The devices are connected and the default parameters are set.
         """
         ## Connect to instruments
-        self.vna = VNA(vna_address, use_DAQmx=True)
+        self.vna = VNA(use_DAQmx=True)
         self.magnet = Magnet()
 
         ## Run general startup procedure

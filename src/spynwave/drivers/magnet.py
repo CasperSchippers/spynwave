@@ -14,34 +14,13 @@ from scipy.interpolate import interp1d
 from pymeasure.instruments.lakeshore import LakeShore421
 import u12  # LabJack library from labjackpython
 
+from spynwave.constants import config
+
 # TODO: should be updated on pymeasure
 from spynwave.pymeasure_patches.sm12013 import SM12013
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
-
-address_power_supply = "ASRL3::INSTR"
-address_gauss_meter = "ASRL9::INSTR"
-
-labjack_settings = {
-    "ID": 0,
-    "voltage_channel": 1,
-    "positive_polarity_bit": 2,
-    "negative_polarity_bit": 1,
-}
-gauss_meter_setting = {
-    "range": 3,  # tesla
-    "fastmode": True,
-    "autorange": "Software",  # "Hardware", "Software", "None"
-    # Note: the hardware auto-range is terrible. Use autorange = "Software" for
-    # a faster auto-ranging
-    "fastmode_reading_frequency": 0.1,  # seconds,
-    "normalmode_reading_frequency": 0.4,  # seconds,
-
-}
-
-import pathlib
-calibration_file = pathlib.Path(__file__).parent.resolve() / "magnet_calibration.txt"
 
 
 class Magnet:
@@ -59,29 +38,31 @@ class Magnet:
     last_current = 0  # attribute to store the last applied current
 
     polarity = 0
-    bitSelect_positive = 2**labjack_settings["positive_polarity_bit"]
-    bitSelect_negative = 2**labjack_settings["negative_polarity_bit"]
+    bitSelect_positive = 2**config["in-plane magnet"]["labjack"]["positive polarity bit"]
+    bitSelect_negative = 2**config["in-plane magnet"]["labjack"]["negative polarity bit"]
 
     gauss_meter_ranges = [3., 0.3, 0.03, 0.003]
     gauss_meter_range_edges = [(0.25, 3.5), (0.025, 0.27), (0.0025, 0.027), (0, 0.0027)]
     gauss_meter_range = 0
-    gauss_meter_software_adjust = gauss_meter_setting["autorange"] == "Software"
+    gauss_meter_autorange = config["in-plane magnet"]["gauss-meter"]["autorange"]
     gauss_meter_fast_mode = False
 
     @property
     def gauss_meter_delay(self):
         return {
-            True: gauss_meter_setting["fastmode_reading_frequency"],
-            False: gauss_meter_setting["normalmode_reading_frequency"]
+            True: config["in-plane magnet"]["gauss-meter"]["fastmode reading frequency"],
+            False: config["in-plane magnet"]["gauss-meter"]["normalmode reading frequency"]
         }[self.gauss_meter_fast_mode]
 
     def __init__(self):
-        self.power_supply = SM12013(address_power_supply)
+        self.power_supply = SM12013(
+            config['general']['visa-prefix'] + config['in-plane magnet']['power-supply']['address']
+        )
         self.clear_powersupply_buffer()
         self.max_current = self.power_supply.max_current
         self.max_voltage = self.power_supply.max_voltage
 
-        self.labjack = u12.U12(id=labjack_settings["ID"])
+        self.labjack = u12.U12(id=config["in-plane magnet"]["labjack"]["ID"])
         # Set the correct channels on the labjack to output channels for controlling the polarity
         self.labjack.digitalIO(
             trisD=self.bitSelect_positive + self.bitSelect_negative,
@@ -91,7 +72,9 @@ class Magnet:
             updateDigital=True
         )
 
-        self.gauss_meter = LakeShore421(address_gauss_meter)
+        self.gauss_meter = LakeShore421(
+            config['general']['visa-prefix'] + config['in-plane magnet']['gauss-meter']['address']
+        )
         # self.gauss_meter.check_errors()
 
     def startup(self):
@@ -118,14 +101,14 @@ class Magnet:
         ## Prepare the gauss meter
         # self.gauss_meter.id
         self.gauss_meter.unit = "T"
-        self.gauss_meter_set_fast_mode(gauss_meter_setting["fastmode"])
-        self.gauss_meter.auto_range = gauss_meter_setting["autorange"] == "Hardware"
-        self.gauss_meter.field_range = gauss_meter_setting["range"]
+        self.gauss_meter_set_fast_mode(config["in-plane magnet"]["gauss-meter"]["fastmode"])
+        self.gauss_meter.auto_range = self.gauss_meter_autorange == "Hardware"
+        self.gauss_meter.field_range = config["in-plane magnet"]["gauss-meter"]["range"]
         self.gauss_meter_range = self.gauss_meter.field_range_raw
 
     def load_calibration(self):
         # TODO: should make this less hardcoded and define standard format for table (with header)
-        cal_data = pd.read_csv(calibration_file,
+        cal_data = pd.read_csv(config['in-plane magnet']['calibration file'],
                                header=None,
                                names=["current", "field"],
                                delim_whitespace=True)
@@ -293,7 +276,7 @@ class Magnet:
         field = self.gauss_meter.field
 
         # Simple case if no software adjustment is allowed
-        if not self.gauss_meter_software_adjust:
+        if not self.gauss_meter_autorange == "Software":
             return field
 
         # Case if software adjustment is allowed.
