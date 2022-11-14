@@ -269,6 +269,15 @@ class MeasurementChannel(Channel):
         validator=strict_range,
     )
 
+    calibration_enabled = Channel.control(
+        ":SENS{ch}:CORR:STAT?", ":SENS{ch}:CORR:STAT %d",
+        """ A boolean property that controls whether the RF correction (calibration) is enabled for
+        indicated channel. Can be set.
+        """,
+        values={True: 1, False: 0},
+        map_values=True,
+    )
+
 
 class AnritsuMS4644B(Instrument):
     """ A class representing the Anritsu MS4644B Vector Network Analyzer (VNA).
