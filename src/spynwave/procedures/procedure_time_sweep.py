@@ -17,7 +17,7 @@ log.addHandler(logging.NullHandler())
 
 
 class MixinTimeSweep:
-    duration = FloatParameter(
+    time_duration = FloatParameter(
         "Time sweep duration",
         default=60.,
         minimum=0,
@@ -50,9 +50,10 @@ class MixinTimeSweep:
         self.gauss_probe_thread.start()
         self.vna_control_thread.start()
 
-        end_time = self.start_time + self.duration
+        end_time = self.start_time + self.time_duration
 
-        while time() < end_time and not self.should_stop():
+        while (current_time := time()) < end_time and not self.should_stop():
+            self.emit('progress', (current_time - end_time) / self.time_duration * 100)
             self.sleep(0.1)
 
         self.gauss_probe_thread.stop()
@@ -88,4 +89,4 @@ class MixinTimeSweep:
     def get_estimates_time_sweep(self):
         overhead = 10  # Just a very poor estimate
         duration_sat = abs(2 * self.magnetic_field / Magnet.current_ramp_rate)
-        return overhead + duration_sat + self.duration
+        return overhead + duration_sat + self.time_duration

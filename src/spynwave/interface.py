@@ -48,6 +48,7 @@ class Window(ManagedWindow):
                 "field_ramp_rate",
                 "field_include_mirrored",
                 "field_saturation_field",
+                "time_duration",
                 "frequency_averages",
                 "rf_advanced_settings",
                 "average_type",
