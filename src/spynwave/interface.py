@@ -64,12 +64,7 @@ class Window(ManagedWindow):
             directory_input=True,
         )
 
-        try:
-            self.update_inputs_from_VNA()
-        except VisaIOError as exc:
-            if not exc.error_code == VI_ERROR_TMO:
-                raise exc
-            log.warning("Could not retrieve limits from VNA: timed out.")
+        self.update_inputs_from_VNA()
 
         self.directory_line.setText(os.getcwd())
 
@@ -155,36 +150,42 @@ class Window(ManagedWindow):
         """ Inquire values for the frequency range and bandwidth from the VNA and set them as new
         default values in the interface. """
 
-        with VNA.connect_vectorstar() as vectorstar:
+        try:
+            with VNA.connect_vectorstar() as vectorstar:
 
-            # First get current state, such that it can be returned to afterwards
-            cw_mode_enabled = vectorstar.ch_1.cw_mode_enabled
-            frequency_CW = vectorstar.ch_1.frequency_CW
-            number_of_points = vectorstar.ch_1.number_of_points
-            frequency_start = vectorstar.ch_1.frequency_start
-            frequency_stop = vectorstar.ch_1.frequency_stop
+                # First get current state, such that it can be returned to afterwards
+                cw_mode_enabled = vectorstar.ch_1.cw_mode_enabled
+                frequency_CW = vectorstar.ch_1.frequency_CW
+                number_of_points = vectorstar.ch_1.number_of_points
+                frequency_start = vectorstar.ch_1.frequency_start
+                frequency_stop = vectorstar.ch_1.frequency_stop
 
-            # Set widest possible range
-            vectorstar.ch_1.cw_mode_enabled = False
-            vectorstar.ch_1.frequency_start = vectorstar.ch_1.FREQUENCY_RANGE[0]
-            vectorstar.ch_1.frequency_stop = vectorstar.ch_1.FREQUENCY_RANGE[1]
-            vectorstar.ch_1.number_of_points = 100000
+                # Set widest possible range
+                vectorstar.ch_1.cw_mode_enabled = False
+                vectorstar.ch_1.frequency_start = vectorstar.ch_1.FREQUENCY_RANGE[0]
+                vectorstar.ch_1.frequency_stop = vectorstar.ch_1.FREQUENCY_RANGE[1]
+                vectorstar.ch_1.number_of_points = 100000
 
-            # Get the values that are within the calibration
-            frequency_min = vectorstar.ch_1.frequency_start
-            frequency_max = vectorstar.ch_1.frequency_stop
-            frequency_steps = vectorstar.ch_1.number_of_points
-            bandwidth = vectorstar.ch_1.bandwidth
-            power_level = vectorstar.ch_1.pt_1.power_level
+                # Get the values that are within the calibration
+                frequency_min = vectorstar.ch_1.frequency_start
+                frequency_max = vectorstar.ch_1.frequency_stop
+                frequency_steps = vectorstar.ch_1.number_of_points
+                bandwidth = vectorstar.ch_1.bandwidth
+                power_level = vectorstar.ch_1.pt_1.power_level
 
-            # Return to the original values
-            vectorstar.ch_1.cw_mode_enabled = cw_mode_enabled
-            vectorstar.ch_1.frequency_CW = frequency_CW
-            vectorstar.ch_1.number_of_points = number_of_points
-            vectorstar.ch_1.frequency_start = frequency_start
-            vectorstar.ch_1.frequency_stop = frequency_stop
+                # Return to the original values
+                vectorstar.ch_1.cw_mode_enabled = cw_mode_enabled
+                vectorstar.ch_1.frequency_CW = frequency_CW
+                vectorstar.ch_1.number_of_points = number_of_points
+                vectorstar.ch_1.frequency_start = frequency_start
+                vectorstar.ch_1.frequency_stop = frequency_stop
 
-            vectorstar.return_to_local()
+                vectorstar.return_to_local()
+        except VisaIOError as exc:
+            if not exc.error_code == VI_ERROR_TMO:
+                raise exc
+            log.warning("Could not retrieve limits from VNA: timed out.")
+            return
 
         self.inputs.frequency_start.setMinimum(frequency_min)
         self.inputs.frequency_start.setMaximum(frequency_max)
