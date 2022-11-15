@@ -66,7 +66,7 @@ class Window(ManagedWindow):
             directory_input=True,
         )
 
-        self.update_inputs_from_VNA()
+        self.update_inputs_from_vna()
 
         self.directory_line.setText(os.getcwd())
 
