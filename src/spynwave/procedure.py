@@ -177,13 +177,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         self.magnet.startup()
 
         # Run measurement-type-specific startup
-        if self.measurement_type == "Frequency sweep":
-            self.startup_frequency_sweep()
-        elif self.measurement_type == "Field sweep":
-            self.startup_field_sweep()
-        else:
-            raise NotImplementedError(f"Measurement type {self.measurement_type} "
-                                      f"not implemented")
+        self.get_mixin_method('startup')()
 
         self.vna.reset_to_measure()
 
@@ -193,21 +187,15 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         the measurement is defined, all the actual activities are handled by
         helper functions (in the helpers section of this class).
         """
-        if self.measurement_type == "Frequency sweep":
-            self.execute_frequency_sweep()
-        elif self.measurement_type == "Field sweep":
-            self.execute_field_sweep()
-        else:
-            raise NotImplementedError(f"Measurement type {self.measurement_type} "
-                                      f"not implemented")
+        self.get_mixin_method('execute')()
 
-    def get_datapoint(self):
-        data = {
-            "Timestamp (s)": time(),
-            "Field (T)": self.magnet.measure_field()
-        }
-
-        return data
+    # def get_datapoint(self):
+    #     data = {
+    #         "Timestamp (s)": time(),
+    #         "Field (T)": self.magnet.measure_field()
+    #     }
+    #
+    #     return data
 
     # Define stop sequence
     def shutdown(self):
@@ -215,13 +203,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         """
 
         # Perform a measurement-specific shutdown, if necessary
-        if self.measurement_type == "Frequency sweep":
-            self.shutdown_frequency_sweep()
-        elif self.measurement_type == "Field sweep":
-            self.shutdown_field_sweep()
-        else:
-            raise NotImplementedError(f"Measurement type {self.measurement_type} "
-                                      f"not implemented")
+        self.get_mixin_method('shutdown')()
 
         if self.vna is not None:
             self.vna.shutdown()
@@ -239,18 +221,20 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
 
     """
 
+    def get_mixin_method(self, base_method):
+        spec = str(self.measurement_type).replace(" ", "_").lower()
+        method_name = f"{base_method}_{spec}"
+        if hasattr(self, method_name):
+            return getattr(self, method_name)
+        else:
+            raise NotImplementedError(f"Measurement type {self.measurement_type} "
+                                      f"not implemented (or missing {base_method}).")
+
     def sleep(self, duration=0.1):
         start = time()
         while time() - start < duration and not self.should_stop():
             sleep(0.01)
 
     def get_estimates(self):
-        if self.measurement_type == "Frequency sweep":
-            estimates = self.get_estimates_frequency_sweep()
-        elif self.measurement_type == "Field sweep":
-            estimates = self.get_estimates_field_sweep()
-        else:
-            raise NotImplementedError(f"Measurement type {self.measurement_type} "
-                                      f"not implemented")
-
+        estimates = self.get_mixin_method('get_estimates')()
         return estimates
