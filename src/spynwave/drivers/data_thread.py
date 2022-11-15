@@ -57,13 +57,13 @@ class DataThread(StoppableThread):
         self.procedure.emit("results", data | self.static_data)
 
     def matching_possible(self):
-        """ Check if all structs have at least 2 datapoints such that the datasets can be matched
-        and merged.
+        """ Check if all structs sufficient data for matching
         """
-        return all([s.could_be_merged() for s in self.data_structs])
+        return all(s.could_be_merged() for s in self.data_structs)
+        return True
 
     def get_matched_data(self):
-        # V1: assuming that the first column is the slowest one
+        # V2: assuming that the first column is the slowest one
         # TODO: generalise this a bit
         mainstruct = self.data_structs[0]
 
@@ -76,7 +76,9 @@ class DataThread(StoppableThread):
         for struct in self.data_structs[1:]:
             ds = struct.collect_data_within_interval(midpoint)
 
-            assert len(ds) > 1 or self._should_really_stop
+            if len(ds) == 0:
+                log.info("Not all columns have sufficient data for matching")
+                return None
 
             matched_data.append(pd.DataFrame(ds).mean().to_dict())
 
@@ -131,6 +133,9 @@ class DataStructure:
         return len(self.time_lst) >= 2
 
     def first_datapoint_in_interval(self, end, start=0):
+        if len(self.time_lst) == 0:
+            return False
+
         return start < self.time_lst[0] < end
 
     def get_first_datapoint(self):
