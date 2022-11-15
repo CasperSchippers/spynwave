@@ -162,6 +162,7 @@ class Window(ManagedWindow):
     def update_inputs_from_vna(self):
         """ Inquire values for the frequency range and bandwidth from the VNA and set them as new
         default values in the interface. """
+        # TODO: see if this can be made asynchronous
 
         try:
             with VNA.connect_vectorstar() as vectorstar:
