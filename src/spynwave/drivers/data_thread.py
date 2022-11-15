@@ -60,29 +60,27 @@ class DataThread(StoppableThread):
         """ Check if all structs sufficient data for matching
         """
         return all(s.could_be_merged() for s in self.data_structs)
-        return True
 
     def get_matched_data(self):
         # V2: assuming that the first column is the slowest one
         # TODO: generalise this a bit
         mainstruct = self.data_structs[0]
+        matching_time, midpoint = mainstruct.get_matching_timedata()
 
-        midpoint = mainstruct.get_first_midpoint()
-
-        matching_time, matching_data = mainstruct.get_first_datapoint()
-        matching_data[self.time_column] = matching_time
-
-        matched_data = [matching_data]
-        for struct in self.data_structs[1:]:
-            ds = struct.collect_data_within_interval(midpoint)
-
-            if len(ds) == 0:
+        # Perform check that this is going to work out
+        for struct in self.data_structs:
+            if struct.index_until_timestamp(midpoint) == 0:
                 log.info("Not all columns have sufficient data for matching")
                 return None
 
-            matched_data.append(pd.DataFrame(ds).mean().to_dict())
+        matched_data = []
+        for struct in self.data_structs:
+            idx = struct.index_until_timestamp(midpoint)
+            _, data = struct.pop_first_n_datapoints(idx)
+            matched_data.append(pd.DataFrame(data).mean().to_dict())
 
         data = {k: v for d in matched_data for k, v in d.items()}
+        data[self.time_column] = matching_time
         return data
 
     def data_available(self):
@@ -129,23 +127,29 @@ class DataStructure:
             self.data_lst.append(d)
 
     def could_be_merged(self):
+        assert self.time_lst == sorted(self.time_lst)
         assert len(self.time_lst) == len(self.data_lst)
         return len(self.time_lst) >= 2
 
-    def first_datapoint_in_interval(self, end, start=0):
-        if len(self.time_lst) == 0:
-            return False
+    # def first_datapoint_before_timestamp(self, timestamp):
+    #     if len(self.time_lst) == 0:
+    #         return False
+    #
+    #     return self.time_lst[0] < timestamp
 
-        return start < self.time_lst[0] < end
+    # def get_first_datapoint(self):
+    #     return self.time_lst.pop(0), self.data_lst.pop(0)
 
-    def get_first_datapoint(self):
-        return self.time_lst.pop(0), self.data_lst.pop(0)
+    def index_until_timestamp(self, timestamp):
+        for idx, time_value in enumerate(self.time_lst):
+            if time_value > timestamp:
+                return idx
 
-    def collect_data_within_interval(self, end, start=0):
-        dataset = []
-        while self.first_datapoint_in_interval(end, start):
-            dataset.append(self.get_first_datapoint()[1])  # This discards the timestamp
-        return dataset
+    # def collect_data_before_timestamp(self, timestamp):
+    #     dataset = []
+    #     while self.first_datapoint_before_timestamp(timestamp):
+    #         dataset.append(self.get_first_datapoint()[1])  # This discards the timestamp
+    #     return dataset
 
     def get_first_interval(self):
         # TODO: can maybe be used to generalise this a bit
@@ -154,8 +158,20 @@ class DataStructure:
 
         return abs(self.time_lst[1] - self.time_lst[0])
 
-    def get_first_midpoint(self):
+    def get_matching_timedata(self):
         if not self.could_be_merged():
-            return False
+            return None
 
-        return (self.time_lst[0] + self.time_lst[1]) / 2
+        return self.time_lst[0], (self.time_lst[0] + self.time_lst[1]) / 2
+
+    def get_first_n_datapoints(self, idx):
+        return self.time_lst[:idx], self.data_lst[:idx]
+
+    def remove_first_n_datapoints(self, idx):
+        del self.time_lst[:idx]
+        del self.data_lst[:idx]
+
+    def pop_first_n_datapoints(self, idx):
+        data = self.get_first_n_datapoints(idx)
+        self.remove_first_n_datapoints(idx)
+        return data
