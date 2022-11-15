@@ -68,11 +68,12 @@ class DataThread(StoppableThread):
         matching_time, midpoint = mainstruct.get_matching_timedata()
 
         # Perform check that this is going to work out
-        for struct in self.data_structs:
-            if struct.index_until_timestamp(midpoint) == 0:
-                log.info("Not all columns have sufficient data for matching")
-                # TODO: maybe here we need to see if we need to drop the datapoint of the mainstruct
-                return None
+        # for struct in self.data_structs:
+        #     if struct.index_until_timestamp(midpoint) == 0:
+        #         # Determine if we need to wait another round, or just publish empty data
+        #         log.info("Not all columns have sufficient data for matching")
+        #         # TODO: maybe here we need to see if we need to drop the datapoint of the mainstruct
+        #         return None
 
         matched_data = []
         for struct in self.data_structs:
