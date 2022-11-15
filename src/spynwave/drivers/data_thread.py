@@ -64,6 +64,7 @@ class DataThread(StoppableThread):
 
     def get_matched_data(self):
         # V1: assuming that the first column is the slowest one
+        # TODO: generalise this a bit
         mainstruct = self.data_structs[0]
 
         midpoint = mainstruct.get_first_midpoint()
