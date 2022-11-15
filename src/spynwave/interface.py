@@ -10,12 +10,14 @@ from copy import deepcopy
 from pyvisa import VisaIOError
 from pyvisa.constants import VI_ERROR_TMO
 
-from pymeasure.display.Qt import QtWidgets
+from pymeasure.display.Qt import QtWidgets, QtCore
 from pymeasure.display.windows import ManagedWindow
+
 from pymeasure.experiment import Results, unique_filename
 
 from spynwave.procedure import PSWSProcedure
 from spynwave.drivers import VNA
+from spynwave.widgets import SpinWaveSequencerWidget
 from spynwave.pymeasure_patches.pandas_formatter import CSVFormatterPandas
 
 
@@ -59,7 +61,7 @@ class Window(ManagedWindow):
                 "measurement_type",
                 "frequency_averages",
             ),
-            # sequencer=True,
+            sequencer=False,
             inputs_in_scrollarea=True,
             directory_input=True,
         )
@@ -145,6 +147,17 @@ class Window(ManagedWindow):
             curve.setSymbol("o")
             curve.setSymbolPen(curve.pen)
         return curve
+
+    def _setup_ui(self):
+        """ Re-implementation of the _setup_ui method to include the customized sequencer widget
+        """
+        if use_sequencer := self.use_sequencer:
+            self.sequencer = SpinWaveSequencerWidget(parent=self)
+
+        # Temporarily disable the use-sequencer, such that no new sequencer-widget is instantiated
+        self.use_sequencer = False
+        super()._setup_ui()
+        self.use_sequencer = use_sequencer
 
     def update_inputs_from_VNA(self):
         """ Inquire values for the frequency range and bandwidth from the VNA and set them as new
