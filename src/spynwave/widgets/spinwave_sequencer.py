@@ -35,7 +35,6 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
         # self._setup_ui()
         # self._layout()
 
-
     def get_sequence(self):
         """ Generate the sequence from the entered parameters. Returns a list of tuples; each tuple
         represents one measurement, containing dicts with the parameters for that measurement. """
