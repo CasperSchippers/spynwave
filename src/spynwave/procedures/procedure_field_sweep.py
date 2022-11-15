@@ -114,25 +114,25 @@ class MixinFieldSweep:
             self.sleep(0.1)
 
     def shutdown_field_sweep(self):
-        if self.field_sweep_thread is not None:
+        if self.field_sweep_thread is not None and self.field_sweep_thread.is_alive():
             try:
                 self.field_sweep_thread.join(2)
             except RuntimeError as e:
                 log.error(e)
 
-        if self.gauss_probe_thread is not None:
+        if self.gauss_probe_thread is not None and self.gauss_probe_thread.is_alive():
             try:
                 self.gauss_probe_thread.join(2)
             except RuntimeError as e:
                 log.error(e)
 
-        if self.vna_control_thread is not None:
+        if self.vna_control_thread is not None and self.vna_control_thread.is_alive():
             try:
                 self.vna_control_thread.join(2)
             except RuntimeError as e:
                 log.error(e)
 
-        if self.data_thread is not None:
+        if self.data_thread is not None and self.data_thread.is_alive():
             try:
                 self.data_thread.join(5)
             except RuntimeError as e:
