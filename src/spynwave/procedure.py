@@ -122,6 +122,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     measurement_date = Metadata("Measurement date", fget=datetime.now)
     start_time = Metadata("Measurement timestamp", fget=time)
     VNA_calibrated = Metadata("VNA calibrated", fget="vna.vectorstar.ch_1.calibration_enabled")
+    VNA_bandwidth = Metadata("RF bandwidth", fget="vna.vectorstar.ch_1.bandwidth", units="Hz")
+    VNA_powerlevel = Metadata("RF power level", fget="vna.vectorstar.ch_1.pt_1.power_level",
+                              units="dBm")
     # TODO: query calibration status, date, and (possibly) other attributes
 
     # Define data columns
