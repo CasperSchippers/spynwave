@@ -13,14 +13,14 @@ from pymeasure.experiment import (
 )
 
 from spynwave.drivers import Magnet, VNA
-from spynwave.procedures import MixinFieldSweep, MixinFrequencySweep
+from spynwave.procedures import MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep
 
 # Setup logging
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
+class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Procedure):
     r"""
      _____        _____            __  __ ______ _______ ______ _____   _____
     |  __ \ /\   |  __ \     /\   |  \/  |  ____|__   __|  ____|  __ \ / ____|
@@ -57,6 +57,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         choices=[
             "Field sweep",
             "Frequency sweep",
+            "Time sweep",
         ],
         default="Field sweep"
     )
