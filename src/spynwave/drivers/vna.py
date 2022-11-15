@@ -216,7 +216,7 @@ class VNA:
             "2-port": ["S11", "S21", "S12", "S22"],
         }[self.cached_measurement_port]
 
-        command = ";".join(["O{}C".format(p) for p in params])
+        command = ";".join([f"O{p}C" for p in params])
         self.vectorstar.write(command)
 
         number_of_traces = 4 if self.cached_measurement_port == "2-port" else 1
