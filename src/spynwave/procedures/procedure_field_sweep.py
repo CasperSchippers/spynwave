@@ -95,9 +95,9 @@ class MixinFieldSweep:
 
     def execute_field_sweep(self):
         self.data_thread.start()
-        self.field_sweep_thread.start()
-        self.gauss_probe_thread.start()
         self.vna_control_thread.start()
+        self.gauss_probe_thread.start()
+        self.field_sweep_thread.start()
 
         while not self.should_stop() and not self.field_sweep_thread.is_finished():
             self.sleep(0.1)

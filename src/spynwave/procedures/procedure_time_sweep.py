@@ -47,8 +47,8 @@ class MixinTimeSweep:
 
     def execute_time_sweep(self):
         self.data_thread.start()
-        self.gauss_probe_thread.start()
         self.vna_control_thread.start()
+        self.gauss_probe_thread.start()
 
         end_time = self.start_time + self.time_duration
 

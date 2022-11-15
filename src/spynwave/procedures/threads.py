@@ -75,10 +75,16 @@ class VNAControlThread(InstrumentThread):
 
         sleep(self.settings['delay'])
 
+        first_datapoint = True
+
         while not self.should_stop():
             if self.instrument.measurement_done():
                 data = self.instrument.grab_data(CW_mode=True, headerless=True)
-                self.put_datapoint(data)
+
+                if not first_datapoint:
+                    self.put_datapoint(data)
+                else:
+                    first_datapoint = False
 
                 if not self.should_stop():
                     self.instrument.trigger_measurement()
