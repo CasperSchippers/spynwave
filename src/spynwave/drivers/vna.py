@@ -168,6 +168,8 @@ class VNA:
     def prepare_cw_sweep(self, cw_frequency, headerless=False):
         self.vectorstar.ch_1.cw_mode_enabled = True
         self.vectorstar.ch_1.frequency_CW = cw_frequency
+        self.vectorstar.ch_1.cw_number_of_points = 1
+        self.configure_averaging(False)
 
         self.configure_external_trigger()
 
