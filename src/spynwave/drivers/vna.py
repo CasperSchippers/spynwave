@@ -190,7 +190,7 @@ class VNA:
 
     def trigger_measurement(self):
         # TODO: check why this is not stable, especially for frequency sweeps
-        log.debug(f"Triggering measurement using {'DAQmx' if self.use_DAQmx else 'SCPI'}.")
+        log.info(f"Triggering measurement using {'DAQmx' if self.use_DAQmx else 'SCPI'}.")
         if self.use_DAQmx:
             self.daqmx_update_reference_count()
             self.trigger_task.write(True)
