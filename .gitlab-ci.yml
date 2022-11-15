@@ -1,26 +1,45 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/#customizing-settings
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-- build
-- test
-- deploy
-- review
-- dast
-- staging
-- canary
-- production
-- incremental rollout 10%
-- incremental rollout 25%
-- incremental rollout 50%
-- incremental rollout 100%
-- performance
-- cleanup
-sast:
-  stage: test
-include:
-- template: Auto-DevOps.gitlab-ci.yml
+  - Static Analysis
+  - Test
+
+before_script:
+- apt-get update -qy
+- apt-get install -y python-dev python-pip
+- pip install pip --upgrade
+- pip install .
+
+flake8:
+  image: python:3.10
+  stage: Static Analysis
+  script:
+    - pip install flake8
+    - flake8
+  allow_failure: true
+
+pylint:
+  image: python:3.10
+  stage: Static Analysis
+  script:
+    - pip install pylint
+    - pylint fna_data
+  allow_failure: true
+
+.testbase:
+  script:
+    - pip install pytest
+    - python setup.py test
+
+python 3.8:
+  extends: .testbase
+  stage: Test
+  image: python:3.8
+
+python 3.9:
+  extends: .testbase
+  stage: Test
+  image: python:3.9
+
+python 3.10:
+  extends: .testbase
+  stage: Test
+  image: python:3.10
