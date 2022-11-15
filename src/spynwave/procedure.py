@@ -240,8 +240,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
     """
 
     def sleep(self, duration=0.1):
-        t0 = time()
-        while time() - t0 < duration and not self.should_stop():
+        start = time()
+        while time() - start < duration and not self.should_stop():
             sleep(0.01)
 
     def get_estimates(self, sequence_length=None):

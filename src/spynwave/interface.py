@@ -70,7 +70,7 @@ class Window(ManagedWindow):
 
         self.directory_line.setText(os.getcwd())
 
-    def queue(self, *args, procedure=None):
+    def queue(self, procedure=None):
         if procedure is None:
             procedure = self.make_procedure()
 
@@ -159,7 +159,7 @@ class Window(ManagedWindow):
         super()._setup_ui()
         self.use_sequencer = use_sequencer
 
-    def update_inputs_from_VNA(self):
+    def update_inputs_from_vna(self):
         """ Inquire values for the frequency range and bandwidth from the VNA and set them as new
         default values in the interface. """
 
@@ -168,7 +168,7 @@ class Window(ManagedWindow):
 
                 # First get current state, such that it can be returned to afterwards
                 cw_mode_enabled = vectorstar.ch_1.cw_mode_enabled
-                frequency_CW = vectorstar.ch_1.frequency_CW
+                frequency_cw = vectorstar.ch_1.frequency_CW
                 number_of_points = vectorstar.ch_1.number_of_points
                 frequency_start = vectorstar.ch_1.frequency_start
                 frequency_stop = vectorstar.ch_1.frequency_stop
@@ -188,7 +188,7 @@ class Window(ManagedWindow):
 
                 # Return to the original values
                 vectorstar.ch_1.cw_mode_enabled = cw_mode_enabled
-                vectorstar.ch_1.frequency_CW = frequency_CW
+                vectorstar.ch_1.frequency_CW = frequency_cw
                 vectorstar.ch_1.number_of_points = number_of_points
                 vectorstar.ch_1.frequency_start = frequency_start
                 vectorstar.ch_1.frequency_stop = frequency_stop
@@ -213,7 +213,7 @@ class Window(ManagedWindow):
 
         self.inputs.rf_frequency.setMinimum(frequency_min)
         self.inputs.rf_frequency.setMaximum(frequency_max)
-        self.inputs.rf_frequency.setValue(frequency_CW)
+        self.inputs.rf_frequency.setValue(frequency_cw)
 
         self.inputs.rf_bandwidth.setValue(bandwidth)
         self.inputs.rf_power.setValue(power_level)
