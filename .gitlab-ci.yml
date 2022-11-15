@@ -21,7 +21,7 @@ pylint:
   stage: Static Analysis
   script:
     - pip install pylint
-    - pylint fna_data
+    - pylint spynwave
   allow_failure: true
 
 .testbase:
