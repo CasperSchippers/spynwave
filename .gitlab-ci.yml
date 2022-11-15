@@ -26,8 +26,8 @@ pylint:
 
 .testbase:
   script:
-    - pip install pytest
-    - python setup.py test
+    - pip install .[tests]
+    - pytest
 
 python 3.8:
   extends: .testbase
