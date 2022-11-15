@@ -101,7 +101,7 @@ class MixinFrequencySweep:
     def shutdown_frequency_sweep(self):
         pass
 
-    def get_estimates_frequency_sweep(self, sequence_length=None):
+    def get_estimates_frequency_sweep(self):
         overhead = 10  # Just a very poor estimate
         magnet_time = abs(2 * self.magnetic_field / Magnet.current_ramp_rate)
 

@@ -115,26 +115,26 @@ class MixinFieldSweep:
         if self.field_sweep_thread is not None and self.field_sweep_thread.is_alive():
             try:
                 self.field_sweep_thread.join(2)
-            except RuntimeError as e:
-                log.error(e)
+            except RuntimeError as exc:
+                log.error(exc)
 
         if self.gauss_probe_thread is not None and self.gauss_probe_thread.is_alive():
             try:
                 self.gauss_probe_thread.join(2)
-            except RuntimeError as e:
-                log.error(e)
+            except RuntimeError as exc:
+                log.error(exc)
 
         if self.vna_control_thread is not None and self.vna_control_thread.is_alive():
             try:
                 self.vna_control_thread.join(2)
-            except RuntimeError as e:
-                log.error(e)
+            except RuntimeError as exc:
+                log.error(exc)
 
         if self.data_thread is not None and self.data_thread.is_alive():
             try:
                 self.data_thread.join(5)
-            except RuntimeError as e:
-                log.error(e)
+            except RuntimeError as exc:
+                log.error(exc)
 
     ####################
     # Helper functions #
@@ -146,7 +146,7 @@ class MixinFieldSweep:
         self.sleep(self.field_saturation_time)
         self.magnet.set_field(self.field_start)
 
-    def get_estimates_field_sweep(self, sequence_length=None):
+    def get_estimates_field_sweep(self):
         overhead = 10  # Just a very poor estimate
         duration_sat = self.field_saturation_time + \
             abs(2 * self.field_saturation_field / Magnet.current_ramp_rate)
