@@ -167,16 +167,18 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         The devices are connected and the default parameters are set.
         """
         # Connect to instruments
-        self.vna = VNA()
+        freq_sweep = self.measurement_type == "Frequency sweep"
+        self.vna = VNA(use_DAQmx=False if freq_sweep else None)
         self.magnet = Magnet()
 
         # Run general startup procedure
         self.vna.startup()
         self.vna.set_measurement_ports(self.measurement_ports)
-        self.vna.general_measurement_settings(
-            bandwidth=self.rf_bandwidth,
-            power_level=self.rf_power,
-        )
+        if self.rf_advanced_settings:
+            self.vna.general_measurement_settings(
+                bandwidth=self.rf_bandwidth,
+                power_level=self.rf_power,
+            )
         # TODO: Maybe this needs to be measurement-type
         self.magnet.startup()
 

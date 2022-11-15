@@ -85,17 +85,6 @@ class VNA:
         self.vectorstar.active_channel = 1
         self.vectorstar.ch_1.application_type = "TRAN"
 
-        if self.use_DAQmx:
-            # Configure trigger for external (DAQmx) trigger
-            self.vectorstar.trigger_source = "EXT"
-            self.vectorstar.external_trigger_type = "CHAN"
-            self.vectorstar.external_trigger_delay = 0
-            self.vectorstar.external_trigger_edge = "POS"
-            self.vectorstar.external_trigger_handshake = True
-        else:
-            self.vectorstar.trigger_source = "REM"
-            self.vectorstar.remote_trigger_type = "CHAN"
-
         self.vectorstar.ch_1.hold_function = "CONT"
 
         # self.vectorstar.data_drawing_enabled = False
@@ -144,6 +133,25 @@ class VNA:
 
         self.vectorstar.check_errors()
 
+    def configure_external_trigger(self):
+        if self.use_DAQmx:
+            # Configure trigger for external (DAQmx) trigger
+            self.vectorstar.trigger_source = "EXT"
+            self.vectorstar.external_trigger_type = "CHAN"
+            self.vectorstar.external_trigger_delay = 0
+            self.vectorstar.external_trigger_edge = "POS"
+            self.vectorstar.external_trigger_handshake = True
+        else:
+            self.vectorstar.trigger_source = "REM"
+            self.vectorstar.remote_trigger_type = "CHAN"
+
+        self.vectorstar.check_errors()
+
+    def configure_internal_trigger(self):
+        self.vectorstar.trigger_source = "AUTO"
+
+        self.vectorstar.check_errors()
+
     def reset_to_measure(self):
         self.vectorstar.ch_1.tr_1.activate()
         self.vectorstar.ch_1.clear_average_count()
@@ -159,8 +167,9 @@ class VNA:
 
     def prepare_cw_sweep(self, cw_frequency, headerless=False):
         self.vectorstar.ch_1.cw_mode_enabled = True
-
         self.vectorstar.ch_1.frequency_CW = cw_frequency
+
+        self.configure_external_trigger()
 
         if headerless:
             self.vectorstar.datablock_header_format = 2
@@ -174,6 +183,8 @@ class VNA:
         self.vectorstar.ch_1.frequency_start = frequency_start
         self.vectorstar.ch_1.frequency_stop = frequency_stop
         self.vectorstar.ch_1.number_of_points = frequency_points
+
+        self.configure_internal_trigger()
 
         self.vectorstar.check_errors()
 
