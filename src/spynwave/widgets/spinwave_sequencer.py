@@ -24,6 +24,7 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
     # TODO: is this the best way, or better to copy the code
     queue_sequence = SequencerWidget.queue_sequence
     _check_queue_signature = SequencerWidget._check_queue_signature
+    _get_properties = SequencerWidget._get_properties
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -31,15 +32,32 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
 
         self._check_queue_signature()
 
-        # self._get_properties()
-        # self._setup_ui()
-        # self._layout()
+        self._inputs = self._parent.displays
+        self._get_properties()  # TODO: is it useful to make a get/check function?
+        self._setup_ui()
+        self._layout()
+
+    def _setup_ui(self):
+        self.repeats_spinbox = QtWidgets.QSpinBox()
+
+        self.queue_button = QtWidgets.QPushButton("Queue sequence")
+        self.queue_button.clicked.connect(self.queue_sequence)
+
+    def _layout(self):
+        btn_box = QtWidgets.QHBoxLayout()
+        btn_box.addWidget(self.queue_button)
+
+        vbox = QtWidgets.QVBoxLayout(self)
+        vbox.setSpacing(6)
+        vbox.addLayout(btn_box)
+        self.setLayout(vbox)
 
     def get_sequence(self):
         """ Generate the sequence from the entered parameters. Returns a list of tuples; each tuple
-        represents one measurement, containing dicts with the parameters for that measurement. """
+        represents one measurement, containing dicts with the parameters for that measurement. This
+        format is dictated by the queue_sequence method from the SequenceWidget.
+        """
 
-        # TODO: not sure if a list of dicts also works, or if it should be list of tuples of dicts.
         return [({'rf_frequency': 1}, {'magnetic_field': 0.5})]
 
     def get_sequence_from_tree(self):

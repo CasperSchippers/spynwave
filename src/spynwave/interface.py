@@ -62,7 +62,7 @@ class Window(ManagedWindow):
                 "measurement_type",
                 "frequency_averages",
             ),
-            sequencer=False,
+            sequencer=True,
             inputs_in_scrollarea=True,
             directory_input=True,
         )
