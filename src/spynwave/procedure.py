@@ -9,7 +9,7 @@ from datetime import datetime
 
 from pymeasure.experiment import (
     Procedure, Parameter, FloatParameter, BooleanParameter,
-    IntegerParameter, ListParameter, Metadata
+    ListParameter, Metadata
 )
 
 from spynwave.drivers import Magnet, VNA
@@ -162,11 +162,11 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         """ Set up the properties and devices required for the measurement.
         The devices are connected and the default parameters are set.
         """
-        ## Connect to instruments
+        # Connect to instruments
         self.vna = VNA()
         self.magnet = Magnet()
 
-        ## Run general startup procedure
+        # Run general startup procedure
         self.vna.startup()
         self.vna.set_measurement_ports(self.measurement_ports)
         self.vna.general_measurement_settings(
@@ -176,7 +176,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
         # TODO: Maybe this needs to be measurement-type
         self.magnet.startup()
 
-        ## Run measurement-type-specific startup
+        # Run measurement-type-specific startup
         if self.measurement_type == "Frequency sweep":
             self.startup_frequency_sweep()
         elif self.measurement_type == "Field sweep":

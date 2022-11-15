@@ -3,11 +3,10 @@ This file is part of the SpynWave package.
 """
 
 import logging
-from time import time, sleep
+from time import time
 
 from pymeasure.experiment import (
-    Procedure, Parameter, FloatParameter, BooleanParameter,
-    IntegerParameter, ListParameter, Metadata
+    FloatParameter, IntegerParameter
 )
 
 from spynwave.drivers import Magnet
@@ -70,7 +69,7 @@ class MixinFrequencySweep:
 
         log.info(f"Ramping field to {self.magnetic_field} T")
         self.magnet.set_field(self.magnetic_field, controlled=True)
-        log.info(f"Waiting for field to stabilize")
+        log.info("Waiting for field to stabilize")
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
     def execute_frequency_sweep(self):

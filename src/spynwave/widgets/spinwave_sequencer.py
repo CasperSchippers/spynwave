@@ -12,7 +12,7 @@ import logging
 # from inspect import signature
 
 from pymeasure.display.Qt import QtWidgets
-from pymeasure.display.widgets import SequencerWidget, SequenceEvaluationException
+from pymeasure.display.widgets import SequencerWidget
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -48,4 +48,3 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
         estimator widget. Wraps around create_sequence.
         """
         return self.get_sequence()
-

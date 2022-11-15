@@ -3,7 +3,7 @@ This file is part of the SpynWave package.
 """
 import logging
 import struct
-from time import time, sleep
+from time import sleep
 from io import StringIO
 
 import pandas as pd
@@ -158,7 +158,6 @@ class VNA:
             self.vectorstar.datablock_header_format = 2
             self.vectorstar.datablock_numeric_format = "8byte"
 
-
     def prepare_frequency_sweep(self, frequency_start, frequency_stop, frequency_points):
         self.vectorstar.ch_1.cw_mode_enabled = False
 
@@ -280,7 +279,7 @@ class VNA:
 
         self.vectorstar.check_errors()
 
-        #Format the data
+        # Format the data
         filtered = []
         for line in raw.split("\n"):
             if not (line.startswith("!") or line.startswith("#")) or line.startswith("! FREQ"):

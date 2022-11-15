@@ -5,11 +5,9 @@ import logging
 import queue
 from time import time, sleep
 import numpy as np
-import pandas as pd
 
 from pymeasure.experiment import (
-    Procedure, Parameter, FloatParameter, BooleanParameter,
-    IntegerParameter, ListParameter, Metadata
+    FloatParameter, BooleanParameter,
 )
 
 from spynwave.drivers import InstrumentThread, DataThread, Magnet
@@ -151,9 +149,9 @@ class MixinFieldSweep:
     def get_estimates_field_sweep(self, sequence_length=None):
         overhead = 10  # Just a very poor estimate
         duration_sat = self.field_saturation_time + \
-                       abs(2 * self.field_saturation_field / Magnet.current_ramp_rate)
+            abs(2 * self.field_saturation_field / Magnet.current_ramp_rate)
         duration_sweep = abs((self.field_start - self.field_stop) / self.field_ramp_rate) + \
-                         self.field_stop / Magnet.current_ramp_rate
+            self.field_stop / Magnet.current_ramp_rate
         return overhead + duration_sat + duration_sweep
 
 
@@ -209,8 +207,8 @@ class GaussProbeThread(InstrumentThread):
 class VNAControlThread(InstrumentThread):
     def run(self):
         # try:
-            # Obtain lock to prevent other communication with VNA
-            # self.instrument.vectorstar.adapter.connection.lock_excl()
+        #     # Obtain lock to prevent other communication with VNA
+        #     self.instrument.vectorstar.adapter.connection.lock_excl()
 
         self.instrument.trigger_measurement()
 

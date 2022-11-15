@@ -35,14 +35,14 @@ class Trace(Channel):
     SPARAM_LIST = ["S11", "S12", "S21", "S22",
                    "S13", "S23", "S33", "S31",
                    "S32", "S14", "S24", "S34",
-                   "S41", "S42", "S43", "S44",]
+                   "S41", "S42", "S43", "S44", ]
 
     measurement_parameter = Channel.control(
         ":CALC{{ch}}:PAR{tr}:DEF?", ":CALC{{ch}}:PAR{tr}:DEF %s",
         """ A string property that controls the measurement parameter of the indicated trace. Can be
         set; valid values are any S-parameter (e.g. S11, S12, S41) for 4 ports, or one of the
         following:
-        
+
         =====   ================================================================
         value   description
         =====   ================================================================
@@ -54,8 +54,6 @@ class Trace(Channel):
         AGA     Noise Figure Available Gain trace response (only with option 48)
         IGA     Noise Figure Insertion Gain trace response (only with option 48)
         =====   ================================================================
-        
-        
         """,
         values=SPARAM_LIST + ["MIX", "NFIG", "NPOW", "NTEMP", "AGA", "IGA"],
         validator=strict_discrete_set,
@@ -127,7 +125,7 @@ class MeasurementChannel(Channel):
 
     hold_function = Channel.control(
         ":SENS{ch}:HOLD:FUNC?", ":SENS{ch}:HOLD:FUNC %s",
-        """ A string property that controls the hold function of the specified channel. Can be set; 
+        """ A string property that controls the hold function of the specified channel. Can be set;
         valid values are:
 
         =====   =================================================
@@ -175,7 +173,7 @@ class MeasurementChannel(Channel):
         ":SENS{ch}:FREQ:STAR?", ":SENS{ch}:FREQ:STAR %g",
         """ A float property that controls the start value of the sweep range of the indicated
         channel in hertz. Can be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz]
-        (i.e. 40 GHz). 
+        (i.e. 40 GHz).
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
@@ -185,7 +183,7 @@ class MeasurementChannel(Channel):
         ":SENS{ch}:FREQ:STOP?", ":SENS{ch}:FREQ:STOP %g",
         """ A float property that controls the stop value of the sweep range of the indicated
         channel in hertz. Can be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz]
-        (i.e. 40 GHz). 
+        (i.e. 40 GHz).
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
@@ -195,7 +193,7 @@ class MeasurementChannel(Channel):
         ":SENS{ch}:FREQ:SPAN?", ":SENS{ch}:FREQ:SPAN %g",
         """ A float property that controls the span value of the sweep range of the indicated
         channel in hertz. Can be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz]
-        (i.e. 40 GHz). 
+        (i.e. 40 GHz).
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
@@ -205,7 +203,7 @@ class MeasurementChannel(Channel):
         ":SENS{ch}:FREQ:CENT?", ":SENS{ch}:FREQ:CENT %g",
         """ A float property that controls the center value of the sweep range of the indicated
         channel in hertz. Can be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz]
-        (i.e. 40 GHz). 
+        (i.e. 40 GHz).
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
@@ -214,7 +212,7 @@ class MeasurementChannel(Channel):
     frequency_CW = Channel.control(
         ":SENS{ch}:FREQ:CW?", ":SENS{ch}:FREQ:CW %g",
         """ A float property that controls the CW frequency of the indicated channel in hertz. Can
-        be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz] (i.e. 40 GHz). 
+        be set; valid values are between 1E7 [Hz] (i.e. 10 MHz) and 4E10 [Hz] (i.e. 40 GHz).
         """,
         values=FREQUENCY_RANGE,
         validator=strict_range,
@@ -244,7 +242,7 @@ class MeasurementChannel(Channel):
     average_type = Channel.control(
         ":SENS{ch}:AVER:TYP?", ":SENS{ch}:AVER:TYP %s",
         """ A string property that controls the averaging type to point-by-point (POIN) or
-        sweep-by-sweep (SWE) for the indicated channel. Can be set. 
+        sweep-by-sweep (SWE) for the indicated channel. Can be set.
         """,
         values=["POIN", "SWE"],
         validator=strict_discrete_set,
@@ -319,13 +317,13 @@ class AnritsuMS4644B(Instrument):
         "FDHX?", "FDH%d",
         """ An integer property that controls the way the arbitrary block header for output data is
         formed. Can be set; valid values are:
-        
+
         =====    ===========================================================
         value    description
         =====    ===========================================================
-        0        A block header with arbitrary length will be sent. 
+        0        A block header with arbitrary length will be sent.
         1        The block header will have a fixed length of 11 characters.
-        2        No block header will be sent. Not IEEE 488.2 compliant. 
+        2        No block header will be sent. Not IEEE 488.2 compliant.
         =====    ===========================================================
         """,
         values=[0, 1, 2],
@@ -346,7 +344,7 @@ class AnritsuMS4644B(Instrument):
         ":FORM:DATA?", ":FORM:DATA %s",
         """ A string property that controls format for numeric I/O data representation. Can be set;
         valid values are:
-        
+
         =====   ==========================================================================
         value   description
         =====   ==========================================================================
@@ -369,9 +367,9 @@ class AnritsuMS4644B(Instrument):
 
     datafile_parameter_format = Instrument.control(
         ":FORM:SNP:PAR?", ":FORM:SNP:PAR %s",
-        """ A string property that controls the parameter format displayed in an SNP data file. Can 
+        """ A string property that controls the parameter format displayed in an SNP data file. Can
         be set; valid values are:
-        
+
         =====   ===========================
         value   description
         =====   ===========================
@@ -430,7 +428,7 @@ class AnritsuMS4644B(Instrument):
         ":FORM:BORD?", ":FORM:BORD %s",
         """ A string property that controls the binary numeric I/O data byte order. Can be set;
         valid values are:
-        
+
         =====   =========================================
         value   description
         =====   =========================================
@@ -471,7 +469,7 @@ class AnritsuMS4644B(Instrument):
 
     display_layout = Channel.control(
         ":DISP:SPL?", ":DISP:SPL %s",
-        """ A string property that controls the channel display layout in a Row-by-Column format. 
+        """ A string property that controls the channel display layout in a Row-by-Column format.
         Can be set; valid values are: R1C1, R1C2, R2C1, R1C3, R3C1, R2C2C1, R2C1C2, C2R2R1, C2R1R2,
         R1C4, R4C1, R2C2, R2C3, R3C2, R2C4, R4C2, R3C3, R5C2, R2C5, R4C3, R3C4, R4C4. The number
         following the R indicates the number of rows, following the C the number of columns.
@@ -504,7 +502,7 @@ class AnritsuMS4644B(Instrument):
 
     trigger_source = Instrument.control(
         ":TRIG:SOUR?", ":TRIG:SOUR %s",
-        """ A string property that controls the source of the sweep/measurement triggering. Can be 
+        """ A string property that controls the source of the sweep/measurement triggering. Can be
         set; valid values are:
 
         =====   ==================================================
@@ -523,8 +521,8 @@ class AnritsuMS4644B(Instrument):
 
     external_trigger_type = Instrument.control(
         ":TRIG:EXT:TYP?", ":TRIG:EXT:TYP %s",
-        """ A string property that controls the type of trigger that will be associated with the 
-        external trigger. Can be set; valid values are POIN (for point), SWE (for sweep), CHAN 
+        """ A string property that controls the type of trigger that will be associated with the
+        external trigger. Can be set; valid values are POIN (for point), SWE (for sweep), CHAN
         (for channel), and ALL.
         """,
         values=TRIGGER_TYPES,
@@ -560,8 +558,8 @@ class AnritsuMS4644B(Instrument):
 
     remote_trigger_type = Instrument.control(
         ":TRIG:REM:TYP?", ":TRIG:REM:TYP %s",
-        """ A string property that controls the type of trigger that will be associated with the 
-        remote trigger. Can be set; valid values are POIN (for point), SWE (for sweep), CHAN 
+        """ A string property that controls the type of trigger that will be associated with the
+        remote trigger. Can be set; valid values are POIN (for point), SWE (for sweep), CHAN
         (for channel), and ALL.
         """,
         values=TRIGGER_TYPES,
@@ -570,8 +568,8 @@ class AnritsuMS4644B(Instrument):
 
     manual_trigger_type = Instrument.control(
         ":TRIG:MAN:TYP?", ":TRIG:MAN:TYP %s",
-        """ A string property that controls the type of trigger that will be associated with the 
-        manual trigger. Can be set; valid values are POIN (for point), SWE (for sweep), CHAN 
+        """ A string property that controls the type of trigger that will be associated with the
+        manual trigger. Can be set; valid values are POIN (for point), SWE (for sweep), CHAN
         (for channel), and ALL.
         """,
         values=TRIGGER_TYPES,

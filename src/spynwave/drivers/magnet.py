@@ -80,7 +80,7 @@ class Magnet:
     def startup(self):
         self.load_calibration()
 
-        ## Prepare current supply and labjack for magnetic field
+        # Prepare current supply and labjack for magnetic field
         self.last_current = self.power_supply.current
         # self.power_supply.voltage
         # self.power_supply.ask("SE:DI:DA?")  # TODO: not sure what this does
@@ -98,7 +98,7 @@ class Magnet:
         # Set polarity to positive
         self.set_polarity(+1)
 
-        ## Prepare the gauss meter
+        # Prepare the gauss meter
         # self.gauss_meter.id
         self.gauss_meter.unit = "T"
         self.gauss_meter_set_fast_mode(config["in-plane magnet"]["gauss-meter"]["fastmode"])

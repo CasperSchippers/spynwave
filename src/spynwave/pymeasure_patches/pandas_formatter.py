@@ -3,6 +3,7 @@ import re
 import pandas as pd
 from pymeasure.units import ureg
 
+
 class Results_Formatter(logging.Formatter):
     """Base class for formatters."""
     def __init__(self, columns, delimiter=',', line_break='\n'):
@@ -31,6 +32,7 @@ class Results_Formatter(logging.Formatter):
             if match:
                 units[column] = ureg.Quantity(match.groupdict()['units']).units
         return units
+
 
 class CSVFormatterPandas(Results_Formatter):
     """ Formatter of data results, pandas dataframe or single-line CSV """

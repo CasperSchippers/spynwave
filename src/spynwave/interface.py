@@ -10,7 +10,7 @@ from copy import deepcopy
 from pyvisa import VisaIOError
 from pyvisa.constants import VI_ERROR_TMO
 
-from pymeasure.display.Qt import QtWidgets, QtCore
+from pymeasure.display.Qt import QtWidgets
 from pymeasure.display.windows import ManagedWindow
 
 from pymeasure.experiment import Results, unique_filename

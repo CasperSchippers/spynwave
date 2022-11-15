@@ -2,7 +2,7 @@
 This file is part of the SpynWave package.
 """
 
-import pytest
+# import pytest
 
 from pymeasure.test import expected_protocol
 
@@ -13,7 +13,7 @@ def test_init():
     with expected_protocol(
         AnritsuMS4644B,
         [],
-    ) as instr:
+    ):
         pass
 
 
@@ -48,4 +48,3 @@ def test_channel_trace_measurement_parameter():
     ) as instr:
         instr.ch_6.tr_1.measurement_parameter = "S11"
         assert instr.ch_2.tr_6.measurement_parameter == "S21"
-

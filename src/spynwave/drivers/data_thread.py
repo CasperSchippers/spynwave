@@ -6,7 +6,7 @@ import logging
 import queue
 
 import pandas as pd
-from time import time, sleep
+from time import sleep
 
 from pymeasure.thread import StoppableThread, InterruptableEvent
 

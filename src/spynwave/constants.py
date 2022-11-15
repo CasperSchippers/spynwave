@@ -6,7 +6,6 @@ the addresses of instruments, default properties for some instruments, and calib
 """
 
 import pkg_resources
-import pathlib
 
 from yaml import load
 try:
