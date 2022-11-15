@@ -121,11 +121,15 @@ class VNA:
             self.vectorstar.ch_1.display_layout = "R1C1"
             self.vectorstar.ch_1.tr_1.measurement_parameter = measurement_ports[-3:]
 
+        self.vectorstar.check_errors()
+
     def general_measurement_settings(self, power_level, bandwidth):
         self.vectorstar.bandwidth_enhancer_enabled = True
         self.vectorstar.ch_1.bandwidth = bandwidth
 
         self.vectorstar.ch_1.pt_1.power_level = power_level
+
+        self.vectorstar.check_errors()
 
     def configure_averaging(self, enabled, average_count=None, averaging_type=None):
         self.vectorstar.ch_1.averaging_enabled = enabled
@@ -138,6 +142,8 @@ class VNA:
                     "sweep-by-sweep": "SWE",
                 }[averaging_type]
 
+        self.vectorstar.check_errors()
+
     def reset_to_measure(self):
         self.vectorstar.ch_1.tr_1.activate()
         self.vectorstar.ch_1.clear_average_count()
@@ -149,6 +155,8 @@ class VNA:
 
         self.vectorstar.clear()
 
+        self.vectorstar.check_errors()
+
     def prepare_cw_sweep(self, cw_frequency, headerless=False):
         self.vectorstar.ch_1.cw_mode_enabled = True
 
@@ -158,12 +166,16 @@ class VNA:
             self.vectorstar.datablock_header_format = 2
             self.vectorstar.datablock_numeric_format = "8byte"
 
+        self.vectorstar.check_errors()
+
     def prepare_frequency_sweep(self, frequency_start, frequency_stop, frequency_points):
         self.vectorstar.ch_1.cw_mode_enabled = False
 
         self.vectorstar.ch_1.frequency_start = frequency_start
         self.vectorstar.ch_1.frequency_stop = frequency_stop
         self.vectorstar.ch_1.number_of_points = frequency_points
+
+        self.vectorstar.check_errors()
 
     def trigger_measurement(self):
         # TODO: check why this is not stable, especially for frequency sweeps
@@ -306,6 +318,8 @@ class VNA:
 
     def shutdown_vectorstar(self):
         if self.vectorstar is not None:
+            self.vectorstar.check_errors()
+
             if not self.vectorstar.adapter.connection.lock_state == \
                    pyvisa.constants.AccessModes.no_lock:
                 self.vectorstar.adapter.connection.unlock()
@@ -317,6 +331,9 @@ class VNA:
             # Return control to front interface and enable data drawing
             if not self.vectorstar.data_drawing_enabled:
                 self.vectorstar.data_drawing_enabled = True
+
+            self.vectorstar.check_errors()
+
             self.vectorstar.return_to_local()
             self.vectorstar.shutdown()
 
