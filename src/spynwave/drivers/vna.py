@@ -197,9 +197,12 @@ class VNA:
             sleep(0.05)
             self.trigger_task.write(False)
         else:
-            self.vectorstar.ch_1.clear_average_count()
+            self.reset_average_count()
             sleep(0.2)
             self.vectorstar.trigger_continuous()
+
+    def reset_average_count(self):
+        return self.vectorstar.ch_1.clear_average_count()
 
     def daqmx_update_reference_count(self):
         if not self.use_DAQmx:

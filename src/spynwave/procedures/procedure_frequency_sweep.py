@@ -73,7 +73,7 @@ class MixinFrequencySweep:
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
     def execute_frequency_sweep(self):
-        self.vna.trigger_measurement()
+        self.vna.reset_average_count()
         start = time()
 
         field_points = [self.magnet.measure_field()]
