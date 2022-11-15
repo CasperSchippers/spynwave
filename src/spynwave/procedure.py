@@ -120,7 +120,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, Procedure):
     # Metadata to be stored in the file
     measurement_date = Metadata("Measurement date", fget=datetime.now)
     start_time = Metadata("Measurement timestamp", fget=time)
-    VNA_calibrated = Metadata("VNA calibrated", fget="vna.vectorstar.calibration_enabled")
+    VNA_calibrated = Metadata("VNA calibrated", fget="vna.vectorstar.ch_1.calibration_enabled")
     # TODO: query calibration status, date, and (possibly) other attributes
 
     # Define data columns
