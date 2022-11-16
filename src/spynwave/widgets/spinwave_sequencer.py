@@ -6,9 +6,10 @@ import logging
 
 # import re
 # from functools import partial
-# import numpy
 # from collections import ChainMap
+import numpy as np
 from itertools import product
+
 # from inspect import signature
 
 from pymeasure.display.Qt import QtWidgets
@@ -45,14 +46,16 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
         self.mirrored_checkbox = QtWidgets.QCheckBox()
         self.mirrored_checkbox.setTristate(False)
 
-        self.field_inputs = SweepInputPanel("field", "frequency",
-                                            self._parent.procedure_class.field_start,
-                                            self._parent.procedure_class.field_stop,
-                                            self._parent.procedure_class.rf_frequency)
-        self.frequency_inputs = SweepInputPanel("frequency", "field",
-                                                self._parent.procedure_class.frequency_start,
-                                                self._parent.procedure_class.frequency_stop,
-                                                self._parent.procedure_class.magnetic_field)
+        self.field_inputs = SweepInputPanel(self._parent.procedure_class,
+                                            "field", "frequency",
+                                            "field_start",
+                                            "field_stop",
+                                            "rf_frequency")
+        self.frequency_inputs = SweepInputPanel(self._parent.procedure_class,
+                                                "frequency", "field",
+                                                "frequency_start",
+                                                "frequency_stop",
+                                                "magnetic_field")
         # self.time_inputs = InputPanel()
 
         self.queue_button = QtWidgets.QPushButton("Queue sequence")
@@ -102,6 +105,10 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
 
         sequence = [tuple()]
 
+        if self.pane_widget.isVisible():
+            if hasattr(self.pane_widget.currentWidget(), "get_sequence"):
+                sequence = self.pane_widget.currentWidget().get_sequence()
+
 
 
         if self.mirrored_checkbox.isChecked():
@@ -123,12 +130,14 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
 
 
 class SweepInputPanel(QtWidgets.QWidget):
-    def __init__(self, sweep_name, param_name, start_class, stop_class, param_class):
+    def __init__(self, procedure, sweep_name, param_name,
+                 start_class_name, stop_class_name, param_class_name):
+        self.procedure = procedure
         self.sweep_name = sweep_name
         self.param_name = param_name
-        self.start_class = start_class
-        self.stop_class = stop_class
-        self.param_class = param_class
+        self.start_class_name = start_class_name
+        self.stop_class_name = stop_class_name
+        self.param_class_name = param_class_name
 
         super().__init__()
 
@@ -136,13 +145,17 @@ class SweepInputPanel(QtWidgets.QWidget):
         self._layout()
 
     def _setup_ui(self):
-        self.first_param = ScientificInput(self.param_class)
-        self.last_param = ScientificInput(self.param_class)
+        param_class = getattr(self.procedure, self.param_class_name)
+        start_class = getattr(self.procedure, self.start_class_name)
+        stop_class = getattr(self.procedure, self.stop_class_name)
 
-        self.first_start = ScientificInput(self.start_class)
-        self.first_stop = ScientificInput(self.stop_class)
-        self.last_start = ScientificInput(self.start_class)
-        self.last_stop = ScientificInput(self.stop_class)
+        self.first_param = ScientificInput(param_class)
+        self.final_param = ScientificInput(param_class)
+
+        self.first_start = ScientificInput(start_class)
+        self.first_stop = ScientificInput(stop_class)
+        self.final_start = ScientificInput(start_class)
+        self.final_stop = ScientificInput(stop_class)
 
         self.interp_box = QtWidgets.QComboBox()
         self.interp_box.addItem("Linear")
@@ -165,9 +178,9 @@ class SweepInputPanel(QtWidgets.QWidget):
         layout.addWidget(self.first_param, 1, 1)
         layout.addWidget(self.first_start, 1, 3)
         layout.addWidget(self.first_stop, 1, 4)
-        layout.addWidget(self.last_param, 3, 1)
-        layout.addWidget(self.last_start, 3, 3)
-        layout.addWidget(self.last_stop, 3, 4)
+        layout.addWidget(self.final_param, 3, 1)
+        layout.addWidget(self.final_start, 3, 3)
+        layout.addWidget(self.final_stop, 3, 4)
 
         hbox = QtWidgets.QHBoxLayout()
         hbox.setSpacing(0)
@@ -176,12 +189,42 @@ class SweepInputPanel(QtWidgets.QWidget):
         # hbox.addWidget(self.interp_box)
         hbox.addWidget(QtWidgets.QLabel("Linear in"))
         hbox.addWidget(self.steps_box)
-        hbox.addStretch(1)
+        hbox.addStretch(2)
         vbox = QtWidgets.QVBoxLayout()
         vbox.setContentsMargins(0, 0, 0, 0)
         vbox.addLayout(hbox)
         layout.addLayout(vbox, 2, 1, 1, 4)
 
-        layout.addItem(QtWidgets.QSpacerItem(1, 1), 0, 2)
-        layout.addItem(QtWidgets.QSpacerItem(1, 1), 1, 2)
-        layout.addItem(QtWidgets.QSpacerItem(1, 1), 3, 2)
+        wid = QtWidgets.QWidget()
+        wid.setFixedWidth(10)
+        layout.addWidget(wid, 0, 2)
+        # layout.addItem(QtWidgets.QSpacerItem(1, 1), 1, 2)
+        # layout.addItem(QtWidgets.QSpacerItem(1, 1), 3, 2)
+
+    def get_sequence(self):
+        param_first = self.first_param.value()
+        first_start = self.first_start.value()
+        first_stop = self.first_stop.value()
+        param_final = self.final_param.value()
+        final_start = self.final_start.value()
+        final_stop = self.final_stop.value()
+
+        interpolation = self.interp_box.currentText()
+        steps = self.steps_box.value()
+
+        if interpolation == "Linear":
+            param_list = np.linspace(param_first, param_final, steps)
+            start_list = np.linspace(first_start, final_start, steps)
+            stop_list = np.linspace(first_stop, final_stop, steps)
+        else:
+            raise NotImplementedError(f"Interpolation method {interpolation} not implemented.")
+
+        sequence = []
+        for param, start, stop in zip(param_list, start_list, stop_list):
+            sequence.append((
+                {self.param_class_name: param},
+                {self.start_class_name: start},
+                {self.stop_class_name: stop},
+            ))
+
+        return sequence
