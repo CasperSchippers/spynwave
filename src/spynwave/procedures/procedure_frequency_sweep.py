@@ -20,19 +20,19 @@ class MixinFrequencySweep:
     # TODO: see if we can update the frequency-limits/steps/etc to the calibration?
     frequency_start = FloatParameter(
         "Start frequency",
-        default=5e9,
+        default=5,
         minimum=0,
-        maximum=40e9,
-        units="Hz",
+        maximum=40,
+        units="GHz",
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
     frequency_stop = FloatParameter(
         "Stop frequency",
-        default=15e9,
+        default=15,
         minimum=0,
-        maximum=40e9,
-        units="Hz",
+        maximum=40,
+        units="GHz",
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
@@ -62,13 +62,13 @@ class MixinFrequencySweep:
         )
 
         self.vna.prepare_frequency_sweep(
-            frequency_start=self.frequency_start,
-            frequency_stop=self.frequency_stop,
+            frequency_start=self.frequency_start * 1e9,
+            frequency_stop=self.frequency_stop * 1e9,
             frequency_points=self.frequency_points,
         )
 
-        log.info(f"Ramping field to {self.magnetic_field} T")
-        self.magnet.set_field(self.magnetic_field, controlled=True)
+        log.info(f"Ramping field to {self.magnetic_field} mT")
+        self.magnet.set_field(self.magnetic_field * 1e-3, controlled=True)
         log.info("Waiting for field to stabilize")
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
@@ -103,7 +103,7 @@ class MixinFrequencySweep:
 
     def get_estimates_frequency_sweep(self):
         overhead = 10  # Just a very poor estimate
-        magnet_time = abs(2 * self.magnetic_field / Magnet.current_ramp_rate)
+        magnet_time = abs(2 * self.magnetic_field * 1e-3 / Magnet.current_ramp_rate)
 
         # Based on LabVIEW estimates
         ports = 2.1 if self.measurement_ports == "2-port" else 1.

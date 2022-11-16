@@ -30,10 +30,10 @@ class MixinTimeSweep:
     vna_control_thread = None
 
     def startup_time_sweep(self):
-        self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency, headerless=True)
+        self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency * 1e9, headerless=True)
 
-        log.info(f"Ramping field to {self.magnetic_field} T")
-        self.magnet.set_field(self.magnetic_field, controlled=True)
+        log.info(f"Ramping field to {self.magnetic_field} mT")
+        self.magnet.set_field(self.magnetic_field * 1e-3, controlled=True)
         log.info("Waiting for field to stabilize")
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
@@ -43,7 +43,7 @@ class MixinTimeSweep:
         self.data_thread = DataThread(self, data_queues=[
             self.gauss_probe_thread.data_queue,
             self.vna_control_thread.data_queue,
-        ], static_data={"Frequency (Hz)": self.rf_frequency}, time_column="Timestamp (s)",)
+        ], static_data={"Frequency (Hz)": self.rf_frequency * 1e9}, time_column="Timestamp (s)",)
 
     def execute_time_sweep(self):
         self.data_thread.start()
@@ -88,5 +88,5 @@ class MixinTimeSweep:
 
     def get_estimates_time_sweep(self):
         overhead = 10  # Just a very poor estimate
-        duration_sat = abs(2 * self.magnetic_field / Magnet.current_ramp_rate)
+        duration_sat = abs(2 * self.magnetic_field * 1e-3 / Magnet.current_ramp_rate)
         return overhead + duration_sat + self.time_duration

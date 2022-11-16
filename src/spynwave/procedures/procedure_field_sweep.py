@@ -21,27 +21,27 @@ class MixinFieldSweep:
     field_start = FloatParameter(
         "Start field",
         default=0.,
-        minimum=-0.660,
-        maximum=+0.660,
-        units="T",
+        minimum=-686,
+        maximum=+686,
+        units="mT",
         group_by="measurement_type",
         group_condition="Field sweep",
     )
     field_stop = FloatParameter(
         "Stop field",
         default=0.2,
-        minimum=-0.660,
-        maximum=+0.660,
-        units="T",
+        minimum=-686,
+        maximum=+686,
+        units="mT",
         group_by="measurement_type",
         group_condition="Field sweep",
     )
     field_ramp_rate = FloatParameter(
         "Field sweep rate",
-        default=0.005,
+        default=5,
         minimum=0.,
-        maximum=1.,
-        units="T/s",
+        maximum=1000.,
+        units="mT/s",
         group_by="measurement_type",
         group_condition="Field sweep",
     )
@@ -55,9 +55,9 @@ class MixinFieldSweep:
     field_saturation_field = FloatParameter(
         "Saturation field",
         default=0.2,
-        minimum=-0.660,
-        maximum=+0.660,
-        units="T",
+        minimum=-686,
+        maximum=+686,
+        units="mT",
         group_by="measurement_type",
         group_condition="Field sweep",
     )
@@ -77,21 +77,21 @@ class MixinFieldSweep:
 
     def startup_field_sweep(self):
         self.saturate_field()
-        self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency, headerless=True)
+        self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency * 1e9, headerless=True)
         self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
 
         # Prepare the parallel methods for the sweep
         self.field_sweep_thread = FieldSweepThread(self, self.magnet,
-                                                   field_start=self.field_start,
-                                                   field_stop=self.field_stop,
-                                                   field_ramp_rate=self.field_ramp_rate,
+                                                   field_start=self.field_start * 1e-3,
+                                                   field_stop=self.field_stop * 1e-3,
+                                                   field_ramp_rate=self.field_ramp_rate * 1e-3,
                                                    publish_data=False,)
         self.gauss_probe_thread = GaussProbeThread(self, self.magnet)
         self.vna_control_thread = VNAControlThread(self, self.vna, delay=0.001)
         self.data_thread = DataThread(self, data_queues=[
             self.gauss_probe_thread.data_queue,
             self.vna_control_thread.data_queue,
-        ], static_data={"Frequency (Hz)": self.rf_frequency}, time_column="Timestamp (s)",)
+        ], static_data={"Frequency (Hz)": self.rf_frequency * 1e9}, time_column="Timestamp (s)",)
 
     def execute_field_sweep(self):
         self.data_thread.start()
@@ -141,14 +141,14 @@ class MixinFieldSweep:
 
     def saturate_field(self):
         # Saturate the magnetic field (after saturation, go already to the starting field
-        self.magnet.set_field(self.field_saturation_field)
+        self.magnet.set_field(self.field_saturation_field * 1e-3)
         self.sleep(self.field_saturation_time)
-        self.magnet.set_field(self.field_start)
+        self.magnet.set_field(self.field_start * 1e-3)
 
     def get_estimates_field_sweep(self):
         overhead = 10  # Just a very poor estimate
         duration_sat = self.field_saturation_time + \
-            abs(2 * self.field_saturation_field / Magnet.current_ramp_rate)
+            abs(2 * self.field_saturation_field * 1e-3 / Magnet.current_ramp_rate)
         duration_sweep = abs((self.field_start - self.field_stop) / self.field_ramp_rate) + \
-            self.field_stop / Magnet.current_ramp_rate
+            self.field_stop * 1e-3 / Magnet.current_ramp_rate
         return overhead + duration_sat + duration_sweep

@@ -182,9 +182,9 @@ class Window(ManagedWindow):
                 vectorstar.ch_1.number_of_points = 100000
 
                 # Get the values that are within the calibration
-                frequency_min = vectorstar.ch_1.frequency_start
-                frequency_max = vectorstar.ch_1.frequency_stop
-                frequency_steps = vectorstar.ch_1.number_of_points
+                frequency_min = vectorstar.ch_1.frequency_start * 1e-9
+                frequency_max = vectorstar.ch_1.frequency_stop * 1e-9
+                frequency_steps = vectorstar.ch_1.number_of_points * 1e-9
                 bandwidth = vectorstar.ch_1.bandwidth
                 power_level = vectorstar.ch_1.pt_1.power_level
 

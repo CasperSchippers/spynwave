@@ -69,10 +69,10 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     # Basic parameters
     rf_frequency = FloatParameter(
         "CW Frequency",
-        default=15e9,
+        default=15,
         minimum=0,
-        maximum=40e9,
-        units="Hz",
+        maximum=40,
+        units="GHz",
         group_by="measurement_type",
         group_condition=lambda v: v != "Frequency sweep",
     )
@@ -80,9 +80,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     magnetic_field = FloatParameter(
         "Magnetic field",
         default=0,
-        minimum=-0.686,
-        maximum=+0.686,
-        units="T",
+        minimum=-686,
+        maximum=+686,
+        units="mT",
         group_by="measurement_type",
         group_condition=lambda v: v != "Field sweep",
     )
