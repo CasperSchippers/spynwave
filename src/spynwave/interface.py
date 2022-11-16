@@ -64,12 +64,14 @@ class Window(ManagedWindow):
             inputs_in_scrollarea=True,
             directory_input=True,
         )
+        self.log_widget.handler.connect(self.log_widget_blink)
 
         # self.update_inputs_from_vna()
 
         self.directory_line.setText(os.getcwd())
 
         self.resize(1200, 900)
+
 
     def queue(self, procedure=None):
         if procedure is None:
@@ -196,3 +198,11 @@ class Window(ManagedWindow):
 
         self.inputs.rf_bandwidth.setValue(bandwidth)
         self.inputs.rf_power.setValue(power_level)
+
+    def log_widget_blink(self, message: str):
+        if "(ERROR)" in message:
+            print(True)
+        elif "(WARNING)" in message:
+            print(False)
+        # TODO: look into QTabBar::setTabTextColor & QTabBar::setTabIcon
+        self.log_widget
