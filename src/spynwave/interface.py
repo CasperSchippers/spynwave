@@ -46,7 +46,6 @@ class Window(ManagedWindow):
                 "field_start",
                 "field_stop",
                 "field_ramp_rate",
-                "field_include_mirrored",
                 "field_saturation_field",
                 "time_duration",
                 "frequency_averages",

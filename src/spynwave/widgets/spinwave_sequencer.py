@@ -39,16 +39,24 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
 
     def _setup_ui(self):
         self.repeats_spinbox = QtWidgets.QSpinBox()
+        self.mirrored_checkbox = QtWidgets.QCheckBox()
 
         self.queue_button = QtWidgets.QPushButton("Queue sequence")
         self.queue_button.clicked.connect(self.queue_sequence)
 
     def _layout(self):
+
+        form = QtWidgets.QFormLayout()
+        form.addRow("Repeats", self.repeats_spinbox)
+        form.addRow("Mirrored fields", self.mirrored_checkbox)
+
         btn_box = QtWidgets.QHBoxLayout()
+        btn_box.addLayout(form)
         btn_box.addWidget(self.queue_button)
 
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(6)
+        # vbox.addLayout(form)
         vbox.addLayout(btn_box)
         self.setLayout(vbox)
 

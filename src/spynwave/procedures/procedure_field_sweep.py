@@ -45,13 +45,6 @@ class MixinFieldSweep:
         group_by="measurement_type",
         group_condition="Field sweep",
     )
-    # TODO: implement mirrored fields to generate a second measurement
-    field_include_mirrored = BooleanParameter(
-        "Include mirrored fields",
-        default=False,
-        group_by="measurement_type",
-        group_condition="Field sweep",
-    )
     field_saturation_field = FloatParameter(
         "Saturation field",
         default=0.2,
