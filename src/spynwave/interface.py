@@ -30,8 +30,6 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("fna.MeasurementSo
 
 
 class Window(ManagedWindow):
-    # TODO: this also needs an more complicated sequencer, maybe as a tabwidget??
-    #  Or see if I can make tabs for the input-widget
     def __init__(self):
         super().__init__(
             procedure_class=PSWSProcedure,
@@ -110,37 +108,6 @@ class Window(ManagedWindow):
         elif measurement_type == "Field sweep":
             self.plot_widget.columns_x.setCurrentText("Field (T)")
             self.plot_widget.plot_frame.change_x_axis("Field (T)")
-
-    def queue_repeated(self, *args, procedure=None):
-        if procedure is None:
-            main_procedure = self.make_procedure()
-        else:
-            main_procedure = procedure
-
-        folder = self.directory
-        filename_base = main_procedure.AB_filename_base
-
-        # Queue a series of averages
-        for i in range(main_procedure.averages):
-            QtWidgets.QApplication.processEvents()
-            procedure = deepcopy(main_procedure)
-
-            procedure.set_parameters({
-                "AA_folder": folder,
-                # "average_nr": i + 1,
-            })
-
-            filename = unique_filename(
-                folder,
-                prefix=filename_base,
-                ext="txt",
-                datetimeformat="",
-                procedure=procedure
-            )
-
-            results = Results(procedure, filename)
-            experiment = self.new_experiment(results)
-            self.manager.queue(experiment)
 
     def new_curve(self, *args, **kwargs):
         curve = super().new_curve(*args, **kwargs, connect="finite")
