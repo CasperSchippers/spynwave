@@ -65,9 +65,11 @@ class Window(ManagedWindow):
             directory_input=True,
         )
 
-        self.update_inputs_from_vna()
+        # self.update_inputs_from_vna()
 
         self.directory_line.setText(os.getcwd())
+
+        self.resize(1200, 900)
 
     def queue(self, procedure=None):
         if procedure is None:
