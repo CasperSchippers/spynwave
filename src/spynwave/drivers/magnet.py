@@ -47,6 +47,8 @@ class Magnet:
     gauss_meter_autorange = config["in-plane magnet"]["gauss-meter"]["autorange"]
     gauss_meter_fast_mode = False
 
+    mirror_fields = False
+
     @property
     def gauss_meter_delay(self):
         return {
@@ -54,7 +56,9 @@ class Magnet:
             False: config["in-plane magnet"]["gauss-meter"]["normalmode reading frequency"]
         }[self.gauss_meter_fast_mode]
 
-    def __init__(self):
+    def __init__(self, mirror_fields=False):
+        self.mirror_fields = mirror_fields
+
         self.power_supply = SM12013(
             config['general']['visa-prefix'] + config['in-plane magnet']['power-supply']['address']
         )
@@ -96,7 +100,7 @@ class Magnet:
         self.power_supply.enable()
 
         # Set polarity to positive
-        self.set_polarity(+1)
+        self._set_polarity(+1)
 
         # Prepare the gauss meter
         # self.gauss_meter.id
@@ -130,7 +134,7 @@ class Magnet:
             B_to_I=b_to_i,
         )
 
-    def field_to_current(self, field):
+    def _field_to_current(self, field):
         # Check if value within range of calibration
         if not self.cal_data["min_field"] <= field <= self.cal_data["max_field"]:
             raise ValueError(f"Field value ({field} T) out of bounds; should be between "
@@ -147,7 +151,7 @@ class Magnet:
 
         return current
 
-    def current_to_field(self, current):
+    def _current_to_field(self, current):
         # Check if value within range of calibration
         if not self.cal_data["min_current"] >= current >= self.cal_data["max_current"]:
             raise ValueError(f"Current value ({current} A) out of bounds; should be between "
@@ -175,26 +179,29 @@ class Magnet:
         :param controlled: Boolean that controls the method for setting the current, if True a slow
             but safe and stable approach is used, if False a faster approach (for use in sweeps)
         """
-        current = self.field_to_current(field)
+        if self.mirror_fields:
+            field *= -1
+
+        current = self._field_to_current(field)
 
         if controlled:
-            self.ramp_current(current)
+            self._ramp_current(current)
         else:
-            self.set_current(current)
+            self._set_current(current)
 
-    def ramp_current(self, current):
+    def _ramp_current(self, current):
         """ Apply a specified current by nicely ramping to this current. """
-        polarity = self.current_polarity(current)
+        polarity = self._current_polarity(current)
 
-        if self.polarity_needs_changing(polarity):
+        if self._polarity_needs_changing(polarity):
             self.power_supply.ramp_to_zero(self.current_ramp_rate)
             self.last_current = 0
-            self.set_polarity(polarity)
+            self._set_polarity(polarity)
 
         self.power_supply.ramp_to_current(abs(current), self.current_ramp_rate)
         self.last_current = self.power_supply.current
 
-    def set_current(self, current):
+    def _set_current(self, current):
         """ Apply a specified current by instantly setting the current to the power supply.
         A few check are performed to ensure no breakage of the instruments.
         """
@@ -202,21 +209,21 @@ class Magnet:
             raise ValueError(f"Step in current too large: from {self.last_current} A to"
                              f"{abs(current)} A; maximum step-size is {self.max_current_step} A")
 
-        polarity = self.current_polarity(current)
-        if self.polarity_needs_changing(polarity):
-            self.set_polarity(polarity)
+        polarity = self._current_polarity(current)
+        if self._polarity_needs_changing(polarity):
+            self._set_polarity(polarity)
 
         self.power_supply.current = abs(current)
         self.last_current = abs(current)
 
     @staticmethod
-    def current_polarity(current):
+    def _current_polarity(current):
         return int(math.copysign(1, current))
 
-    def polarity_needs_changing(self, polarity):
+    def _polarity_needs_changing(self, polarity):
         return polarity != self.polarity
 
-    def set_polarity(self, polarity):
+    def _set_polarity(self, polarity):
         if self.power_supply.current > self.max_current_step:
             self.power_supply.ramp_to_zero(self.current_ramp_rate)
 
@@ -225,10 +232,10 @@ class Magnet:
         while not self.power_supply.measure_current == 0.:
             sleep(0.1)
 
-        self.labjack_polarity_pulse(polarity)
+        self._labjack_polarity_pulse(polarity)
         self.power_supply.enable()
 
-    def labjack_polarity_pulse(self, polarity):
+    def _labjack_polarity_pulse(self, polarity):
         self.labjack.pulseOut(
             bitSelect=self.bitSelect_positive if polarity >= 0 else self.bitSelect_negative,
             numPulses=1,
@@ -240,11 +247,11 @@ class Magnet:
         )
         self.polarity = polarity
 
-    def get_set_field(self):
-        current = self.get_set_current()
-        return self.current_to_field(current)
+    def _get_set_field(self):
+        current = self._get_set_current()
+        return self._current_to_field(current)
 
-    def get_set_current(self):
+    def _get_set_current(self):
         current = self.power_supply.current
         return self.polarity * current
 
@@ -252,8 +259,8 @@ class Magnet:
                     sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
                     callback_fn=lambda x: True):
         # Check if fields are within bounds
-        self.field_to_current(start)
-        self.field_to_current(stop)
+        self._field_to_current(start)
+        self._field_to_current(stop)
 
         sweep_duration = abs((start - stop) / ramp_rate)
         number_of_updates = math.ceil(sweep_duration / update_delay)

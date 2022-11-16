@@ -5,7 +5,7 @@ This file is part of the SpynWave package.
 import logging
 
 from pymeasure.experiment import (
-    FloatParameter, BooleanParameter,
+    FloatParameter,
 )
 
 from spynwave.drivers import DataThread, Magnet
@@ -42,13 +42,6 @@ class MixinFieldSweep:
         minimum=0.,
         maximum=1000.,
         units="mT/s",
-        group_by="measurement_type",
-        group_condition="Field sweep",
-    )
-    # TODO: implement mirrored fields to generate a second measurement
-    field_include_mirrored = BooleanParameter(
-        "Include mirrored fields",
-        default=False,
         group_by="measurement_type",
         group_condition="Field sweep",
     )

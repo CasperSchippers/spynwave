@@ -46,7 +46,6 @@ class Window(ManagedWindow):
                 "field_start",
                 "field_stop",
                 "field_ramp_rate",
-                "field_include_mirrored",
                 "field_saturation_field",
                 "time_duration",
                 "frequency_averages",
@@ -60,9 +59,10 @@ class Window(ManagedWindow):
             y_axis="S11 real",
             displays=(
                 "measurement_type",
+                "mirrored_field",
                 "frequency_averages",
             ),
-            sequencer=False,
+            sequencer=True,
             inputs_in_scrollarea=True,
             directory_input=True,
         )
@@ -159,6 +159,14 @@ class Window(ManagedWindow):
         self.use_sequencer = False
         super()._setup_ui()
         self.use_sequencer = use_sequencer
+
+        # Link the measurement-type drop-box to the visible pane
+        if self.use_sequencer:
+            self.inputs.measurement_type.currentTextChanged.connect(self.sequencer.set_pane_focus)
+            self.sequencer.set_pane_focus(self.inputs.measurement_type.currentText())
+
+        # remove margin
+        self.inputs.layout().setContentsMargins(0, 0, 0, 0)
 
     def update_inputs_from_vna(self):
         """ Inquire values for the frequency range and bandwidth from the VNA and set them as new
