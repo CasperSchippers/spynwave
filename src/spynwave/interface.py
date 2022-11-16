@@ -59,6 +59,7 @@ class Window(ManagedWindow):
             y_axis="S11 real",
             displays=(
                 "measurement_type",
+                "mirrored_field",
                 "frequency_averages",
             ),
             sequencer=True,

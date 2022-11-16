@@ -87,6 +87,11 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         group_condition=lambda v: v != "Field sweep",
     )
 
+    mirrored_field = BooleanParameter(
+        "Perform with mirrored field",
+        default=False,
+    )
+
     # VNA settings
     rf_advanced_settings = BooleanParameter(
         "Advanced RF settings",
@@ -169,7 +174,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         # Connect to instruments
         freq_sweep = self.measurement_type == "Frequency sweep"
         self.vna = VNA(use_DAQmx=False if freq_sweep else None)
-        self.magnet = Magnet()
+        self.magnet = Magnet(mirror_fields=self.mirrored_field)
 
         # Run general startup procedure
         self.vna.startup()

@@ -8,7 +8,7 @@ import logging
 # from functools import partial
 # import numpy
 # from collections import ChainMap
-# from itertools import product
+from itertools import product
 # from inspect import signature
 
 from pymeasure.display.Qt import QtWidgets
@@ -39,7 +39,10 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
 
     def _setup_ui(self):
         self.repeats_spinbox = QtWidgets.QSpinBox()
+        self.repeats_spinbox.setMinimum(1)
+
         self.mirrored_checkbox = QtWidgets.QCheckBox()
+        self.mirrored_checkbox.setTristate(False)
 
         self.queue_button = QtWidgets.QPushButton("Queue sequence")
         self.queue_button.clicked.connect(self.queue_sequence)
@@ -47,12 +50,13 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
     def _layout(self):
 
         form = QtWidgets.QFormLayout()
-        form.addRow("Repeats", self.repeats_spinbox)
         form.addRow("Mirrored fields", self.mirrored_checkbox)
+        form.addRow("Repeats", self.repeats_spinbox)
 
         btn_box = QtWidgets.QHBoxLayout()
-        btn_box.addLayout(form)
-        btn_box.addWidget(self.queue_button)
+        btn_box.addLayout(form, 10)
+        btn_box.addStretch(1)
+        btn_box.addWidget(self.queue_button, 10)
 
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(6)
@@ -66,7 +70,18 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
         format is dictated by the queue_sequence method from the SequenceWidget.
         """
 
-        return [({'rf_frequency': 1}, {'magnetic_field': 0.5})]
+        sequence = [tuple()]
+
+        if self.mirrored_checkbox.isChecked():
+            sequence = [
+                seq + ({"mirrored_field": val}, ) for val, seq in product([False, True], sequence)
+            ]
+
+        # Apply repeats
+        sequence = sequence * self.repeats_spinbox.value()
+
+        print(sequence)
+        return sequence
 
     def get_sequence_from_tree(self):
         """ Method to implement to comply with other methods of the sequencer widget and with the
