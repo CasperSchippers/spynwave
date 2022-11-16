@@ -48,6 +48,20 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
         self.queue_button.clicked.connect(self.queue_sequence)
 
     def _layout(self):
+        field_tab = QtWidgets.QLabel("Field")
+        frequency_tab = QtWidgets.QLabel("Frequency")
+        time_tab = QtWidgets.QLabel("Time")
+
+        self.pane_order = ["Field sweep", "Frequency sweep", "Time sweep"]
+        self.pane_widget = QtWidgets.QStackedLayout()
+        self.pane_widget.addWidget(field_tab)
+        self.pane_widget.addWidget(frequency_tab)
+        self.pane_widget.addWidget(time_tab)
+
+        # self.pane_widget = QtWidgets.QTabWidget()
+        # self.pane_widget.addTab(field_tab, "Field sweep")
+        # self.pane_widget.addTab(frequency_tab, "Frequency sweep")
+        # self.pane_widget.addTab(time_tab, "Time sweep")
 
         form = QtWidgets.QFormLayout()
         form.addRow("Mirrored fields", self.mirrored_checkbox)
@@ -60,9 +74,14 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
 
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(6)
-        # vbox.addLayout(form)
+        vbox.addLayout(self.pane_widget)
         vbox.addLayout(btn_box)
         self.setLayout(vbox)
+
+    def set_pane_focus(self, pane_name):
+        if pane_name in self.pane_order:
+            index = self.pane_order.index(pane_name)
+            self.pane_widget.setCurrentIndex(index)
 
     def get_sequence(self):
         """ Generate the sequence from the entered parameters. Returns a list of tuples; each tuple

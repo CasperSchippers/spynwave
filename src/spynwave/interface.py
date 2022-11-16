@@ -160,6 +160,12 @@ class Window(ManagedWindow):
         super()._setup_ui()
         self.use_sequencer = use_sequencer
 
+        # Link the measurement-type drop-box to the visible pane
+        if use_sequencer := self.use_sequencer:
+            self.inputs.measurement_type.currentTextChanged.connect(self.sequencer.set_pane_focus)
+            self.sequencer.set_pane_focus(self.inputs.measurement_type.currentText())
+
+
     def update_inputs_from_vna(self):
         """ Inquire values for the frequency range and bandwidth from the VNA and set them as new
         default values in the interface. """
