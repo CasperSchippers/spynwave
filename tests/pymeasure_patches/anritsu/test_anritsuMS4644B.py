@@ -12,7 +12,6 @@ except ImportError:
 from spynwave.pymeasure_patches.anritsuMS4644B import AnritsuMS4644B
 
 
-
 def test_init():
     with expected_protocol(
         AnritsuMS4644B,

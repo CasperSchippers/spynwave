@@ -109,8 +109,6 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
             if hasattr(self.pane_widget.currentWidget(), "get_sequence"):
                 sequence = self.pane_widget.currentWidget().get_sequence()
 
-
-
         if self.mirrored_checkbox.isChecked():
             sequence = [
                 seq + ({"mirrored_field": val}, ) for val, seq in product([False, True], sequence)
@@ -119,7 +117,6 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
         # Apply repeats
         sequence = sequence * self.repeats_spinbox.value()
 
-        print(sequence)
         return sequence
 
     def get_sequence_from_tree(self):

@@ -5,7 +5,7 @@ This file is part of the SpynWave package.
 import logging
 
 from pymeasure.experiment import (
-    FloatParameter, BooleanParameter,
+    FloatParameter,
 )
 
 from spynwave.drivers import DataThread, Magnet
