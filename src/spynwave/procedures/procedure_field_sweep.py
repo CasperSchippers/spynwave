@@ -23,15 +23,17 @@ class MixinFieldSweep:
         default=0.,
         minimum=-686,
         maximum=+686,
+        step=1,
         units="mT",
         group_by="measurement_type",
         group_condition="Field sweep",
     )
     field_stop = FloatParameter(
         "Stop field",
-        default=0.2,
+        default=200,
         minimum=-686,
         maximum=+686,
+        step=1,
         units="mT",
         group_by="measurement_type",
         group_condition="Field sweep",
@@ -47,9 +49,10 @@ class MixinFieldSweep:
     )
     field_saturation_field = FloatParameter(
         "Saturation field",
-        default=0.2,
+        default=200,
         minimum=-686,
         maximum=+686,
+        step=1,
         units="mT",
         group_by="measurement_type",
         group_condition="Field sweep",
@@ -59,6 +62,7 @@ class MixinFieldSweep:
         default=2,
         minimum=0,
         maximum=120,
+        step=1,
         units="s",
         group_by="measurement_type",
         group_condition="Field sweep",
