@@ -163,7 +163,7 @@ class SweepInputPanel(QtWidgets.QWidget):
 
     def _layout(self):
         layout = QtWidgets.QGridLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(0, 0, 0, 5)
 
         layout.addWidget(QtWidgets.QLabel(self.param_name.capitalize()), 0, 1)
         layout.addWidget(QtWidgets.QLabel(f"Start {self.sweep_name}"), 0, 3)
