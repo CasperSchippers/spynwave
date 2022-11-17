@@ -26,6 +26,13 @@ log.addHandler(logging.NullHandler())
 
 
 class MagnetInPlane(MagnetBase):
+    """ This class represents the magnet that is used on the crystat/blackhole spinwave setup.
+
+    It uses a Delta-Elektronika SM120-13 unipolar power supply, router via a home-built switchbox
+    (which is controlled using a labjack U12). The setup features a LakeShore 421 Gauss meter to
+    probe the magnetic field.
+
+    """
     labjack = None
     power_supply = None
     gauss_meter = None

@@ -4,7 +4,9 @@
 
 general:
   remote connection: False
-  remote visa-prefix: "visa://131.155.124.201/"
+  remote visa-prefix: "visa://131.155.124.201/" # For the in-plane magnet, port 3537
+#  remote visa-prefix: "visa://131.155.124.201:3538/" # For the cryostat magnet
+#  remote visa-prefix: "visa://131.155.124.201:3539/" # For the out-of-plane magnet
 
 vna:
   vectorstar:
@@ -41,5 +43,13 @@ in-plane magnet:
     fastmode reading frequency: 0.1  # seconds
     normalmode reading frequency: 0.4  # seconds
 
-#out-of-plane magnet:
-#  visa-address: "TCPIP0::VS1513648::inst0::INSTR"
+out-of-plane magnet:
+  power-supply:
+    address: "GPIB0::5::INSTR"
+
+cryo magnet:
+  power-supply:
+    address: None
+
+  gauss-meter:
+    address: "ASRL6::INSTR"
