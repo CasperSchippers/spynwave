@@ -3,13 +3,13 @@ This file is part of the SpynWave package.
 """
 
 import logging
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class MagnetBase(ABC):
+class MagnetBase(metaclass=ABCMeta):
     @abstractmethod
     def startup(self):
         pass
