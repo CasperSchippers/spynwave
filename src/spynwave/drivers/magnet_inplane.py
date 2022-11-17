@@ -15,6 +15,7 @@ from pymeasure.instruments.lakeshore import LakeShore421
 import u12  # LabJack library from labjackpython
 
 from spynwave.constants import config
+from spynwave.drivers.magnet_base import MagnetBase
 
 # TODO: should be updated on pymeasure
 from spynwave.pymeasure_patches.sm12013 import SM12013
@@ -24,7 +25,7 @@ log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 
-class Magnet:
+class MagnetInPlane(MagnetBase):
     labjack = None
     power_supply = None
     gauss_meter = None
