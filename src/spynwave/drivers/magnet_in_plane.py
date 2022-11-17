@@ -59,6 +59,7 @@ class MagnetInPlane(MagnetBase):
         }[self.gauss_meter_fast_mode]
 
     def __init__(self, mirror_fields=False):
+        super().__init__()
         self.mirror_fields = mirror_fields
 
         self.power_supply = SM12013(
