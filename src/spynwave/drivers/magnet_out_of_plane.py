@@ -20,4 +20,5 @@ class MagnetOutOfPlane(MagnetBase):
     controlled using the knob.
 
     """
-    pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

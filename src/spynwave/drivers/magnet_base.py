@@ -10,6 +10,14 @@ log.addHandler(logging.NullHandler())
 
 
 class MagnetBase(metaclass=ABCMeta):
+    power_supply = None
+    gauss_meter = None
+
+    mirror_fields = False
+
+    def __init__(self, mirror_fields=False):
+        self.mirror_fields = mirror_fields
+
     @abstractmethod
     def startup(self):
         pass
@@ -19,7 +27,8 @@ class MagnetBase(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def set_field(self):
+    def set_field(self, field):
+        # TODO: implement test to ensure that all magnets respect the mirror_fields property
         pass
 
     @abstractmethod
@@ -27,7 +36,9 @@ class MagnetBase(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def sweep_field(self):
+    def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
+                    sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
+                    callback_fn=lambda x: True):
         pass
 
     @abstractmethod
@@ -40,7 +51,6 @@ class MagnetBase(metaclass=ABCMeta):
         pass
 
     # TODO: properties that should be generalised
-
     @property
     @abstractmethod
     def gauss_meter_delay(self):

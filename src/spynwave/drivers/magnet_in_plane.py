@@ -34,8 +34,6 @@ class MagnetInPlane(MagnetBase):
 
     """
     labjack = None
-    power_supply = None
-    gauss_meter = None
 
     cal_type = None
     cal_data = None
@@ -56,8 +54,6 @@ class MagnetInPlane(MagnetBase):
     gauss_meter_autorange = config["in-plane magnet"]["gauss-meter"]["autorange"]
     gauss_meter_fast_mode = False
 
-    mirror_fields = False
-
     @property
     def measurement_delay(self):
         return {
@@ -65,9 +61,8 @@ class MagnetInPlane(MagnetBase):
             False: config["in-plane magnet"]["gauss-meter"]["normalmode reading frequency"]
         }[self.gauss_meter_fast_mode]
 
-    def __init__(self, mirror_fields=False):
-        super().__init__()
-        self.mirror_fields = mirror_fields
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.power_supply = SM12013(
             config['general']['visa-prefix'] + config['in-plane magnet']['power-supply']['address']
@@ -188,6 +183,8 @@ class MagnetInPlane(MagnetBase):
         :param field:  Field to apply in tesla.
         :param controlled: Boolean that controls the method for setting the current, if True a slow
             but safe and stable approach is used, if False a faster approach (for use in sweeps)
+
+        :return field: Returns the applied field
         """
         if self.mirror_fields:
             field *= -1
@@ -198,6 +195,8 @@ class MagnetInPlane(MagnetBase):
             self._ramp_current(current)
         else:
             self._set_current(current)
+
+        return field
 
     def _ramp_current(self, current):
         """ Apply a specified current by nicely ramping to this current. """
@@ -267,7 +266,7 @@ class MagnetInPlane(MagnetBase):
 
     def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
                     sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
-                    callback_fn=lambda x: True):
+                    callback_fn=lambda x: None):
         # Check if fields are within bounds
         self._field_to_current(start)
         self._field_to_current(stop)

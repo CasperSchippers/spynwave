@@ -4,6 +4,9 @@ This file is part of the SpynWave package.
 
 import logging
 
+from spynwave.pymeasure_patches.lakeshore475 import LakeShore475
+
+from spynwave.constants import config
 from spynwave.drivers.magnet_base import MagnetBase
 
 # TODO: include the temperature controller, there is a python library from lakeshore for this
@@ -19,4 +22,12 @@ class MagnetCryostat(MagnetBase):
     Gaussmeter. The setup also contains a LakeShore 336 Temperature Controller.
 
     """
-    pass
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.gauss_meter = LakeShore475(
+            config['general']['visa-prefix'] + config['in-plane magnet']['power-supply']['address']
+        )
+
+
