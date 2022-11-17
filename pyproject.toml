@@ -22,6 +22,7 @@ dependencies = [
     "scipy >= 1.9.3",
     "labjackpython >= 2.1.0",
     "pyyaml >= 6.0",
+    "nidaqmx-python >= 0.6.4",
 ]
 
 [project.optional-dependencies]
