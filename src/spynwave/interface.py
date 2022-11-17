@@ -219,6 +219,18 @@ class Window(ManagedWindow):
         # For starting the blinking
         self.log_widget.handler.connect(self._blink_log_widget)
 
+        # Replace the message-handler to color error and warning lines
+        self.log_widget.handler.connect(self._append_to_log)
+        self.log_widget.handler.emitter.record.disconnect(self.log_widget.view.appendPlainText)
+
+    def _append_to_log(self, message):
+        if not ("(ERROR)" in message or "(WARNING)" in message):
+            return self.log_widget.view.appendPlainText(message)
+
+        color = "Red" if "(ERROR)" in message else "DarkOrange"
+        html_message = f"<font color=\"{color}\">{message}</font>"
+        return self.log_widget.view.appendHtml(html_message)
+
     def _blink(self):
         if self._blink_state:
             self.tabs.tabBar().setTabTextColor(
@@ -254,7 +266,7 @@ class Window(ManagedWindow):
         # Define color and icon based on severity
         # If already red, this should not be updated
         if not self._blink_color == "red":
-            self._blink_color = "red" if "(ERROR)" in message else "orange"
+            self._blink_color = "red" if "(ERROR)" in message else "darkorange"
 
             pixmapi = QtWidgets.QStyle.StandardPixmap.SP_MessageBoxCritical if \
                 "(ERROR)" in message else QtWidgets.QStyle.StandardPixmap.SP_MessageBoxWarning
