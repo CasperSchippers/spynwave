@@ -3,6 +3,7 @@ This file is part of the SpynWave package.
 """
 
 import logging
+from time import sleep
 from abc import ABCMeta, abstractmethod
 
 log = logging.getLogger(__name__)
@@ -53,7 +54,7 @@ class MagnetBase(metaclass=ABCMeta):
     # TODO: properties that should be generalised
     @property
     @abstractmethod
-    def gauss_meter_delay(self):
+    def measurement_delay(self):
         pass
 
     @property

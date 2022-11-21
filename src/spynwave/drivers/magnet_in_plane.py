@@ -35,11 +35,21 @@ class MagnetInPlane(MagnetBase):
     """
     labjack = None
 
-    cal_type = None
-    cal_data = None
+    cal_type = "interpolated lookup table"
+    cal_data = dict(
+            data=None,
+            min_field=-config["in-plane magnet"]["max field"],
+            max_field=+config["in-plane magnet"]["max field"],
+            min_current=-config["in-plane magnet"]["max current"],
+            max_current=+config["in-plane magnet"]["max current"],
+            I_to_B=lambda I: (I * config["in-plane magnet"]["max field"] /
+                              config["in-plane magnet"]["max current"]),
+            B_to_I=lambda B: (B * config["in-plane magnet"]["max current"] /
+                              config["in-plane magnet"]["max field"]),
+        )
 
-    max_current = 0
-    max_voltage = 0
+    max_current = config["in-plane magnet"]["max current"]
+    max_voltage = config["in-plane magnet"]["max voltage"]
     current_ramp_rate = 0.5  # A/s
     max_current_step = 1  # A
     last_current = 0  # attribute to store the last applied current

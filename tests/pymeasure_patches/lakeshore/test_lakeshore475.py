@@ -64,7 +64,7 @@ def test_field_control_enabled():
 def test_field_setpoint():
     with expected_protocol(
         LakeShore475,
-        [("CSETP 0.3", None),
+        [("CSETP 0.300000", None),
          ("CSETP?", "2000")],
     ) as instr:
         instr.field_setpoint = 0.3
