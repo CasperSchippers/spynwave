@@ -59,8 +59,6 @@ class MixinFrequencySweep:
     )
 
     def startup_frequency_sweep(self):
-        self.magnet.gauss_meter_set_fast_mode(False)
-
         self.vna.configure_averaging(
             enabled=True,
             average_count=self.frequency_averages,
@@ -109,7 +107,7 @@ class MixinFrequencySweep:
 
     def get_estimates_frequency_sweep(self):
         overhead = 10  # Just a very poor estimate
-        magnet_time = abs(2 * self.magnetic_field * 1e-3 / Magnet.current_ramp_rate)
+        magnet_time = abs(2 * self.magnetic_field * 1e-3 / Magnet.field_ramp_rate)
 
         # Based on LabVIEW estimates
         ports = 2.1 if self.measurement_ports == "2-port" else 1.

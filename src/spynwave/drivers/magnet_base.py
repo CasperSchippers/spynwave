@@ -15,9 +15,11 @@ class MagnetBase(metaclass=ABCMeta):
     gauss_meter = None
 
     mirror_fields = False
+    measurement_type = None
 
-    def __init__(self, mirror_fields=False):
+    def __init__(self, mirror_fields=False, measurement_type=None):
         self.mirror_fields = mirror_fields
+        self.measurement_type = measurement_type
 
     @abstractmethod
     def startup(self):
@@ -29,7 +31,6 @@ class MagnetBase(metaclass=ABCMeta):
 
     @abstractmethod
     def set_field(self, field):
-        # TODO: implement test to ensure that all magnets respect the mirror_fields property
         pass
 
     @abstractmethod
@@ -46,12 +47,6 @@ class MagnetBase(metaclass=ABCMeta):
     def wait_for_stable_field(self):
         pass
 
-    # TODO: functions that should be generalised
-    @abstractmethod
-    def gauss_meter_set_fast_mode(self):
-        pass
-
-    # TODO: properties that should be generalised
     @property
     @abstractmethod
     def measurement_delay(self):
@@ -59,6 +54,6 @@ class MagnetBase(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def current_ramp_rate(self):
+    def field_ramp_rate(self):
         pass
 

@@ -43,7 +43,7 @@ in-plane magnet:
     range: 3  # Tesla
     fastmode: True
     autorange: "Software"  # can be one of: "Hardware", "Software", "None"
-    # Note: the "hardware" auto-range is terrible. Use "Software" for a faster auto-ranging
+    # Note: the "Hardware" auto-range is terrible. Use "Software" for a faster auto-ranging
     fastmode reading frequency: 0.1  # seconds
     normalmode reading frequency: 0.4  # seconds
 
@@ -55,11 +55,14 @@ out-of-plane magnet:
     address: "GPIB0::5::INSTR"
 
 cryo magnet:
-  maximum field: 0.55  # Tesla
+  max field: 0.55  # Tesla
   bipolar: True
+  ramp rate: 0.1  # T/s
 
   power-supply:
     address: None
 
   gauss-meter:
     address: "ASRL6::INSTR"
+    autorange: "Hardware"  # can be one of: "Hardware", "None"
+    reading frequency: 0.05  # seconds

@@ -54,6 +54,8 @@ class MagnetInPlane(MagnetBase):
     max_current_step = 1  # A
     last_current = 0  # attribute to store the last applied current
 
+    field_ramp_rate = current_ramp_rate * cal_data["max_field"] / cal_data["max_current"]
+
     polarity = 0
     bitSelect_positive = 2**config["in-plane magnet"]["labjack"]["positive polarity bit"]
     bitSelect_negative = 2**config["in-plane magnet"]["labjack"]["negative polarity bit"]
@@ -70,6 +72,7 @@ class MagnetInPlane(MagnetBase):
             True: config["in-plane magnet"]["gauss-meter"]["fastmode reading frequency"],
             False: config["in-plane magnet"]["gauss-meter"]["normalmode reading frequency"]
         }[self.gauss_meter_fast_mode]
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -120,7 +123,9 @@ class MagnetInPlane(MagnetBase):
         # Prepare the gauss meter
         # self.gauss_meter.id
         self.gauss_meter.unit = "T"
-        self.gauss_meter_set_fast_mode(config["in-plane magnet"]["gauss-meter"]["fastmode"])
+        use_fast_mode = (self.measurement_type != "Frequency sweep" and
+                         config["in-plane magnet"]["gauss-meter"]["fastmode"])
+        self._gauss_meter_set_fast_mode(use_fast_mode)
         self.gauss_meter.auto_range = self.gauss_meter_autorange == "Hardware"
         self.gauss_meter.field_range = config["in-plane magnet"]["gauss-meter"]["range"]
         self.gauss_meter_range = self.gauss_meter.field_range_raw
@@ -292,7 +297,7 @@ class MagnetInPlane(MagnetBase):
             if should_stop():
                 break
 
-    def gauss_meter_set_fast_mode(self, enabled=True):
+    def _gauss_meter_set_fast_mode(self, enabled=True):
         self.gauss_meter.fast_mode = enabled
         sleep(0.4)
         self.gauss_meter_fast_mode = self.gauss_meter.fast_mode

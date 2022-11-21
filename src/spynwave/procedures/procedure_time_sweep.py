@@ -90,5 +90,5 @@ class MixinTimeSweep:
 
     def get_estimates_time_sweep(self):
         overhead = 10  # Just a very poor estimate
-        duration_sat = abs(2 * self.magnetic_field * 1e-3 / Magnet.current_ramp_rate)
+        duration_sat = abs(2 * self.magnetic_field * 1e-3 / Magnet.field_ramp_rate)
         return overhead + duration_sat + self.time_duration
