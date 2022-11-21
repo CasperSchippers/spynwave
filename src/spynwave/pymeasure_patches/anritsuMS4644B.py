@@ -1,6 +1,6 @@
 import logging
 
-from pymeasure.instruments import Instrument, Channel
+from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import (
     strict_discrete_set,
     strict_range
@@ -11,6 +11,11 @@ log.addHandler(logging.NullHandler())
 
 
 # TODO: check if this is still up to date with the channels implementation
+try:
+    from pymeasure.instruments import Channel
+except ImportError:
+    from spynwave.pymeasure_patches.temp_channel import Channel
+
 
 class Port(Channel):
     placeholder = "pt"
