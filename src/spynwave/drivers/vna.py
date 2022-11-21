@@ -336,8 +336,8 @@ class VNA:
         if self.vectorstar is not None:
             self.vectorstar.check_errors()
 
-            if not self.vectorstar.adapter.connection.lock_state == \
-                   pyvisa.constants.AccessModes.no_lock:
+            if not (self.vectorstar.adapter.connection.lock_state ==
+                    pyvisa.constants.AccessModes.no_lock):
                 self.vectorstar.adapter.connection.unlock()
 
             self.vectorstar.datablock_format = ""
