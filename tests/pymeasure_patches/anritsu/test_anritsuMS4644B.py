@@ -2,12 +2,10 @@
 This file is part of the SpynWave package.
 """
 
-import pytest
+# import pytest
 
-try:
-    from pymeasure.test import expected_protocol
-except ImportError:
-    pytest.skip('Only works with pymeasure 0.11 (which is not yet on pypi', allow_module_level=True)
+
+from pymeasure.test import expected_protocol
 
 from spynwave.pymeasure_patches.anritsuMS4644B import AnritsuMS4644B
 
