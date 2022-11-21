@@ -17,7 +17,7 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "pymeasure >= 0.10",
+    "pymeasure >= 0.11",
     "pandas >= 1.5.1",
     "scipy >= 1.9.3",
     "labjackpython >= 2.1.0",
