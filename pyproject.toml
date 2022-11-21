@@ -20,9 +20,9 @@ dependencies = [
     "pymeasure >= 0.11",
     "pandas >= 1.5.1",
     "scipy >= 1.9.3",
-    "labjackpython >= 2.1.0",
+    "labjackpython >= 2.1.0",  # Not on conda
     "pyyaml >= 6.0",
-    "nidaqmx-python >= 0.6.4",
+    "nidaqmx >= 0.6.4",  # Conda: nidaqmx-python
 ]
 
 [project.optional-dependencies]
