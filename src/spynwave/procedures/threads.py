@@ -51,7 +51,7 @@ class GaussProbeThread(InstrumentThread):
         last_time = 0
 
         while not self.should_stop():
-            if (sleeptime := -(time() - last_time - self.instrument.gauss_meter_delay)) > 0:
+            if (sleeptime := -(time() - last_time - self.instrument.measurement_delay)) > 0:
                 sleep(sleeptime)
 
             last_time = time()

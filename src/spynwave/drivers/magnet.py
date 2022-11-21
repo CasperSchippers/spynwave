@@ -50,7 +50,7 @@ class Magnet:
     mirror_fields = False
 
     @property
-    def gauss_meter_delay(self):
+    def measurement_delay(self):
         return {
             True: config["in-plane magnet"]["gauss-meter"]["fastmode reading frequency"],
             False: config["in-plane magnet"]["gauss-meter"]["normalmode reading frequency"]
@@ -294,7 +294,7 @@ class Magnet:
             for range_idx in reversed(range(self.gauss_meter_range)):
                 self.gauss_meter.field_range_raw = range_idx
                 self.gauss_meter_range = range_idx
-                sleep(self.gauss_meter_delay)
+                sleep(self.measurement_delay)
                 field = self.gauss_meter.field
                 if not math.isnan(field):
                     break
@@ -302,6 +302,7 @@ class Magnet:
                 # self.gauss_meter_range = self.gauss_meter.field_range_raw
                 return field
 
+        # If a non-nan field is measured, check if the gauss_meter ranges should be adjusted
         # Retrieve edges
         inner_edge, outer_edge = self.gauss_meter_range_edges[range_idx]
 
@@ -316,8 +317,9 @@ class Magnet:
         self.gauss_meter_range = self.gauss_meter.field_range_raw
 
         if range_idx != self.gauss_meter_range:
+            # Ensure the next query is performed later, such that the field can settle
             log.info("Changed range: sleeping a full delay time")
-            sleep(self.gauss_meter_delay)
+            self.gauss_meter.last_write_time = time() + self.measurement_delay
 
         return field
 
