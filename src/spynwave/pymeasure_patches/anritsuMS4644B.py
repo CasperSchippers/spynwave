@@ -14,7 +14,7 @@ log.addHandler(logging.NullHandler())
 try:
     from pymeasure.instruments import Instrument, Channel
 except ImportError:
-    log.warning("Using packaged pymeasure code")
+    print("\n\nUsing packaged pymeasure code.\n\n")
     from spynwave.pymeasure_patches.pymeasure_prs import Instrument, Channel
 
 
