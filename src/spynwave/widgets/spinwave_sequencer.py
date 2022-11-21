@@ -43,6 +43,10 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
         self.repeats_spinbox = QtWidgets.QSpinBox()
         self.repeats_spinbox.setMinimum(1)
 
+        self.paramscan_checkbox = QtWidgets.QCheckBox()
+        self.paramscan_checkbox.setTristate(False)
+        self.paramscan_checkbox.stateChanged.connect(self.toggle_tabwidget)
+
         self.mirrored_checkbox = QtWidgets.QCheckBox()
         self.mirrored_checkbox.setTristate(False)
 
@@ -74,7 +78,10 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
         self.pane_widget.addTab(self.frequency_inputs, "Frequency sweep")
         self.pane_widget.addTab(time_tab, "Time sweep")
 
+        self.toggle_tabwidget(self.paramscan_checkbox.checkState())
+
         form = QtWidgets.QFormLayout()
+        form.addRow("Scan parameter", self.paramscan_checkbox)
         form.addRow("Mirrored fields", self.mirrored_checkbox)
         form.addRow("Repeats", self.repeats_spinbox)
 
@@ -97,6 +104,9 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
         else:
             self.pane_widget.setVisible(False)
 
+    def toggle_tabwidget(self, state):
+        self.pane_widget.setEnabled(state == 2)
+
     def get_sequence(self):
         """ Generate the sequence from the entered parameters. Returns a list of tuples; each tuple
         represents one measurement, containing dicts with the parameters for that measurement. This
@@ -105,17 +115,18 @@ class SpinWaveSequencerWidget(QtWidgets.QWidget):
 
         sequence = [tuple()]
 
-        if self.pane_widget.isVisible():
+        if self.pane_widget.isVisible() and self.paramscan_checkbox.checkState() == 2:
             if hasattr(self.pane_widget.currentWidget(), "get_sequence"):
                 sequence = self.pane_widget.currentWidget().get_sequence()
 
-        if self.mirrored_checkbox.isChecked():
+        if self.mirrored_checkbox.checkState() == 2:
             sequence = [
                 seq + ({"mirrored_field": val}, ) for val, seq in product([False, True], sequence)
             ]
 
         # Apply repeats
-        sequence = sequence * self.repeats_spinbox.value()
+        repeats = self.repeats_spinbox.value()
+        sequence = [s for s in sequence for _ in range(repeats)]
 
         return sequence
 
