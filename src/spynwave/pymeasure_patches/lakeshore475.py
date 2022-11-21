@@ -23,13 +23,22 @@
 #
 
 from time import time, sleep
+import math
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import strict_discrete_set, \
-    truncated_discrete_set
+from pymeasure.instruments.validators import strict_range
 
 from spynwave.pymeasure_patches.lakeshore400_series import LakeShore400Family
 
+
+def joined_list_validator(validators):
+    def validator(value, values):
+        if len(value) != len(values):
+            raise ValueError("The length of the provided list does not match the expected length "
+                             f"({len(values)}).")
+        return [vld(val, vals) for vld, val, vals in zip(validators, value, values)]
+
+    return validator
 
 class LakeShore475(LakeShore400Family):
     """
@@ -89,9 +98,38 @@ class LakeShore475(LakeShore400Family):
 
     field_setpoint = Instrument.control(
         "CSETP?", "CSETP %G",
-        """ A bool property that controls whether the field control mode is enabled. Can be set.
+        """ A float property that controls magnetic field setpoint in the presently selected units.
+        Can be set.
         """,
     )
+
+    field_control_parameters = Instrument.control(
+        "CPARAM?", "CPARAM %s",
+        """ A list property that controls the field control parameters. The list consists of 4 float
+        values: [P-value, I-value, ramp-rate, control slope limit]: the proportional value for the
+        PI controller (between 0.01 and 1000), the integral value for the PI controller (between
+        0.0001 and 1000), the field ramp rate (in the presently selected units/minute; if 0, ramping
+        is turned off), and the control slope limit of the analog output (in V/minute, between 0.01
+        and 1000). Can be set. 
+        """,
+        set_process=lambda l: ",".join(["%G" % v for v in l]),
+        values=[(1e-2, 1e3), (1e-4, 1e3), (0, math.inf), (1e-2, 1e3)],
+        validator=joined_list_validator([strict_range] * 4),
+    )
+
+    @property
+    def field_ramp_rate(self):
+        """ A float property that controls the field ramp rate, in the presently selected
+        units/minute. If set to 0, field ramping is turned off. Can be set; note that setting the
+        value asks and writes the `field_control_parameters` property.
+        """
+        return self.field_control_parameters[2]
+
+    @field_ramp_rate.setter
+    def field_ramp_rate(self, ramp_rate):
+        values = self.field_control_parameters
+        values[2] = ramp_rate
+        self.field_control_parameters = values
 
     field_setpoint_ramping = Instrument.measurement(
         "RAMPST?",

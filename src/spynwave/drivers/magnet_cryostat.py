@@ -3,6 +3,7 @@ This file is part of the SpynWave package.
 """
 
 import logging
+from time import sleep
 
 from spynwave.pymeasure_patches.lakeshore475 import LakeShore475
 
@@ -63,7 +64,20 @@ class MagnetCryostat(MagnetBase):
         # TODO: look at the high speed binary field readings (RDGFAST?)
         return self.gauss_meter.field
 
-    # sweep_field
+    def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
+                    sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
+                    callback_fn=lambda x: True):
+        # Set the ramp-rate in T/minute
+        self.gauss_meter.field_ramp_rate = ramp_rate * 60.
+
+        # Start ramping (start field is not used)
+        self.gauss_meter.field_setpoint = stop
+
+        # Check if still ramping
+        # TODO: see how we can also use the callback_fn, maybe using the start-stop
+        while self.gauss_meter.field_setpoint_ramping and not should_stop():
+            sleep_fn(update_delay)
+
     # wait_for_stable_field
 
 
