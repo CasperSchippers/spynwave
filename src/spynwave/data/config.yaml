@@ -22,14 +22,14 @@ vna:
 
 in-plane magnet:
   max field: 0.686  # T
-  max current: 13.  # A
-  max voltage: 120.  # V
 
   calibration: "file"
   calibration filename: "magnet_calibration.txt"
 
   power-supply:
     address: "ASRL3::INSTR"
+    max current: 13.  # A
+    max voltage: 120.  # V
 
   # Only change these if you know what you are doing
   labjack:
