@@ -88,7 +88,7 @@ class LakeShore475(LakeShore400Family):
     )
 
     field_setpoint = Instrument.control(
-        "CSETP?", "CSETP %f",
+        "CSETP?", "CSETP %G",
         """ A bool property that controls whether the field control mode is enabled. Can be set.
         """,
     )
