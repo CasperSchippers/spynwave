@@ -21,13 +21,20 @@ for driver in dir(drivers):
 
 @pytest.mark.parametrize("Cls", magnets)
 def test_mirror_fields(Cls):
-    # TODO: make this test
+    # TODO: maybe this is better if patched or mocked
 
     # prevent communication
     Cls.__init__ = MagnetBase.__init__
+    Cls._set_current = staticmethod(lambda v: True)
+    Cls._ramp_current = staticmethod(lambda v: True)
 
-    driv = Cls(mirror_fields=True)
-    driv.set_field(0.001)
+    test_value = 0.001
+
+    instr = Cls(mirror_fields=False)
+    assert test_value == + instr.set_field(test_value)
+
+    instr = Cls(mirror_fields=True)
+    assert test_value == - instr.set_field(test_value)
 
 
 
