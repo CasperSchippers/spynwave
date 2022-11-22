@@ -75,18 +75,20 @@ def test_control_parameters():
     with expected_protocol(
         LakeShore475,
         [("CPARAM 0.05,600,0,8.4", None),
-         ("CPARAM?", "1E3,2E-4,3.4,4.8")]
+         ("CPARAM?", "+10.0000E+00,+1.00000E+00,+100.000E+00,+10.0000E+00")]
     ) as instr:
         instr.field_control_parameters = [5e-2, 6e2, 0, 8.4]
-        assert instr.field_control_parameters == [1e3, 2e-4, 3.4, 4.8]
+        assert instr.field_control_parameters == [10, 1, 100, 10]
 
 
 def test_field_ramp_rate():
     with expected_protocol(
         LakeShore475,
-        [("CPARAM?", "1E3,2E-4,3.4,4.8"),
-         ("CPARAM?", "1E3,2E-4,3.4,4.8"),
-         ("CPARAM 1000,0.0002,5.4,4.8", None)]
+        [("CPARAM?", "+10.0000E+00,+1.00000E+00,+100.000E+00,+10.0000E+00"),
+         ("CPARAM?", "+10.0000E+00,+1.00000E+00,+100.000E+00,+10.0000E+00"),
+         ("CPARAM 10,1,5.4,10", None)]
     ) as instr:
-        assert instr.field_ramp_rate == 3.4
+        assert instr.field_ramp_rate == 100
         instr.field_ramp_rate = 5.4
+
+
