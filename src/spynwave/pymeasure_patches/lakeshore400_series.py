@@ -46,11 +46,14 @@ class LakeShore400Family(Instrument):
             adapter, name,
             asrl=dict(
                 baud_rate=9600,
-                data_bits=7,
+                data_bits=8,
                 stop_bits=10,
                 parity=1,
                 read_termination='\r',
                 write_termination='\n',
+            ),
+            gpib=dict(
+                chunk_size=1024,
             ),
             **kwargs
         )
