@@ -41,11 +41,11 @@ class LakeShore400Family(Instrument):
                    "Ultra-High Sensitivity": 2}
     WRITE_DELAY = 0.05
 
-    def __init__(self, adapter, name="Lake Shore 400 series", baud_rate=9600, **kwargs):
+    def __init__(self, adapter, name="Lake Shore 400 series", **kwargs):
         super().__init__(
             adapter, name,
             asrl=dict(
-                baud_rate=baud_rate,
+                baud_rate=9600,
                 data_bits=7,
                 stop_bits=10,
                 parity=1,

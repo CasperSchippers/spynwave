@@ -65,8 +65,8 @@ class LakeShore475(LakeShore400Family):
                    "User prog. cable/High Stability": 51,
                    "User prog. cable/Ultra-High Sensitivity": 52, }
 
-    def __init__(self, adapter, baud_rate=9600, **kwargs):
-        super().__init__(adapter, "Lake Shore 475 DSP Gaussmeter", baud_rate=baud_rate)
+    def __init__(self, adapter, **kwargs):
+        super().__init__(adapter, "Lake Shore 475 DSP Gaussmeter", **kwargs)
 
     # Modify dynamic properties
 
