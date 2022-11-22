@@ -30,8 +30,8 @@ class MagnetCryostat(MagnetBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.gauss_meter = LakeShore475(12
-            # config['general']['visa-prefix'] + config['in-plane magnet']['power-supply']['address']
+        self.gauss_meter = LakeShore475(
+            config['general']['visa-prefix'] + config[self.name]['power-supply']['address']
         )
 
     measurement_delay = config[name]["gauss-meter"]["reading frequency"]
