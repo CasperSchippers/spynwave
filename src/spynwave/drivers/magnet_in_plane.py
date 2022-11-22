@@ -192,7 +192,7 @@ class MagnetInPlane(MagnetBase):
             raise ValueError(f"Current value ({current} A) out of bounds for power supply (maximum "
                              f"{self.max_current} A).")
 
-    def set_field(self, field, controlled=True):
+    def _set_field(self, field, controlled=True):
         """ Apply a specified magnetic field.
 
         :param field:  Field to apply in tesla.
@@ -201,8 +201,6 @@ class MagnetInPlane(MagnetBase):
 
         :return field: Returns the applied field
         """
-        if self.mirror_fields:
-            field *= -1
 
         current = self._field_to_current(field)
 
@@ -346,13 +344,6 @@ class MagnetInPlane(MagnetBase):
             self.gauss_meter.last_write_time = time() + self.measurement_delay
 
         return field
-
-    def wait_for_stable_field(self, tolerance=0.00025, timeout=None, should_stop=lambda: False):
-        start = time()
-        field = self.measure_field()
-        while not should_stop() and not (timeout is not None and (time() - start) > timeout):
-            if abs(field - (field := self.measure_field())) < tolerance:
-                break
 
     def clear_powersupply_buffer(self):
         timeout = self.power_supply.adapter.connection.timeout

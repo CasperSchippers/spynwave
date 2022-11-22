@@ -52,10 +52,7 @@ class MagnetCryostat(MagnetBase):
         self.gauss_meter.field_setpoint = 0
         self.gauss_meter.field_control_enabled = False
 
-    def set_field(self, field):
-        if self.mirror_fields:
-            field *= -1
-
+    def _set_field(self, field):
         self.gauss_meter.field_setpoint = 0
 
         return field

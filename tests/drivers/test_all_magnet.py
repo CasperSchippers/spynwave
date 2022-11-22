@@ -25,8 +25,7 @@ def test_mirror_fields(Cls):
 
     # prevent communication
     Cls.__init__ = MagnetBase.__init__
-    Cls._set_current = staticmethod(lambda v: True)
-    Cls._ramp_current = staticmethod(lambda v: True)
+    Cls._set_field = staticmethod(lambda v: v)
 
     test_value = 0.001
 

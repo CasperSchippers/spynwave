@@ -3,8 +3,9 @@ This file is part of the SpynWave package.
 """
 
 import logging
-from time import sleep
+from time import time, sleep
 from abc import ABCMeta, abstractmethod
+from typing import final
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -29,8 +30,21 @@ class MagnetBase(metaclass=ABCMeta):
     def shutdown(self):
         pass
 
+    @final
+    def set_field(self, field, *args, **kwargs):
+        if self.mirror_fields:
+            field *= -1
+
+        applied_field = self._set_field(field, *args, **kwargs)
+
+        if applied_field != field:
+            raise ValueError(f"Applied field ({applied_field} T) differs from provided value"
+                             f"({field} T).")
+
+        return field
+
     @abstractmethod
-    def set_field(self, field):
+    def _set_field(self, field):
         pass
 
     @abstractmethod
@@ -43,9 +57,12 @@ class MagnetBase(metaclass=ABCMeta):
                     callback_fn=lambda x: True):
         pass
 
-    @abstractmethod
-    def wait_for_stable_field(self):
-        pass
+    def wait_for_stable_field(self, tolerance=0.00025, timeout=None, should_stop=lambda: False):
+        start = time()
+        field = self.measure_field()
+        while not should_stop() and not (timeout is not None and (time() - start) > timeout):
+            if abs(field - (field := self.measure_field())) < tolerance:
+                break
 
     @property
     @abstractmethod
