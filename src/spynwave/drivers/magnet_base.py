@@ -5,7 +5,6 @@ This file is part of the SpynWave package.
 import logging
 from time import time, sleep
 from abc import ABCMeta, abstractmethod
-from typing import final
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -30,7 +29,6 @@ class MagnetBase(metaclass=ABCMeta):
     def shutdown(self):
         pass
 
-    @final
     def set_field(self, field, *args, **kwargs):
         if self.mirror_fields:
             field *= -1

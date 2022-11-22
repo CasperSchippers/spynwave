@@ -14,9 +14,14 @@ from spynwave.drivers.magnet_base import MagnetBase
 magnets = []
 for driver in dir(drivers):
     if driver.startswith("Magnet"):
-        Cls = getattr(drivers, driver)
-        if issubclass(Cls, MagnetBase):
-            magnets.append(Cls)
+        Driver = getattr(drivers, driver)
+        if issubclass(Driver, MagnetBase):
+            magnets.append(Driver)
+
+
+@pytest.mark.parametrize("Cls", magnets)
+def test_overridden_methods(Cls):
+    assert Cls.set_field == MagnetBase.set_field, "set_field method should not be overridden."
 
 
 @pytest.mark.parametrize("Cls", magnets)
@@ -34,6 +39,3 @@ def test_mirror_fields(Cls):
 
     instr = Cls(mirror_fields=True)
     assert test_value == - instr.set_field(test_value)
-
-
-
