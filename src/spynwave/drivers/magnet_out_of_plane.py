@@ -3,9 +3,16 @@ This file is part of the SpynWave package.
 """
 
 import logging
+import math
 from time import sleep
 
+import numpy as np
+
+from spynwave.pymeasure_patches.brukerBEC1 import BrukerBEC1
+
+from spynwave.constants import config
 from spynwave.drivers.magnet_base import MagnetBase
+
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -15,23 +22,72 @@ class MagnetOutOfPlane(MagnetBase):
     """ This class represents the magnet that is used on the out-of-plane spinwave setup.
 
     It uses a Bruker B-MN 45/60 Power Supply, controlled by a Bruker B-EC1 controller.
+
     To manually apply a current, turn on the power supply (big red switch), then turn on the
     controller; if the input-key (physical key) is set to local, the output can be enabled by
     pressing "DC", followed by "set". Using the "cur" button (maybe the "set") the current can be
     controlled using the knob.
 
+    When turning on the DC-output, there is a chance to trigger the fuse the magnet is connected to.
+
     """
+    name = "out-of-plane magnet"
+
+    measurement_delay = config[name]["gauss-meter"]["reading frequency"]  # TODO: move to gauss part
+    current_ramp_rate = config[name]["power-supply"]["max ramp rate"]
+
+    @property
+    def field_ramp_rate(self):
+        return self.current_ramp_rate * self.cal_data["max_field"] / self.cal_data["max_current"]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def startup(self): pass
-    def shutdown(self): pass
-    def _set_field(self, field): pass
-    def measure_field(self): pass
+        self.power_supply = BrukerBEC1(
+            config['general']['visa-prefix'] + config[self.name]['power-supply']['address']
+        )
+
+    def startup(self):
+        if not self.power_supply.DC_power_enabled:
+            log.warning("Enabling the DC output of the power supply. Be alerted that this can"
+                        "potentially trip the fuse.")
+            self.power_supply.current = 0
+            sleep(0.1)
+            self.power_supply.DC_power_enabled = True
+            sleep(0.2)
+
+    def shutdown(self):
+        # Due to the chance to trip the fuse, the supply is not disabled, but just ramped down.
+        self._set_current(0)
+
+    def _set_field(self, field):
+        current = self._field_to_current(field)
+        self._set_current(current)
+        return field
+
+    def _set_current(self, current):
+        self.power_supply.current = current
+
+    def measure_field(self):
+        # TODO: Implement gauss meter
+        return self._current_to_field(self.power_supply.output_current)
 
     def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
                     sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
-                    callback_fn=lambda x: True): pass
+                    callback_fn=lambda x: True):
 
-    def measurement_delay(self): pass
-    def field_ramp_rate(self): pass
+        # Check if fields are within bounds
+        self._field_to_current(start)
+        self._field_to_current(stop)
+
+        sweep_duration = abs((start - stop) / ramp_rate)
+        number_of_updates = math.ceil(sweep_duration / update_delay)
+
+        field_list = np.linspace(start, stop, number_of_updates + 1)
+
+        for field in field_list:
+            self.set_field(field)
+            callback_fn(field)
+            sleep_fn(update_delay)
+            if should_stop():
+                break

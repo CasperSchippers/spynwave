@@ -133,6 +133,13 @@ class BrukerBEC1(Instrument):
         get_process=check_response_for_error,
     )
 
+    passbank_dissipation = Instrument.measurement(
+        "POW/",
+        """ A property that returns the passbank power dissipation, if installed.
+        """,
+        get_process=check_response_for_error,
+    )
+
     uce_voltage = Instrument.measurement(
         "UCE/",
         """ A property that returns the Uce voltage, if installed.

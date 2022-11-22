@@ -55,6 +55,11 @@ out-of-plane magnet:
     address: "GPIB0::5::INSTR"
     max current: 60  # A
     max voltage: 45  # V
+    max ramp rate: 4.5  # A/s
+
+  gauss-meter:
+    address: None
+    reading frequency: 0.1  # s
 
 
 cryo magnet:
