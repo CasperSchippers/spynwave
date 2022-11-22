@@ -14,6 +14,8 @@ log.addHandler(logging.NullHandler())
 class BrukerBEC1(Instrument):
     """ A class representing the Bruker B-EC1 magnet power supply controller.
     """
+    CURRENT_RANGE = (-60, 60)
+    VOLTAGE_RANGE = (-45, 45)
 
     def __init__(self, adapter, **kwargs):
         super().__init__(
@@ -84,6 +86,9 @@ class BrukerBEC1(Instrument):
         "CUR/", "CUR=%f",
         """ A float property that controls the output current in amps. Can be set
         """,
+        values=CURRENT_RANGE,
+        validator=strict_range,
+        dynamic=True,
         check_set_errors=True,
         get_process=check_response_for_error,
     )
@@ -184,6 +189,8 @@ class BrukerBEC1(Instrument):
         "CCU/", "CCU=%f",
         """ A float property that controls the cycle current up (in amps). Can be set.
         """,
+        values=CURRENT_RANGE,
+        validator=strict_range,
         check_set_errors=True,
         get_process=check_response_for_error,
     )
@@ -192,6 +199,8 @@ class BrukerBEC1(Instrument):
         "CCD/", "CCD=%f",
         """ A float property that controls the cycle current down (in amps). Can be set.
         """,
+        values=CURRENT_RANGE,
+        validator=strict_range,
         check_set_errors=True,
         get_process=check_response_for_error,
     )
@@ -213,9 +222,11 @@ class BrukerBEC1(Instrument):
     )
 
     cycle_time_up = Instrument.control(
-        "WCU/", "WCU=%f",
+        "WCU/", "WCU=%d",
         """ A float property that controls the cycle time up (in seconds). Can be set.
         """,
+        values=[0, 65536],
+        validator=strict_range,
         check_set_errors=True,
         get_process=check_response_for_error,
     )
@@ -228,9 +239,11 @@ class BrukerBEC1(Instrument):
     )
 
     cycle_time_down = Instrument.control(
-        "WCD/", "WCD=%f",
+        "WCD/", "WCD=%d",
         """ A float property that controls the cycle time up (in seconds). Can be set.
         """,
+        values=[0, 65536],
+        validator=strict_range,
         check_set_errors=True,
         get_process=check_response_for_error,
     )
@@ -243,7 +256,7 @@ class BrukerBEC1(Instrument):
     )
 
     number_of_cycles = Instrument.control(
-        "WCD/", "WCD=%f",
+        "WCD/", "WCD=%d",
         """ An int property that controls the number of cycles to perform. Valid values are between
         0 and 65536 cycles. Can be set.
         """,
