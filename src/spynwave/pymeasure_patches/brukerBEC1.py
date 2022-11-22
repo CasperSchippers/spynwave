@@ -28,7 +28,6 @@ class BrukerBEC1(Instrument):
                 write_termination='\r',
                 # write_termination='\n',
             ),
-            # gpib=dict(),
             **kwargs,
         )
 
