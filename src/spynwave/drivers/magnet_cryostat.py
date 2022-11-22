@@ -28,8 +28,8 @@ class MagnetCryostat(MagnetBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.gauss_meter = LakeShore475(
-            config['general']['visa-prefix'] + config['in-plane magnet']['power-supply']['address']
+        self.gauss_meter = LakeShore475(12
+            # config['general']['visa-prefix'] + config['in-plane magnet']['power-supply']['address']
         )
 
     @property
@@ -74,3 +74,6 @@ class MagnetCryostat(MagnetBase):
         # TODO: see how we can also use the callback_fn, maybe using the start-stop
         while self.gauss_meter.field_setpoint_ramping and not should_stop():
             sleep_fn(update_delay)
+
+        if not should_stop():
+            self.wait_for_stable_field()
