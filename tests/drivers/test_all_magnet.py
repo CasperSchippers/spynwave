@@ -4,13 +4,11 @@ This file is part of the SpynWave package.
 
 
 import pytest
-from unittest.mock import MagicMock
 
 from spynwave import drivers
 from spynwave.drivers.magnet_base import MagnetBase
 
 # Collect all magnets
-
 magnets = []
 for driver in dir(drivers):
     if driver.startswith("Magnet"):

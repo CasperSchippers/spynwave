@@ -22,7 +22,6 @@
 # THE SOFTWARE.
 #
 
-from time import time, sleep
 import math
 
 from pymeasure.instruments import Instrument
@@ -39,6 +38,7 @@ def joined_list_validator(validators):
         return [vld(val, vals) for vld, val, vals in zip(validators, value, values)]
 
     return validator
+
 
 class LakeShore475(LakeShore400Family):
     """
@@ -110,7 +110,7 @@ class LakeShore475(LakeShore400Family):
         PI controller (between 0.01 and 1000), the integral value for the PI controller (between
         0.0001 and 1000), the field ramp rate (in the presently selected units/minute; if 0, ramping
         is turned off), and the control slope limit of the analog output (in V/minute, between 0.01
-        and 1000). Can be set. 
+        and 1000). Can be set.
         """,
         set_process=lambda l: ",".join(["%G" % v for v in l]),
         values=[(1e-2, 1e3), (1e-4, 1e3), (0, math.inf), (1e-2, 1e3)],

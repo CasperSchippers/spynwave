@@ -71,4 +71,3 @@ class MagnetBase(metaclass=ABCMeta):
     @abstractmethod
     def field_ramp_rate(self):
         pass
-

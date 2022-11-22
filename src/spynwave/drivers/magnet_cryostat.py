@@ -74,7 +74,3 @@ class MagnetCryostat(MagnetBase):
         # TODO: see how we can also use the callback_fn, maybe using the start-stop
         while self.gauss_meter.field_setpoint_ramping and not should_stop():
             sleep_fn(update_delay)
-
-    # wait_for_stable_field
-
-

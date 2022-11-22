@@ -3,6 +3,7 @@ This file is part of the SpynWave package.
 """
 
 import logging
+from time import sleep
 
 from spynwave.drivers.magnet_base import MagnetBase
 
@@ -22,3 +23,15 @@ class MagnetOutOfPlane(MagnetBase):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def startup(self): pass
+    def shutdown(self): pass
+    def _set_field(self, field): pass
+    def measure_field(self): pass
+
+    def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
+                    sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
+                    callback_fn=lambda x: True): pass
+
+    def measurement_delay(self): pass
+    def field_ramp_rate(self): pass

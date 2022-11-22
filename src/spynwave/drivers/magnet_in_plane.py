@@ -73,7 +73,6 @@ class MagnetInPlane(MagnetBase):
             False: config["in-plane magnet"]["gauss-meter"]["normalmode reading frequency"]
         }[self.gauss_meter_fast_mode]
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
