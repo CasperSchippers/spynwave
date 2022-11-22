@@ -12,7 +12,10 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from pymeasure.instruments.lakeshore import LakeShore421
-import u12  # LabJack library from labjackpython
+try:
+    import u12  # LabJack library from labjackpython
+except ImportError:
+    u12 = None  # Happens if the dll is not installed
 
 from spynwave.constants import config
 from spynwave.drivers.magnet_base import MagnetBase
