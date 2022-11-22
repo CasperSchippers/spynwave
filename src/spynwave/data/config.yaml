@@ -7,6 +7,7 @@ general:
   remote visa-prefix: "visa://131.155.124.201/" # For the in-plane magnet, port 3537
 #  remote visa-prefix: "visa://131.155.124.201:3538/" # For the cryostat magnet
 #  remote visa-prefix: "visa://131.155.124.201:3539/" # For the out-of-plane magnet
+  magnet: "in-plane magnet"
 
 vna:
   vectorstar:

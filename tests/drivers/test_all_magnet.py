@@ -11,7 +11,7 @@ from spynwave.drivers.magnet_base import MagnetBase
 # Collect all magnets
 magnets = []
 for driver in dir(drivers):
-    if driver.startswith("Magnet"):
+    if driver.startswith("Magnet") and not driver == "Magnet":
         Driver = getattr(drivers, driver)
         if issubclass(Driver, MagnetBase):
             magnets.append(Driver)
