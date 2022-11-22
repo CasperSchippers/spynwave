@@ -48,11 +48,14 @@ in-plane magnet:
     normalmode reading frequency: 0.4  # seconds
 
 out-of-plane magnet:
-#  maximum field: 0.55  # Tesla, TODO: search for a value
+  max field: 0.55  # Tesla, TODO: search for a value
   bipolar: True
 
   power-supply:
     address: "GPIB0::5::INSTR"
+    max current: 60  # A
+    max voltage: 45  # V
+
 
 cryo magnet:
   max field: 0.55  # Tesla
@@ -61,6 +64,8 @@ cryo magnet:
 
   power-supply:
     address: None
+    max current: 70  # A
+    max voltage: 35  # V
 
   gauss-meter:
     address: "ASRL6::INSTR"

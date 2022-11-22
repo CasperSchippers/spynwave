@@ -23,7 +23,9 @@ class MagnetCryostat(MagnetBase):
     Gaussmeter. The setup also contains a LakeShore 336 Temperature Controller.
 
     """
-    gauss_meter_autorange = config["cryo magnet"]["gauss-meter"]["autorange"]
+    name = "cryo magnet"
+
+    gauss_meter_autorange = config[name]["gauss-meter"]["autorange"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -32,11 +34,9 @@ class MagnetCryostat(MagnetBase):
             # config['general']['visa-prefix'] + config['in-plane magnet']['power-supply']['address']
         )
 
-    @property
-    def measurement_delay(self):
-        return config["cryo magnet"]["gauss-meter"]["reading frequency"]
+    measurement_delay = config[name]["gauss-meter"]["reading frequency"]
 
-    field_ramp_rate = config["cryo magnet"]["ramp rate"]
+    field_ramp_rate = config[name]["ramp rate"]
 
     def startup(self, measurement_type=None):
         if not self.gauss_meter.field_control_enabled:
@@ -46,7 +46,7 @@ class MagnetCryostat(MagnetBase):
 
         self.gauss_meter.unit = "T"
         self.gauss_meter.auto_range = self.gauss_meter_autorange == "Hardware"
-        self.gauss_meter.field_range = config["in-plane magnet"]["gauss-meter"]["range"]
+        self.gauss_meter.field_range = config[self.name]["gauss-meter"]["range"]
 
     def shutdown(self):
         self.gauss_meter.field_setpoint = 0

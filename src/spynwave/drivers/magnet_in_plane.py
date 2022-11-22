@@ -36,57 +36,47 @@ class MagnetInPlane(MagnetBase):
     probe the magnetic field.
 
     """
+    name = "in-plane magnet"
     labjack = None
 
-    cal_type = "interpolated lookup table"
-    cal_data = dict(
-            data=None,
-            min_field=-config["in-plane magnet"]["max field"],
-            max_field=+config["in-plane magnet"]["max field"],
-            min_current=-config["in-plane magnet"]["power-supply"]["max current"],
-            max_current=+config["in-plane magnet"]["power-supply"]["max current"],
-            I_to_B=lambda I: (I * config["in-plane magnet"]["max field"] /
-                              config["in-plane magnet"]["power-supply"]["max current"]),
-            B_to_I=lambda B: (B * config["in-plane magnet"]["power-supply"]["max current"] /
-                              config["in-plane magnet"]["max field"]),
-        )
-
-    max_current = config["in-plane magnet"]["power-supply"]["max current"]
-    max_voltage = config["in-plane magnet"]["power-supply"]["max voltage"]
+    max_current = config[name]["power-supply"]["max current"]
+    max_voltage = config[name]["power-supply"]["max voltage"]
     current_ramp_rate = 0.5  # A/s
     max_current_step = 1  # A
     last_current = 0  # attribute to store the last applied current
 
-    field_ramp_rate = current_ramp_rate * cal_data["max_field"] / cal_data["max_current"]
+    @property
+    def field_ramp_rate(self):
+        return self.current_ramp_rate * self.cal_data["max_field"] / self.cal_data["max_current"]
 
     polarity = 0
-    bitSelect_positive = 2**config["in-plane magnet"]["labjack"]["positive polarity bit"]
-    bitSelect_negative = 2**config["in-plane magnet"]["labjack"]["negative polarity bit"]
+    bitSelect_positive = 2**config[name]["labjack"]["positive polarity bit"]
+    bitSelect_negative = 2**config[name]["labjack"]["negative polarity bit"]
 
     gauss_meter_ranges = [3., 0.3, 0.03, 0.003]
     gauss_meter_range_edges = [(0.25, 3.5), (0.025, 0.27), (0.0025, 0.027), (0, 0.0027)]
     gauss_meter_range = 0
-    gauss_meter_autorange = config["in-plane magnet"]["gauss-meter"]["autorange"]
+    gauss_meter_autorange = config[name]["gauss-meter"]["autorange"]
     gauss_meter_fast_mode = False
 
     @property
     def measurement_delay(self):
         return {
-            True: config["in-plane magnet"]["gauss-meter"]["fastmode reading frequency"],
-            False: config["in-plane magnet"]["gauss-meter"]["normalmode reading frequency"]
+            True: config[self.name]["gauss-meter"]["fastmode reading frequency"],
+            False: config[self.name]["gauss-meter"]["normalmode reading frequency"]
         }[self.gauss_meter_fast_mode]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.power_supply = SM12013(
-            config['general']['visa-prefix'] + config['in-plane magnet']['power-supply']['address']
+            config["general"]["visa-prefix"] + config[self.name]["power-supply"]["address"]
         )
-        self.clear_powersupply_buffer()
+        self._clear_powersupply_buffer()
         self.max_current = self.power_supply.max_current
         self.max_voltage = self.power_supply.max_voltage
 
-        self.labjack = u12.U12(id=config["in-plane magnet"]["labjack"]["ID"])
+        self.labjack = u12.U12(id=config[self.name]["labjack"]["ID"])
         # Set the correct channels on the labjack to output channels for controlling the polarity
         self.labjack.digitalIO(
             trisD=self.bitSelect_positive + self.bitSelect_negative,
@@ -97,12 +87,12 @@ class MagnetInPlane(MagnetBase):
         )
 
         self.gauss_meter = LakeShore421(
-            config['general']['visa-prefix'] + config['in-plane magnet']['gauss-meter']['address']
+            config["general"]["visa-prefix"] + config[self.name]["gauss-meter"]["address"]
         )
         # self.gauss_meter.check_errors()
 
     def startup(self):
-        self.load_calibration()
+        self._load_calibration_from_file(config[self.name]["calibration file"])
 
         # Prepare current supply and labjack for magnetic field
         self.last_current = self.power_supply.current
@@ -126,15 +116,15 @@ class MagnetInPlane(MagnetBase):
         # self.gauss_meter.id
         self.gauss_meter.unit = "T"
         use_fast_mode = (self.measurement_type != "Frequency sweep" and
-                         config["in-plane magnet"]["gauss-meter"]["fastmode"])
+                         config[self.name]["gauss-meter"]["fastmode"])
         self._gauss_meter_set_fast_mode(use_fast_mode)
         self.gauss_meter.auto_range = self.gauss_meter_autorange == "Hardware"
-        self.gauss_meter.field_range = config["in-plane magnet"]["gauss-meter"]["range"]
+        self.gauss_meter.field_range = config[self.name]["gauss-meter"]["range"]
         self.gauss_meter_range = self.gauss_meter.field_range_raw
 
-    def load_calibration(self):
+    def _load_calibration_from_file(self, file):
         # TODO: should make this less hardcoded and define standard format for table (with header)
-        cal_data = pd.read_csv(config['in-plane magnet']['calibration file'],
+        cal_data = pd.read_csv(file,
                                header=None,
                                names=["current", "field"],
                                delim_whitespace=True)
@@ -155,44 +145,6 @@ class MagnetInPlane(MagnetBase):
             I_to_B=i_to_b,
             B_to_I=b_to_i,
         )
-
-    def _field_to_current(self, field):
-        # Check if value within range of calibration
-        if not self.cal_data["min_field"] <= field <= self.cal_data["max_field"]:
-            raise ValueError(f"Field value ({field} T) out of bounds; should be between "
-                             f"{self.cal_data['min_field']} T and {self.cal_data['max_field']} T "
-                             f"(with the present calibration).")
-
-        if self.cal_type == "interpolated lookup table":
-            current = self.cal_data["B_to_I"](field)
-        else:
-            raise NotImplementedError(f"Current-field calibration type {self.cal_type} "
-                                      f"not implemented.")
-
-        self.check_current_within_bounds(current)
-
-        return current
-
-    def _current_to_field(self, current):
-        # Check if value within range of calibration
-        if not self.cal_data["min_current"] >= current >= self.cal_data["max_current"]:
-            raise ValueError(f"Current value ({current} A) out of bounds; should be between "
-                             f"{self.cal_data['min_current']} A and {self.cal_data['max_current']} "
-                             f"A (with the present calibration).")
-        self.check_current_within_bounds(current)
-
-        if self.cal_type == "interpolated lookup table":
-            field = self.cal_data["I_to_B"](current)
-        else:
-            raise NotImplementedError(f"Current-field calibration type {self.cal_type} "
-                                      f"not implemented.")
-
-        return field
-
-    def check_current_within_bounds(self, current):
-        if abs(current) > self.max_current:
-            raise ValueError(f"Current value ({current} A) out of bounds for power supply (maximum "
-                             f"{self.max_current} A).")
 
     def _set_field(self, field, controlled=True):
         """ Apply a specified magnetic field.
@@ -347,7 +299,7 @@ class MagnetInPlane(MagnetBase):
 
         return field
 
-    def clear_powersupply_buffer(self):
+    def _clear_powersupply_buffer(self):
         timeout = self.power_supply.adapter.connection.timeout
         try:
             self.power_supply.adapter.connection.timeout = 10
