@@ -19,6 +19,15 @@ class BrukerBEC1(Instrument):
             adapter,
             "Bruker B-EC1 magnet power supply controller",
             includeSCPI=False,
+            asrl=dict(
+                baud_rate=9600,
+                data_bits=8,
+                stop_bits=10,
+                parity=1,
+                write_termination='\r',
+                # write_termination='\n',
+            ),
+            # gpib=dict(),
             **kwargs,
         )
 
