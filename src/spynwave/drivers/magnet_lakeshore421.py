@@ -6,14 +6,9 @@ import logging
 import math
 from time import time, sleep
 
-from pyvisa.errors import VisaIOError, VI_ERROR_TMO
-import pandas as pd
-import numpy as np
-from scipy.interpolate import interp1d
 
 from pymeasure.instruments.lakeshore import LakeShore421
 
-from spynwave.constants import config
 from spynwave.constants import config
 from spynwave.drivers.magnet_base import MagnetBase
 
