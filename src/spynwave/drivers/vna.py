@@ -53,8 +53,12 @@ class VNA:
                 self.daqmx_update_reference_count()
 
             except Exception as exc:
-                self.shutdown_daqmx()
-                raise exc
+                if not (isinstance(exc, nidaqmx.errors.DaqError) and
+                        str(exc).startswith("Device cannot be accessed.")):
+                    self.shutdown_daqmx()
+                    raise exc
+                log.info("Could not find DAQmx, attemping measurement without it.")
+                self.use_DAQmx = False
 
     @staticmethod
     def connect_vectorstar(**kwargs):
@@ -169,9 +173,13 @@ class VNA:
         self.vectorstar.ch_1.cw_mode_enabled = True
         self.vectorstar.ch_1.frequency_CW = cw_frequency
         self.vectorstar.ch_1.cw_number_of_points = 1
-        self.configure_averaging(False)
 
-        self.configure_external_trigger()
+        if self.use_DAQmx:
+            self.configure_averaging(False)
+            self.configure_external_trigger()
+        else:
+            self.configure_averaging(True, 1, "sweep-by-sweep")
+            self.configure_internal_trigger()
 
         if headerless:
             self.vectorstar.datablock_header_format = 2
@@ -199,9 +207,10 @@ class VNA:
             sleep(0.05)
             self.trigger_task.write(False)
         else:
+            # When nog using the DAQmx, the system "triggers" by resetting the average count
             self.reset_average_count()
-            sleep(0.2)
-            self.vectorstar.trigger_continuous()
+            # sleep(0.01)
+            # self.vectorstar.trigger_continuous()
 
     def reset_average_count(self):
         return self.vectorstar.ch_1.clear_average_count()
