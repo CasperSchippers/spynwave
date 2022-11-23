@@ -53,7 +53,6 @@ class MagnetCryostat(MagnetBase):
         self.gauss_meter.auto_range = self.gauss_meter_autorange == "Hardware"
         self.gauss_meter.field_range = config[self.name]["gauss-meter"]["range"]
 
-
     def shutdown(self):
         self.gauss_meter.field_setpoint = 0
         self.gauss_meter.field_control_enabled = False

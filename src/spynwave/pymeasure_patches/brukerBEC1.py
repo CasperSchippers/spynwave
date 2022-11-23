@@ -1,7 +1,5 @@
 import logging
-import re
 from enum import IntFlag
-from functools import partial
 
 from pyvisa import VisaIOError
 from pyvisa.constants import VI_ERROR_TMO
