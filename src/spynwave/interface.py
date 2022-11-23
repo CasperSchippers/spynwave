@@ -22,6 +22,7 @@ from spynwave.pymeasure_patches.pandas_formatter import CSVFormatterPandas
 
 # Setup logging
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 # Register as separate software
@@ -64,7 +65,7 @@ class Window(ManagedWindow):
             directory_input=True,
         )
 
-        self._setup_blinking_log_widget()
+        self._setup_log_widget()
 
         # self.update_inputs_from_vna()
 
@@ -202,9 +203,14 @@ class Window(ManagedWindow):
         self.inputs.rf_bandwidth.setValue(bandwidth)
         self.inputs.rf_power.setValue(power_level)
 
-    def _setup_blinking_log_widget(self):
-        """ Add blink-functionality to the logwidget
+    def _setup_log_widget(self):
+        """ Adjust the log-widget.
+        Sets the logging level to INFO, adds blinking functionality and color-coding for warning-
+        and error-messages.
+
         """
+        self.log_widget.handler.setLevel(logging.INFO)
+
         self._blink_qtimer = QtCore.QTimer()
         self._blink_color = None
         self._blink_state = False

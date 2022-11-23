@@ -11,6 +11,7 @@ from spynwave.drivers import InstrumentThread
 
 # Setup logging
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 

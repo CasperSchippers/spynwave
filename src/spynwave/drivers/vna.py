@@ -17,6 +17,7 @@ from spynwave.constants import config
 from spynwave.pymeasure_patches.anritsuMS4644B import AnritsuMS4644B
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 

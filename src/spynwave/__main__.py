@@ -12,15 +12,15 @@ from spynwave.interface import Window
 
 
 # Initialize logger & log to file
-
-
 log = logging.getLogger("")
+log.setLevel(logging.DEBUG)
 
 file_handler = logging.FileHandler("SpynWave.log", "a")
 file_handler.setFormatter(logging.Formatter(
     fmt="%(asctime)s : %(message)s (%(levelname)s)",
     datefmt="%m/%d/%Y %I:%M:%S %p"
 ))
+file_handler.setLevel(logging.INFO)
 log.addHandler(file_handler)
 
 console_handler = logging.StreamHandler(sys.stdout)

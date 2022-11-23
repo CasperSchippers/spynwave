@@ -13,6 +13,7 @@ from spynwave.procedures.threads import FieldSweepThread, GaussProbeThread, VNAC
 
 # Setup logging
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 

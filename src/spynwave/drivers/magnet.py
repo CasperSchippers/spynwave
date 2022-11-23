@@ -20,6 +20,7 @@ from spynwave.constants import config
 from spynwave.pymeasure_patches.sm12013 import SM12013
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 

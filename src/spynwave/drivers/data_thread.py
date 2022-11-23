@@ -11,6 +11,7 @@ from time import sleep
 from pymeasure.thread import StoppableThread, InterruptableEvent
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 

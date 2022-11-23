@@ -17,6 +17,7 @@ from spynwave.procedures import MixinFieldSweep, MixinFrequencySweep, MixinTimeS
 
 # Setup logging
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 
