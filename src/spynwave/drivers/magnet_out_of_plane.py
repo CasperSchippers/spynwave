@@ -60,6 +60,8 @@ class MagnetOutOfPlane(LakeShore421Mixin, MagnetBase):
             self.power_supply.DC_power_enabled = True
             sleep(0.2)
 
+        self.startup_lakeshore()
+
     def shutdown(self):
         # Due to the chance to trip the fuse, the supply is not disabled, but just ramped down.
         self._set_current(0)
