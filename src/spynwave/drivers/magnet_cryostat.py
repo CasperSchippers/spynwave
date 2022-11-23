@@ -91,4 +91,4 @@ class MagnetCryostat(MagnetBase):
         self.gauss_meter.field_ramp_rate = 0
 
         if not should_stop():
-            self.wait_for_stable_field()
+            self.wait_for_stable_field(interval=3, should_stop=should_stop)

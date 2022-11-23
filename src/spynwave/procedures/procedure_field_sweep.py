@@ -77,7 +77,9 @@ class MixinFieldSweep:
     def startup_field_sweep(self):
         self.saturate_field()
         self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency * 1e9, headerless=True)
-        self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
+        self.magnet.wait_for_stable_field(interval=3, timeout=60,
+                                          sleep_fn=self.sleep,
+                                          should_stop=self.should_stop)
 
         # Prepare the parallel methods for the sweep
         self.field_sweep_thread = FieldSweepThread(self, self.magnet,
@@ -141,6 +143,7 @@ class MixinFieldSweep:
     def saturate_field(self):
         # Saturate the magnetic field (after saturation, go already to the starting field
         self.magnet.set_field(self.field_saturation_field * 1e-3)
+        self.magnet.wait_for_stable_field(interval=3, timeout=60, should_stop=self.should_stop)
         self.sleep(self.field_saturation_time)
         self.magnet.set_field(self.field_start * 1e-3)
 

@@ -6,6 +6,8 @@ import logging
 from time import time, sleep
 from abc import ABCMeta, abstractmethod
 
+import numpy as np
+
 from spynwave.constants import config
 
 log = logging.getLogger(__name__)
@@ -85,12 +87,32 @@ class MagnetBase(metaclass=ABCMeta):
                     callback_fn=lambda x: True):
         pass
 
-    def wait_for_stable_field(self, tolerance=0.00025, timeout=None, should_stop=lambda: False):
+    def wait_for_stable_field(self, target=None,
+                              tolerance=0.0005,
+                              update_delay=0.1,
+                              interval=None,
+                              timeout=None,
+                              sleep_fn=sleep,
+                              should_stop=lambda: False):
         start = time()
-        field = self.measure_field()
+
+        number_of_fields = 2 if interval is None else int(round(interval / update_delay))
+
+        fields = []
         while not should_stop() and not (timeout is not None and (time() - start) > timeout):
-            if abs(field - (field := self.measure_field())) < tolerance:
+            fields.append(self.measure_field())
+
+            # Remove first if too many datapoints
+            while len(fields) > number_of_fields:
+                fields.pop(0)
+
+            # Check criteria
+            local_target = target or np.mean(fields)
+            within_tolerance = [abs(local_target - f) < tolerance for f in fields]
+            if len(fields) == number_of_fields and all(within_tolerance):
                 break
+
+            sleep_fn(update_delay)
 
     @property
     @abstractmethod

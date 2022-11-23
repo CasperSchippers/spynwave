@@ -74,7 +74,7 @@ class MixinFrequencySweep:
         log.info(f"Ramping field to {self.magnetic_field} mT")
         self.magnet.set_field(self.magnetic_field * 1e-3, controlled=True)
         log.info("Waiting for field to stabilize")
-        self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
+        self.magnet.wait_for_stable_field(interval=3, timeout=60, should_stop=self.should_stop)
 
     def execute_frequency_sweep(self):
         self.vna.reset_average_count()
