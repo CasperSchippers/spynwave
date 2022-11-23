@@ -27,6 +27,7 @@ log.addHandler(logging.NullHandler())
 
 # Register as separate software
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("fna.MeasurementSoftware.SpynWave")
+ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
 
 
 class Window(ManagedWindow):
