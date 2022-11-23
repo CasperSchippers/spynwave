@@ -3,6 +3,9 @@ import re
 from enum import IntFlag
 from functools import partial
 
+from pyvisa import VisaIOError
+from pyvisa.constants import VI_ERROR_TMO
+
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import (
     strict_discrete_set,
@@ -51,9 +54,13 @@ class BrukerBEC1(Instrument):
     def check_errors(self):
         """ Read the error message from the instrument, by reading the echo after a write command
         """
-        message = self.read()
-        error = self.check_response_for_error(message)
-        return error
+        try:
+            message = self.read()
+            error = self.check_response_for_error(message)
+            return error
+        except VisaIOError as exc:
+            if not exc.error_code == VI_ERROR_TMO:
+                raise exc
 
     @staticmethod
     def check_response_for_error(message):
