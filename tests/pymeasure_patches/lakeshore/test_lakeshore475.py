@@ -90,5 +90,3 @@ def test_field_ramp_rate():
     ) as instr:
         assert instr.field_ramp_rate == 100
         instr.field_ramp_rate = 5.4
-
-
