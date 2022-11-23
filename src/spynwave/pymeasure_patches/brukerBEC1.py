@@ -71,8 +71,8 @@ class BrukerBEC1(Instrument):
             raise ConnectionError(f"Controller echoed with error: {error}.")
 
         # Remove space between sign and value
-        if result.startswith("+") or result.startswith("-"):
-            result = "".join(result.split(" "))
+        if result.startswith("+ ") or result.startswith("- ") or result.startswith("* "):
+            result = "".join(result.split(" ")).replace("*", "")
 
         return result
 
