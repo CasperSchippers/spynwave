@@ -242,10 +242,17 @@ class MagnetInPlane(MagnetBase):
         number_of_updates = math.ceil(sweep_duration / update_delay)
         field_list = np.linspace(start, stop, number_of_updates + 1)
 
+        t0 = 0
         for field in field_list:
+            if (delay := update_delay + (t0 - time())) > 0:
+                sleep_fn(delay)
+            else:
+                log.debug(f"Setting field took {-delay} longer than update delay "
+                          f"({update_delay - delay}s vs {update_delay} s")
+            t0 = time()
+
             self.set_field(field, controlled=False)
             callback_fn(field)
-            sleep_fn(update_delay)
             if should_stop():
                 break
 

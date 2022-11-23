@@ -4,7 +4,7 @@ This file is part of the SpynWave package.
 
 import logging
 import math
-from time import sleep
+from time import time, sleep
 
 import numpy as np
 
@@ -75,7 +75,7 @@ class MagnetOutOfPlane(MagnetBase):
         # TODO: Implement gauss meter
         return self._current_to_field(self.power_supply.output_current)
 
-    def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
+    def sweep_field(self, start, stop, ramp_rate, update_delay=0.2,
                     sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
                     callback_fn=lambda x: True):
 
@@ -88,9 +88,16 @@ class MagnetOutOfPlane(MagnetBase):
 
         field_list = np.linspace(start, stop, number_of_updates + 1)
 
+        t0 = 0
         for field in field_list:
+            if (delay := update_delay + (t0 - time())) > 0:
+                sleep_fn(delay)
+            else:
+                log.debug(f"Setting field took {-delay} longer than update delay "
+                          f"({update_delay - delay}s vs {update_delay} s")
+            t0 = time()
+
             self.set_field(field)
             callback_fn(field)
-            sleep_fn(update_delay)
             if should_stop():
                 break
