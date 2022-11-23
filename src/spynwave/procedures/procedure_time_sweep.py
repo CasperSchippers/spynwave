@@ -22,6 +22,7 @@ class MixinTimeSweep:
         "Time sweep duration",
         default=60.,
         minimum=0,
+        step=10,
         units="s",
         group_by="measurement_type",
         group_condition="Time sweep",

@@ -39,11 +39,13 @@ class MixinFrequencySweep:
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
-    frequency_points = IntegerParameter(
-        "Frequency points",
-        default=201,
-        minimum=1,
-        maximum=100000,
+    frequency_stepsize = FloatParameter(
+        "Frequency step size",
+        default=0.1,
+        minimum=0.000404904,
+        maximum=37.5,
+        step=0.1,
+        units="GHz",
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
@@ -51,6 +53,7 @@ class MixinFrequencySweep:
         "Number of averages (VNA)",
         default=2,
         minimum=1,
+        step=1,
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
@@ -67,7 +70,7 @@ class MixinFrequencySweep:
         self.vna.prepare_frequency_sweep(
             frequency_start=self.frequency_start * 1e9,
             frequency_stop=self.frequency_stop * 1e9,
-            frequency_points=self.frequency_points,
+            frequency_stepsize=self.frequency_stepsize,
         )
 
         log.info(f"Ramping field to {self.magnetic_field} mT")
@@ -111,7 +114,11 @@ class MixinFrequencySweep:
         # Based on LabVIEW estimates
         ports = 2.1 if self.measurement_ports == "2-port" else 1.
         time_per_point = 1.04 / self.rf_bandwidth
-        time_per_sweep = ports * time_per_point * self.frequency_points
+
+        frequency_span = self.frequency_stop - self.frequency_start
+        frequency_points = int(round(frequency_span / self.frequency_stepsize))
+        print(frequency_points)
+        time_per_sweep = ports * time_per_point * frequency_points
 
         duration = self.frequency_averages * time_per_sweep
         return duration + overhead + magnet_time

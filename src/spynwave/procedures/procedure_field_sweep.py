@@ -44,6 +44,7 @@ class MixinFieldSweep:
         default=5,
         minimum=0.,
         maximum=1000.,
+        step=1,
         units="mT/s",
         group_by="measurement_type",
         group_condition="Field sweep",

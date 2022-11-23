@@ -40,7 +40,7 @@ class Window(ManagedWindow):
                 "magnetic_field",
                 "frequency_start",
                 "frequency_stop",
-                "frequency_points",
+                "frequency_stepsize",
                 "field_start",
                 "field_stop",
                 "field_ramp_rate",
@@ -167,7 +167,7 @@ class Window(ManagedWindow):
                 # Get the values that are within the calibration
                 frequency_min = vectorstar.ch_1.frequency_start * 1e-9
                 frequency_max = vectorstar.ch_1.frequency_stop * 1e-9
-                frequency_steps = vectorstar.ch_1.number_of_points * 1e-9
+                frequency_steps = vectorstar.ch_1.number_of_points
                 bandwidth = vectorstar.ch_1.bandwidth
                 power_level = vectorstar.ch_1.pt_1.power_level
 
@@ -193,8 +193,10 @@ class Window(ManagedWindow):
         self.inputs.frequency_stop.setMaximum(frequency_max)
         self.inputs.frequency_stop.setValue(frequency_max)
 
-        self.inputs.frequency_points.setMaximum(frequency_steps)
-        self.inputs.frequency_points.setValue(frequency_steps)
+        # self.inputs.frequency_stepsize.setMaximum(frequency_steps)
+        stepsize = (frequency_max - frequency_min) / frequency_steps
+        self.inputs.frequency_stepsize.setValue(stepsize)
+        self.inputs.frequency_stepsize.setSingleStep(stepsize)
 
         self.inputs.rf_frequency.setMinimum(frequency_min)
         self.inputs.rf_frequency.setMaximum(frequency_max)

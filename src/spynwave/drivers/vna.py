@@ -188,8 +188,11 @@ class VNA:
 
         self.vectorstar.check_errors()
 
-    def prepare_frequency_sweep(self, frequency_start, frequency_stop, frequency_points):
+    def prepare_frequency_sweep(self, frequency_start, frequency_stop, frequency_stepsize):
         self.vectorstar.ch_1.cw_mode_enabled = False
+
+        frequency_span = frequency_stop - frequency_start
+        frequency_points = int(round(frequency_span / frequency_stepsize))
 
         self.vectorstar.ch_1.frequency_start = frequency_start
         self.vectorstar.ch_1.frequency_stop = frequency_stop
