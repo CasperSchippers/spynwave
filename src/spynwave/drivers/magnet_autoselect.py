@@ -21,7 +21,7 @@ class Magnet(MagnetBase):
 
         MagnetClass = cls.get_magnet_class()
 
-        return MagnetClass.__new__(*args, **kwargs)
+        return MagnetClass.__new__(MagnetClass, *args, **kwargs)
 
     @classmethod
     def get_magnet_class(cls):
