@@ -54,13 +54,18 @@ class BrukerBEC1(Instrument):
     def check_errors(self):
         """ Read the error message from the instrument, by reading the echo after a write command
         """
+        timeout = self.adapter.connection.timeout
         try:
+            self.adapter.connection.timeout = 0
             message = self.read()
             error = self.check_response_for_error(message)
+            self.adapter.connection.timeout = timeout
             return error
         except VisaIOError as exc:
+            self.adapter.connection.timeout = timeout
             if not exc.error_code == VI_ERROR_TMO:
                 raise exc
+
 
     @staticmethod
     def check_response_for_error(message):
