@@ -35,7 +35,8 @@ class MagnetCryostat(MagnetBase):
         super().__init__(*args, **kwargs)
 
         self.gauss_meter = LakeShore475(
-            config['general']['visa-prefix'] + config[self.name]['power-supply']['address']
+            config['general']['visa-prefix'] + config[self.name]['gauss-meter']['address'],
+            baud_rate=57600,
         )
 
     def startup(self, measurement_type=None):
