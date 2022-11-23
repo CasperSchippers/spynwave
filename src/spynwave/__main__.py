@@ -6,7 +6,6 @@ import sys
 import logging
 
 from pymeasure.display.Qt import QtWidgets
-from pymeasure.log import setup_logging
 
 from spynwave.interface import Window
 
