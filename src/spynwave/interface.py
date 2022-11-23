@@ -237,7 +237,14 @@ class Window(ManagedWindow):
             return self.log_widget.view.appendPlainText(message)
 
         color = "Red" if "(ERROR)" in message else "DarkOrange"
-        html_message = f"<font color=\"{color}\">{message}</font>"
+
+        html_message = f"<font color=\"{color}\">{message}</font>"\
+            .replace("\r\n", "<br>  ")\
+            .replace("\n", "<br>  ")\
+            .replace("\r", "<br>  ")\
+            .replace("  ", "&nbsp;&nbsp;")\
+            .replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
+
         return self.log_widget.view.appendHtml(html_message)
 
     def _blink(self):
