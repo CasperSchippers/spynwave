@@ -43,6 +43,7 @@ class MagnetCryostat(MagnetBase):
         )
 
     def startup(self, measurement_type=None):
+        self.gauss_meter.field_ramp_rate = 0
         if not self.gauss_meter.field_control_enabled:
             self.gauss_meter.field_setpoint = 0
 
@@ -52,7 +53,6 @@ class MagnetCryostat(MagnetBase):
         self.gauss_meter.auto_range = self.gauss_meter_autorange == "Hardware"
         self.gauss_meter.field_range = config[self.name]["gauss-meter"]["range"]
 
-        self.gauss_meter.field_ramp_rate = 0
 
     def shutdown(self):
         self.gauss_meter.field_setpoint = 0
@@ -80,8 +80,11 @@ class MagnetCryostat(MagnetBase):
         # TODO: see how we can also use the callback_fn, maybe using the start-stop
         while not should_stop():
             try:
+                callback_fn(self.gauss_meter.field_setpoint)
+
                 if not self.gauss_meter.field_setpoint_ramping:
                     break
+
             except VisaIOError as exc:
                 if not exc.error_code == VI_ERROR_TMO:
                     raise exc

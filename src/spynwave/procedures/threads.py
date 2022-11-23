@@ -6,6 +6,8 @@ import logging
 import queue
 from time import time, sleep
 import numpy as np
+from pyvisa import VisaIOError
+from pyvisa.constants import VI_ERROR_TMO
 
 from spynwave.drivers import InstrumentThread
 
@@ -18,16 +20,19 @@ log.addHandler(logging.NullHandler())
 class FieldSweepThread(InstrumentThread):
     def run(self):
         log.info("Field sweep Thread: start sweeping.")
+        try:
+            self.instrument.sweep_field(
+                self.settings["field_start"],
+                self.settings["field_stop"],
+                self.settings["field_ramp_rate"],
+                should_stop=self.should_stop,
+                callback_fn=self.field_callback,
+            )
+        except Exception as exc:
+            raise exc
+        finally:
+            self.finished()
 
-        self.instrument.sweep_field(
-            self.settings["field_start"],
-            self.settings["field_stop"],
-            self.settings["field_ramp_rate"],
-            should_stop=self.should_stop,
-            callback_fn=self.field_callback,
-        )
-
-        self.finished()
         log.info("Field sweep Thread: finished sweeping.")
 
     def field_callback(self, field):
@@ -56,7 +61,12 @@ class GaussProbeThread(InstrumentThread):
                 sleep(sleeptime)
 
             last_time = time()
-            field = self.instrument.measure_field()
+            try:
+                field = self.instrument.measure_field()
+            except VisaIOError as exc:
+                if not exc.error_code == VI_ERROR_TMO:
+                    raise exc
+                continue
 
             field = np.round(field, 10)  # rounding to remove float-rounding-errors
             self.put_datapoint({"Field (T)": field})
