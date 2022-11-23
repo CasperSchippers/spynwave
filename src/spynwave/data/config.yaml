@@ -27,7 +27,7 @@ in-plane magnet:
   calibration: "file"
   calibration filename: "magnet_calibration.txt"
 
-  power-supply:
+  power-supply:  # DeltaElektronika SM 120-13
     address: "ASRL3::INSTR"
     max current: 13.  # A
     max voltage: 120.  # V
@@ -41,28 +41,29 @@ in-plane magnet:
     positive polarity bit: 2
     negative polarity bit: 1
 
-  gauss-meter:
+  gauss-meter:  # LakeShore 421
     address: "ASRL9::INSTR"
-    range: 3  # Tesla
+    range: 3  # T, at the start of the measurement, not important when auto-ranging is used
     fastmode: True
     autorange: "Software"  # can be one of: "Hardware", "Software", "None"
     # Note: the "Hardware" auto-range is terrible. Use "Software" for a faster auto-ranging
-    fastmode reading frequency: 0.1  # seconds
-    normalmode reading frequency: 0.4  # seconds
 
 out-of-plane magnet:
   max field: 1.92  # Tesla, TODO: search for a value
   bipolar: True
 
-  power-supply:
+  power-supply:  # Bruker B-MN 45/60 controlled by Bruker B-EC1
     address: "GPIB0::5::INSTR"
     max current: 60  # A
     max voltage: 45  # V
     max ramp rate: 4.5  # A/s
 
-  gauss-meter:
-    address: None
-    reading frequency: 0.1  # s
+  gauss-meter:  # LakeShore 421
+    address: "ASRL4::INSTR"
+    range: 3  # T, at the start of the measurement, not important when auto-ranging is used
+    fastmode: True
+    autorange: "Software"  # can be one of: "Hardware", "Software", "None"
+    # Note: the "Hardware" auto-range is terrible. Use "Software" for a faster auto-ranging
 
 
 cryo magnet:
@@ -70,12 +71,12 @@ cryo magnet:
   bipolar: True
   ramp rate: 0.1  # T/s
 
-  power-supply:
+  power-supply:  # LakeShore 643
     address: None
     max current: 70  # A
     max voltage: 35  # V
 
-  gauss-meter:
+  gauss-meter:  # LakeShore 475
     address: "ASRL6::INSTR"
     autorange: "Hardware"  # can be one of: "Hardware", "None"
     reading frequency: 0.05  # seconds

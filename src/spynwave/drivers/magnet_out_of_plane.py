@@ -8,17 +8,18 @@ from time import time, sleep
 
 import numpy as np
 
-from spynwave.pymeasure_patches.brukerBEC1 import BrukerBEC1
-
 from spynwave.constants import config
 from spynwave.drivers.magnet_base import MagnetBase
+from spynwave.drivers.magnet_lakeshore421 import LakeShore421Mixin
+
+from spynwave.pymeasure_patches.brukerBEC1 import BrukerBEC1
 
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class MagnetOutOfPlane(MagnetBase):
+class MagnetOutOfPlane(LakeShore421Mixin, MagnetBase):
     """ This class represents the magnet that is used on the out-of-plane spinwave setup.
 
     It uses a Bruker B-MN 45/60 Power Supply, controlled by a Bruker B-EC1 controller.
@@ -30,6 +31,8 @@ class MagnetOutOfPlane(MagnetBase):
 
     When turning on the DC-output, there is a chance to trigger the fuse the magnet is connected to.
 
+    The setup features a Lakeshore 421 Gauss Meter for measuring the field
+
     """
     name = "out-of-plane magnet"
 
@@ -38,8 +41,6 @@ class MagnetOutOfPlane(MagnetBase):
     max_current = config[name]["power-supply"]["max current"]
     max_voltage = config[name]["power-supply"]["max voltage"]
     current_ramp_rate = config[name]["power-supply"]["max ramp rate"]
-
-    measurement_delay = config[name]["gauss-meter"]["reading frequency"]  # TODO: move to gauss part
 
     field_ramp_rate = current_ramp_rate * max_field / max_current
 
@@ -63,6 +64,8 @@ class MagnetOutOfPlane(MagnetBase):
         # Due to the chance to trip the fuse, the supply is not disabled, but just ramped down.
         self._set_current(0)
 
+        self.shutdown_lakeshore()
+
     def _set_field(self, field):
         current = self._field_to_current(field)
         self._set_current(current)
@@ -71,9 +74,11 @@ class MagnetOutOfPlane(MagnetBase):
     def _set_current(self, current):
         self.power_supply.current = current
 
-    def measure_field(self):
-        # TODO: Implement gauss meter
-        return self._current_to_field(self.power_supply.output_current)
+    # def measure_field(self):
+    #     """ Measure the field by querying the output current. Superseded by a gauss-meter
+    #     measurement.
+    #     """
+    #     return self._current_to_field(self.power_supply.output_current)
 
     def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
                     sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
@@ -96,7 +101,6 @@ class MagnetOutOfPlane(MagnetBase):
             else:
                 log.debug(f"Setting field took {-delay} longer than update delay "
                           f"({update_delay - delay}s vs {update_delay} s")
-                print(delay)
             t0 = time()
 
             self.set_field(field)

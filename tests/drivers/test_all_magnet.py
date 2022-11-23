@@ -7,6 +7,7 @@ import pytest
 
 from spynwave import drivers
 from spynwave.drivers.magnet_base import MagnetBase
+from spynwave.drivers.magnet_lakeshore421 import LakeShore421Mixin
 
 # Collect all magnets
 magnets = []
@@ -19,7 +20,19 @@ for driver in dir(drivers):
 
 @pytest.mark.parametrize("Cls", magnets)
 def test_overridden_methods(Cls):
-    assert Cls.set_field == MagnetBase.set_field, "set_field method should not be overridden."
+    not_overridable_methods = ["set_field"]
+
+    for method in not_overridable_methods:
+        assert getattr(Cls, method) == getattr(MagnetBase, method), \
+            f"method {method} should not be overridden."
+
+    if issubclass(Cls, LakeShore421Mixin):
+        not_overridable_methods = [
+            "startup_lakeshore", "_gauss_meter_set_fast_mode", "measure_field", "measurement_delay",
+        ]
+        for method in not_overridable_methods:
+            assert getattr(Cls, method) == getattr(LakeShore421Mixin, method), \
+                f"method {method} should not be overridden."
 
 
 @pytest.mark.parametrize("Cls", magnets)
