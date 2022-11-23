@@ -121,7 +121,7 @@ class MagnetBase(metaclass=ABCMeta):
 
     def _current_to_field(self, current):
         # Check if value within range of calibration
-        if not self.cal_data["min_current"] >= current >= self.cal_data["max_current"]:
+        if not self.cal_data["min_current"] <= current <= self.cal_data["max_current"]:
             raise ValueError(f"Current value ({current} A) out of bounds; should be between "
                              f"{self.cal_data['min_current']} A and {self.cal_data['max_current']} "
                              f"A (with the present calibration).")
