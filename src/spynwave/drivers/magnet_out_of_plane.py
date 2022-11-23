@@ -75,10 +75,11 @@ class MagnetOutOfPlane(MagnetBase):
         # TODO: Implement gauss meter
         return self._current_to_field(self.power_supply.output_current)
 
-    def sweep_field(self, start, stop, ramp_rate, update_delay=0.2,
+    def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
                     sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
                     callback_fn=lambda x: True):
 
+        self.power_supply.current_check_set_errors = False
         # Check if fields are within bounds
         self._field_to_current(start)
         self._field_to_current(stop)
@@ -95,9 +96,12 @@ class MagnetOutOfPlane(MagnetBase):
             else:
                 log.debug(f"Setting field took {-delay} longer than update delay "
                           f"({update_delay - delay}s vs {update_delay} s")
+                print(delay)
             t0 = time()
 
             self.set_field(field)
             callback_fn(field)
             if should_stop():
                 break
+
+        self.power_supply.current_check_set_errors = True

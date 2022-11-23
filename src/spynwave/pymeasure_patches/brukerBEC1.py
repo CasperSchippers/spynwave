@@ -56,7 +56,7 @@ class BrukerBEC1(Instrument):
         """
         timeout = self.adapter.connection.timeout
         try:
-            self.adapter.connection.timeout = 0
+            self.adapter.connection.timeout = 200
             message = self.read()
             error = self.check_response_for_error(message)
             self.adapter.connection.timeout = timeout
@@ -65,7 +65,6 @@ class BrukerBEC1(Instrument):
             self.adapter.connection.timeout = timeout
             if not exc.error_code == VI_ERROR_TMO:
                 raise exc
-
 
     @staticmethod
     def check_response_for_error(message):
