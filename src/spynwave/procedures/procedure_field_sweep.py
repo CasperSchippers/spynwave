@@ -145,9 +145,11 @@ class MixinFieldSweep:
         self.magnet.set_field(self.field_start * 1e-3)
 
     def get_estimates_field_sweep(self):
+        magnet = Magnet.get_magnet_class()
+
         overhead = 10  # Just a very poor estimate
         duration_sat = self.field_saturation_time + \
-            abs(2 * self.field_saturation_field * 1e-3 / Magnet.field_ramp_rate)
+            abs(2 * self.field_saturation_field * 1e-3 / magnet.field_ramp_rate)
         duration_sweep = abs((self.field_start - self.field_stop) / self.field_ramp_rate) + \
-            self.field_stop * 1e-3 / Magnet.field_ramp_rate
+            self.field_stop * 1e-3 / magnet.field_ramp_rate
         return overhead + duration_sat + duration_sweep

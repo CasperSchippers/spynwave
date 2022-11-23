@@ -19,6 +19,12 @@ class Magnet(MagnetBase):
     def __new__(cls, *args, **kwargs):
         # Detect which magnet is used
 
-        MagnetClass = cls.magnet_classes[config["general"]["magnet"]]
+        MagnetClass = cls.get_magnet_class()
 
         return MagnetClass.__new__(*args, **kwargs)
+
+    @classmethod
+    def get_magnet_class(cls):
+        magnetclass = cls.magnet_classes[config["general"]["magnet"]]
+        return magnetclass
+

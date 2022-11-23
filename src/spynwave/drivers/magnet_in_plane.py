@@ -39,15 +39,15 @@ class MagnetInPlane(MagnetBase):
     name = "in-plane magnet"
     labjack = None
 
+    max_field = config[name]["max field"]
+
     max_current = config[name]["power-supply"]["max current"]
     max_voltage = config[name]["power-supply"]["max voltage"]
-    current_ramp_rate = 0.5  # A/s
-    max_current_step = 1  # A
+    current_ramp_rate = config[name]["power-supply"]["current ramp rate"]
+    max_current_step = config[name]["power-supply"]["max current step"]
     last_current = 0  # attribute to store the last applied current
 
-    @property
-    def field_ramp_rate(self):
-        return self.current_ramp_rate * self.cal_data["max_field"] / self.cal_data["max_current"]
+    field_ramp_rate = current_ramp_rate * max_field / max_current
 
     polarity = 0
     bitSelect_positive = 2**config[name]["labjack"]["positive polarity bit"]

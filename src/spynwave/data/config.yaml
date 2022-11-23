@@ -31,6 +31,8 @@ in-plane magnet:
     address: "ASRL3::INSTR"
     max current: 13.  # A
     max voltage: 120.  # V
+    current ramp rate: 0.5  # A/s
+    max current step: 1.  # A
 
   # Only change these if you know what you are doing
   labjack:

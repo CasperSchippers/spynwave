@@ -33,12 +33,15 @@ class MagnetOutOfPlane(MagnetBase):
     """
     name = "out-of-plane magnet"
 
-    measurement_delay = config[name]["gauss-meter"]["reading frequency"]  # TODO: move to gauss part
+    max_field = config[name]["max field"]
+
+    max_current = config[name]["power-supply"]["max current"]
+    max_voltage = config[name]["power-supply"]["max voltage"]
     current_ramp_rate = config[name]["power-supply"]["max ramp rate"]
 
-    @property
-    def field_ramp_rate(self):
-        return self.current_ramp_rate * self.cal_data["max_field"] / self.cal_data["max_current"]
+    measurement_delay = config[name]["gauss-meter"]["reading frequency"]  # TODO: move to gauss part
+
+    field_ramp_rate = current_ramp_rate * max_field / max_current
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

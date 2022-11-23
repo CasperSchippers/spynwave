@@ -106,8 +106,10 @@ class MixinFrequencySweep:
         pass
 
     def get_estimates_frequency_sweep(self):
+        magnet = Magnet.get_magnet_class()
+
         overhead = 10  # Just a very poor estimate
-        magnet_time = abs(2 * self.magnetic_field * 1e-3 / Magnet.field_ramp_rate)
+        magnet_time = abs(2 * self.magnetic_field * 1e-3 / magnet.field_ramp_rate)
 
         # Based on LabVIEW estimates
         ports = 2.1 if self.measurement_ports == "2-port" else 1.

@@ -25,6 +25,10 @@ class MagnetCryostat(MagnetBase):
     """
     name = "cryo magnet"
 
+    max_field = config[name]["max field"]
+    field_ramp_rate = config[name]["ramp rate"]
+
+    measurement_delay = config[name]["gauss-meter"]["reading frequency"]
     gauss_meter_autorange = config[name]["gauss-meter"]["autorange"]
 
     def __init__(self, *args, **kwargs):
@@ -33,10 +37,6 @@ class MagnetCryostat(MagnetBase):
         self.gauss_meter = LakeShore475(
             config['general']['visa-prefix'] + config[self.name]['power-supply']['address']
         )
-
-    measurement_delay = config[name]["gauss-meter"]["reading frequency"]
-
-    field_ramp_rate = config[name]["ramp rate"]
 
     def startup(self, measurement_type=None):
         if not self.gauss_meter.field_control_enabled:
