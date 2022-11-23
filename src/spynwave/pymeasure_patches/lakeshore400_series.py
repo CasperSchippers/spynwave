@@ -49,6 +49,7 @@ class LakeShore400Family(Instrument):
                 data_bits=7,
                 stop_bits=10,
                 parity=1,
+                chunk_size=1024,
                 read_termination='\r',
                 write_termination='\n',
             ),
