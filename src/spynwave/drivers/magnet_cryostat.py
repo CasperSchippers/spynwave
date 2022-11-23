@@ -5,6 +5,9 @@ This file is part of the SpynWave package.
 import logging
 from time import sleep
 
+from pyvisa import VisaIOError
+from pyvisa.constants import VI_ERROR_TMO
+
 from spynwave.pymeasure_patches.lakeshore475 import LakeShore475
 
 from spynwave.constants import config
@@ -49,6 +52,8 @@ class MagnetCryostat(MagnetBase):
         self.gauss_meter.auto_range = self.gauss_meter_autorange == "Hardware"
         self.gauss_meter.field_range = config[self.name]["gauss-meter"]["range"]
 
+        self.gauss_meter.field_ramp_rate = 0
+
     def shutdown(self):
         self.gauss_meter.field_setpoint = 0
         self.gauss_meter.field_control_enabled = False
@@ -62,7 +67,7 @@ class MagnetCryostat(MagnetBase):
         # TODO: look at the high speed binary field readings (RDGFAST?)
         return self.gauss_meter.field
 
-    def sweep_field(self, start, stop, ramp_rate, update_delay=0.1,
+    def sweep_field(self, start, stop, ramp_rate, update_delay=1,
                     sleep_fn=lambda x: sleep(x), should_stop=lambda: False,
                     callback_fn=lambda x: True):
         # Set the ramp-rate in T/minute
@@ -73,8 +78,17 @@ class MagnetCryostat(MagnetBase):
 
         # Check if still ramping
         # TODO: see how we can also use the callback_fn, maybe using the start-stop
-        while self.gauss_meter.field_setpoint_ramping and not should_stop():
+        while not should_stop():
+            try:
+                if not self.gauss_meter.field_setpoint_ramping:
+                    break
+            except VisaIOError as exc:
+                if not exc.error_code == VI_ERROR_TMO:
+                    raise exc
+                log.info("Magnet timed out, trying again")
             sleep_fn(update_delay)
+
+        self.gauss_meter.field_ramp_rate = 0
 
         if not should_stop():
             self.wait_for_stable_field()
