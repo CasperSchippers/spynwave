@@ -22,9 +22,9 @@ dependencies = [
     "PyQt5 >= 5.15.7",
     "pandas >= 1.5.1",
     "scipy >= 1.9.3",
-    "labjackpython >= 2.1.0",  # Not on conda
+    "labjackpython >= 2.1.0",  # not on conda
     "pyyaml >= 6.0",
-    "nidaqmx >= 0.6.4",  # Conda: nidaqmx-python
+    "nidaqmx >= 0.6.4",  # conda: niqdaqmx-python
 ]
 
 [project.optional-dependencies]

@@ -59,8 +59,6 @@ class MixinFrequencySweep:
     )
 
     def startup_frequency_sweep(self):
-        self.magnet.gauss_meter_set_fast_mode(False)
-
         self.vna.configure_averaging(
             enabled=True,
             average_count=self.frequency_averages,
@@ -76,7 +74,7 @@ class MixinFrequencySweep:
         log.info(f"Ramping field to {self.magnetic_field} mT")
         self.magnet.set_field(self.magnetic_field * 1e-3, controlled=True)
         log.info("Waiting for field to stabilize")
-        self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
+        self.magnet.wait_for_stable_field(interval=3, timeout=60, should_stop=self.should_stop)
 
     def execute_frequency_sweep(self):
         self.vna.reset_average_count()
@@ -108,8 +106,10 @@ class MixinFrequencySweep:
         pass
 
     def get_estimates_frequency_sweep(self):
+        magnet = Magnet.get_magnet_class()
+
         overhead = 10  # Just a very poor estimate
-        magnet_time = abs(2 * self.magnetic_field * 1e-3 / Magnet.current_ramp_rate)
+        magnet_time = abs(2 * self.magnetic_field * 1e-3 / magnet.field_ramp_rate)
 
         # Based on LabVIEW estimates
         ports = 2.1 if self.measurement_ports == "2-port" else 1.

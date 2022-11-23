@@ -4,7 +4,10 @@
 
 general:
   remote connection: False
-  remote visa-prefix: "visa://131.155.124.201/"
+#  remote visa-prefix: "visa://131.155.126.195/" # For the in-plane magnet, port 3537
+#  remote visa-prefix: "visa://131.155.126.195:3538/" # For the cryostat magnet
+  remote visa-prefix: "visa://131.155.126.195:3539/" # For the out-of-plane magnet
+  magnet: "in-plane magnet"
 
 vna:
   vectorstar:
@@ -19,11 +22,17 @@ vna:
 
 
 in-plane magnet:
+  max field: 0.686  # T
+
   calibration: "file"
   calibration filename: "magnet_calibration.txt"
 
-  power-supply:
+  power-supply:  # DeltaElektronika SM 120-13
     address: "ASRL3::INSTR"
+    max current: 13.  # A
+    max voltage: 120.  # V
+    current ramp rate: 0.5  # A/s
+    max current step: 1.  # A
 
   # Only change these if you know what you are doing
   labjack:
@@ -32,14 +41,42 @@ in-plane magnet:
     positive polarity bit: 2
     negative polarity bit: 1
 
-  gauss-meter:
+  gauss-meter:  # LakeShore 421
     address: "ASRL9::INSTR"
-    range: 3  # Tesla
+    range: 3  # T, at the start of the measurement, not important when auto-ranging is used
     fastmode: True
     autorange: "Software"  # can be one of: "Hardware", "Software", "None"
-    # Note: the "hardware" auto-range is terrible. Use "Software" for a faster auto-ranging
-    fastmode reading frequency: 0.1  # seconds
-    normalmode reading frequency: 0.4  # seconds
+    # Note: the "Hardware" auto-range is terrible. Use "Software" for a faster auto-ranging
 
-#out-of-plane magnet:
-#  visa-address: "TCPIP0::VS1513648::inst0::INSTR"
+out-of-plane magnet:
+  max field: 1.92  # Tesla, TODO: search for a value
+  bipolar: True
+
+  power-supply:  # Bruker B-MN 45/60 controlled by Bruker B-EC1
+    address: "GPIB0::5::INSTR"
+    max current: 60  # A
+    max voltage: 45  # V
+    max ramp rate: 4.5  # A/s
+
+  gauss-meter:  # LakeShore 421
+    address: "ASRL4::INSTR"
+    range: 3  # T, at the start of the measurement, not important when auto-ranging is used
+    fastmode: True
+    autorange: "Software"  # can be one of: "Hardware", "Software", "None"
+    # Note: the "Hardware" auto-range is terrible. Use "Software" for a faster auto-ranging
+
+cryo magnet:
+  max field: 0.55  # Tesla
+  bipolar: True
+  ramp rate: 0.1  # T/s
+
+  power-supply:  # LakeShore 643
+    address: None
+    max current: 70  # A
+    max voltage: 35  # V
+
+  gauss-meter:  # LakeShore 475
+    address: "ASRL6::INSTR"
+    range: 3  # T, at the start of the measurement, not important when auto-ranging is used
+    autorange: "Hardware"  # can be one of: "Hardware", "None"
+    reading frequency: 0.05  # seconds

@@ -37,7 +37,7 @@ class MixinTimeSweep:
         log.info(f"Ramping field to {self.magnetic_field} mT")
         self.magnet.set_field(self.magnetic_field * 1e-3, controlled=True)
         log.info("Waiting for field to stabilize")
-        self.magnet.wait_for_stable_field(timeout=60, should_stop=self.should_stop)
+        self.magnet.wait_for_stable_field(interval=3, timeout=60, should_stop=self.should_stop)
 
         # Prepare the parallel methods for the sweep
         self.gauss_probe_thread = GaussProbeThread(self, self.magnet)
@@ -89,6 +89,8 @@ class MixinTimeSweep:
     ####################
 
     def get_estimates_time_sweep(self):
+        magnet = Magnet.get_magnet_class()
+
         overhead = 10  # Just a very poor estimate
-        duration_sat = abs(2 * self.magnetic_field * 1e-3 / Magnet.current_ramp_rate)
+        duration_sat = abs(2 * self.magnetic_field * 1e-3 / magnet.field_ramp_rate)
         return overhead + duration_sat + self.time_duration
