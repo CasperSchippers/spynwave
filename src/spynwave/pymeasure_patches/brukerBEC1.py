@@ -1,4 +1,5 @@
 import logging
+import re
 from enum import IntFlag
 from functools import partial
 
@@ -61,7 +62,19 @@ class BrukerBEC1(Instrument):
             error = BrukerBEC1.ERRORS(error_code)
             log.error(error)
             return error
-        return message
+        return
+
+    @staticmethod
+    def preprocess_reply(result):
+        error = BrukerBEC1.check_response_for_error(result)
+        if error:
+            raise ConnectionError(f"Controller echoed with error: {error}.")
+
+        # Remove space between sign and value
+        if result.startswith("+") or result.startswith("-"):
+            result = "".join(result.split(" "))
+
+        return result
 
     remote_enabled = Instrument.measurement(
         "REM/",
@@ -79,7 +92,7 @@ class BrukerBEC1(Instrument):
         values={True: 1, False: 0},
         map_values=True,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     current = Instrument.control(
@@ -90,7 +103,7 @@ class BrukerBEC1(Instrument):
         validator=strict_range,
         dynamic=True,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     polarity = Instrument.control(
@@ -102,49 +115,49 @@ class BrukerBEC1(Instrument):
         values={"positive": 1, "negative": 2, "no reversal unit": 0, "unit busy": 3},
         map_values=True,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     output_current = Instrument.measurement(
         "CHN/",
         """ A property that returns the output current in amps.
         """,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     output_voltage = Instrument.measurement(
         "VLT/",
         """ A property that returns the output voltage.
         """,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     magnet_resistance = Instrument.measurement(
         "RES/",
         """ A property that returns the magnet resistance.
         """,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     power_stage_temperature = Instrument.measurement(
         "TEM/",
         """ A property that returns the power stage temperature (in celsius), if installed.
         """,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     passbank_dissipation = Instrument.measurement(
         "POW/",
         """ A property that returns the passbank power dissipation, if installed.
         """,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     uce_voltage = Instrument.measurement(
         "UCE/",
         """ A property that returns the Uce voltage, if installed.
         """,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     external_reference = Instrument.control(
@@ -155,7 +168,7 @@ class BrukerBEC1(Instrument):
         values={"internal": 0, "external": 1, "BH-15": 2},
         map_values=True,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     def reset_error_message(self):
@@ -173,7 +186,7 @@ class BrukerBEC1(Instrument):
         values=[0],
         validator=strict_discrete_set,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     def reset_command_flow(self):
@@ -189,7 +202,7 @@ class BrukerBEC1(Instrument):
         values={"running": 1, "stopped": 0, "interrupted": 2},
         map_values=True,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     cycle_current_up = Instrument.control(
@@ -199,7 +212,7 @@ class BrukerBEC1(Instrument):
         values=CURRENT_RANGE,
         validator=strict_range,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     cycle_current_down = Instrument.control(
@@ -209,7 +222,7 @@ class BrukerBEC1(Instrument):
         values=CURRENT_RANGE,
         validator=strict_range,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     cycle_rate_up = Instrument.control(
@@ -217,7 +230,7 @@ class BrukerBEC1(Instrument):
         """ A float property that controls the cycle current up rate (in amps). Can be set.
         """,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     cycle_rate_down = Instrument.control(
@@ -225,7 +238,7 @@ class BrukerBEC1(Instrument):
         """ A float property that controls the cycle current down rate (in amps). Can be set.
         """,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     cycle_time_up = Instrument.control(
@@ -235,14 +248,14 @@ class BrukerBEC1(Instrument):
         values=[0, 65536],
         validator=strict_range,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     cycle_time_up_remaining = Instrument.measurement(
         "TIU/",
         """ A float property that returns the remaining cycle time up (in seconds).
         """,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     cycle_time_down = Instrument.control(
@@ -252,14 +265,14 @@ class BrukerBEC1(Instrument):
         values=[0, 65536],
         validator=strict_range,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     cycle_time_down_remaining = Instrument.measurement(
         "TID/",
         """ A float property that returns the remaining cycle time up (in seconds).
         """,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     number_of_cycles = Instrument.control(
@@ -270,12 +283,12 @@ class BrukerBEC1(Instrument):
         values=[0, 65536],
         validator=strict_range,
         check_set_errors=True,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
 
     number_of_cycles_remaining = Instrument.measurement(
         "TID/",
         """ An int property that returns the remaining number of cycles.
         """,
-        get_process=check_response_for_error,
+        preprocess_reply=preprocess_reply,
     )
