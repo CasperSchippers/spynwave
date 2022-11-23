@@ -1,5 +1,6 @@
 import logging
 from enum import IntFlag
+from functools import partial
 
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import (
@@ -53,13 +54,12 @@ class BrukerBEC1(Instrument):
         error = self.check_response_for_error(message)
         return error
 
-    def check_response_for_error(self, message):
-        print(message)
+    @staticmethod
+    def check_response_for_error(message):
         if isinstance(message, str) and message.startswith("E"):
             error_code = int(message[1:])
-            error = self.ERRORS(error_code)
+            error = BrukerBEC1.ERRORS(error_code)
             log.error(error)
-            print(error)
             return error
         return message
 
