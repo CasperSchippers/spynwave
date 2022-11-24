@@ -209,5 +209,5 @@ class MagnetCalibrationProcedure(Procedure):
             sleep(0.01)
 
     def get_estimates(self):
-        estimates = self.number_of_sweeps * len(self.get_current_list()) * self.dwell_time
+        estimates = len(self.get_current_list()) * (self.dwell_time + 9.5)
         return estimates
