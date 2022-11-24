@@ -88,6 +88,7 @@ class MagnetCalibrationProcedure(Procedure):
     # Metadata to be stored in the file
     measurement_date = Metadata("Measurement date", fget=datetime.now)
     start_time = Metadata("Measurement timestamp", fget=time)
+    magnet_setup = Metadata("Magnet calibrated for", fget="self.magnet.name")
 
     # Define data columns
     DATA_COLUMNS = [
