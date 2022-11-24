@@ -50,14 +50,15 @@ def parse_args():
         type=str.lower,
         help="Which program to execute, 'PSWS' or 'magnet-calibration' (or 'magcal')",
     )
-    parser.add_argument(
-        "-s", "-setup",
-        action="store",
-        choices=["in-plane", "out-of-plane", "cryo", "auto-detect"],
-        default="auto-detect",
-        help="Which setup (magnet) to use: 'in-plane', 'out-of-plane', or 'cryo' (black-hole); if"
-             "'auto-detect', the software will automatically detect which magnet to use.",
-    )
+    # TODO: find out how to propagate this info
+    # parser.add_argument(
+    #     "-s", "-setup",
+    #     action="store",
+    #     choices=["in-plane", "out-of-plane", "cryo", "auto-detect"],
+    #     default="auto-detect",
+    #     help="Which setup (magnet) to use: 'in-plane', 'out-of-plane', or 'cryo' (black-hole); if"
+    #          "'auto-detect', the software will automatically detect which magnet to use.",
+    # )
     args = parser.parse_args()
     return args
 
