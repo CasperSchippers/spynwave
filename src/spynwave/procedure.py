@@ -126,6 +126,31 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         group_by="rf_advanced_settings",
     )
 
+    saturate_field_before_measurement = BooleanParameter(
+        "Saturate field before measurement",
+        default=True,
+    )
+    saturation_field = FloatParameter(
+        "Saturation field",
+        default=200,
+        minimum=-686,
+        maximum=+686,
+        step=1,
+        units="mT",
+        group_by="saturate_field_before_measurement",
+        group_condition=True,
+    )
+    saturation_time = FloatParameter(
+        "Saturation ",
+        default=2,
+        minimum=0,
+        maximum=120,
+        step=1,
+        units="s",
+        group_by="saturate_field_before_measurement",
+        group_condition=True,
+    )
+
     # Metadata to be stored in the file
     measurement_date = Metadata("Measurement date", fget=datetime.now)
     start_time = Metadata("Measurement timestamp", fget=time)
@@ -192,6 +217,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         # TODO: Maybe this needs to be measurement-type
         self.magnet.startup()
 
+        if self.saturate_field_before_measurement:
+            self.saturate_field()
+
         # Run measurement-type-specific startup
         self.get_mixin_method('startup')()
 
@@ -236,6 +264,12 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         |_|  |_| |______| |______| |_|      |______| |_|  \_\ |_____/
 
     """
+
+    def saturate_field(self):
+        # Saturate the magnetic field (after saturation, go already to the starting field
+        self.magnet.set_field(self.saturation_field * 1e-3)
+        self.magnet.wait_for_stable_field(interval=2, timeout=60, should_stop=self.should_stop)
+        self.sleep(self.saturation_time)
 
     def get_mixin_method(self, base_method):
         spec = str(self.measurement_type).replace(" ", "_").lower()

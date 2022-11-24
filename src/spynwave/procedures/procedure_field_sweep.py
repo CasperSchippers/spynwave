@@ -49,33 +49,13 @@ class MixinFieldSweep:
         group_by="measurement_type",
         group_condition="Field sweep",
     )
-    field_saturation_field = FloatParameter(
-        "Saturation field",
-        default=200,
-        minimum=-686,
-        maximum=+686,
-        step=1,
-        units="mT",
-        group_by="measurement_type",
-        group_condition="Field sweep",
-    )
-    field_saturation_time = FloatParameter(
-        "Saturation ",
-        default=2,
-        minimum=0,
-        maximum=120,
-        step=1,
-        units="s",
-        group_by="measurement_type",
-        group_condition="Field sweep",
-    )
 
     field_sweep_thread = None
     gauss_probe_thread = None
     vna_control_thread = None
 
     def startup_field_sweep(self):
-        self.saturate_field()
+        self.magnet.set_field(self.field_start * 1e-3)
         self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency * 1e9, headerless=True)
         self.magnet.wait_for_stable_field(interval=3, timeout=60,
                                           sleep_fn=self.sleep,
@@ -135,17 +115,6 @@ class MixinFieldSweep:
                 self.data_thread.join(5)
             except RuntimeError as exc:
                 log.error(exc)
-
-    ####################
-    # Helper functions #
-    ####################
-
-    def saturate_field(self):
-        # Saturate the magnetic field (after saturation, go already to the starting field
-        self.magnet.set_field(self.field_saturation_field * 1e-3)
-        self.magnet.wait_for_stable_field(interval=3, timeout=60, should_stop=self.should_stop)
-        self.sleep(self.field_saturation_time)
-        self.magnet.set_field(self.field_start * 1e-3)
 
     def get_estimates_field_sweep(self):
         magnet = Magnet.get_magnet_class()

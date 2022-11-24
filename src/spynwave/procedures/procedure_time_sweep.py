@@ -32,10 +32,11 @@ class MixinTimeSweep:
     vna_control_thread = None
 
     def startup_time_sweep(self):
-        self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency * 1e9, headerless=True)
-
         log.info(f"Ramping field to {self.magnetic_field} mT")
         self.magnet.set_field(self.magnetic_field * 1e-3, controlled=True)
+
+        self.vna.prepare_cw_sweep(cw_frequency=self.rf_frequency * 1e9, headerless=True)
+
         log.info("Waiting for field to stabilize")
         self.magnet.wait_for_stable_field(interval=3, timeout=60, should_stop=self.should_stop)
 
@@ -83,10 +84,6 @@ class MixinTimeSweep:
                 self.data_thread.join(5)
             except RuntimeError as exc:
                 log.error(exc)
-
-    ####################
-    # Helper functions #
-    ####################
 
     def get_estimates_time_sweep(self):
         magnet = Magnet.get_magnet_class()
