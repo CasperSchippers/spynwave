@@ -207,8 +207,8 @@ class MagnetBase(metaclass=ABCMeta):
         # Check if value within range of calibration
         if not self.calibration["min_field"] <= field <= self.calibration["max_field"]:
             raise ValueError(f"Field value ({field} T) out of bounds; should be between "
-                             f"{self.calibration['min_field']} T and {self.calibration['max_field']} T "
-                             f"(with the present calibration).")
+                             f"{self.calibration['min_field']} T and "
+                             f"{self.calibration['max_field']} T (with the present calibration).")
 
         if self.calibration is not None:
             current = self.calibration["B_to_I"](field)
@@ -223,8 +223,8 @@ class MagnetBase(metaclass=ABCMeta):
         # Check if value within range of calibration
         if not self.calibration["min_current"] <= current <= self.calibration["max_current"]:
             raise ValueError(f"Current value ({current} A) out of bounds; should be between "
-                             f"{self.calibration['min_current']} A and {self.calibration['max_current']} "
-                             f"A (with the present calibration).")
+                             f"{self.calibration['min_current']} A and "
+                             f"{self.calibration['max_current']} A (with the present calibration).")
         self._check_current_within_bounds(current)
 
         if self.calibration is not None:
