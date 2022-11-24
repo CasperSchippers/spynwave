@@ -77,12 +77,20 @@ class MagnetCalibrationProcedure(Procedure):
         default=2,
         minimum=0,
         units="s",
+        step=0.1,
         )
 
     number_of_sweeps = IntegerParameter(
         "Number of sweeps",
         default=1,
         minimum=1,
+        step=1,
+    )
+
+    field_scaling_factor = FloatParameter(
+        "Field scaling factor",
+        default=1,
+        step=0.1,
     )
 
     # Metadata to be stored in the file
@@ -149,14 +157,16 @@ class MagnetCalibrationProcedure(Procedure):
             self.emit("progress", idx / len(current_list) * 100.)
 
     def get_datapoint(self):
+        field = self.magnet.wait_for_stable_field(interval=self.dwell_time,
+                                                  timeout=120,
+                                                  sleep_fn=self.sleep,
+                                                  should_stop=self.should_stop)
+
         data = {
             "Timestamp (s)": time(),
             "Current (A)": self.magnet.current_setpoint,
             # The wait_for_stable_field returns the stable field value
-            "Field (T)": self.magnet.wait_for_stable_field(interval=self.dwell_time,
-                                                           timeout=120,
-                                                           sleep_fn=self.sleep,
-                                                           should_stop=self.should_stop)
+            "Field (T)": field * self.field_scaling_factor
         }
 
         return data
