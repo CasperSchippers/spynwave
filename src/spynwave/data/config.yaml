@@ -23,9 +23,10 @@ vna:
 
 in-plane magnet:
   max field: 0.686  # T
+  bipolar: False
 
   calibration: "file"
-  calibration filename: "magnet_calibration.txt"
+  calibration filename: "magnet_calibration_in_plane.txt"
 
   power-supply:  # DeltaElektronika SM 120-13
     address: "ASRL3::INSTR"
@@ -49,8 +50,11 @@ in-plane magnet:
     # Note: the "Hardware" auto-range is terrible. Use "Software" for a faster auto-ranging
 
 out-of-plane magnet:
-  max field: 1.92  # Tesla, TODO: search for a value
+  max field: 1.92  # T
   bipolar: True
+
+  calibration: "file"
+  calibration filename: "magnet_calibration_out_of_plane.txt"
 
   power-supply:  # Bruker B-MN 45/60 controlled by Bruker B-EC1
     address: "GPIB0::5::INSTR"
