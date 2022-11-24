@@ -139,12 +139,22 @@ class MagnetCalibrationProcedure(Procedure):
         current_list = self.get_current_list()
 
         for current in current_list:
+            if self.should_stop():
+                break
+
+            self.magnet.current_setpoint = current
             self.magnet._set_current(current)
+            self.measure()
 
     def get_datapoint(self):
         data = {
             "Timestamp (s)": time(),
-            "Field (T)": self.magnet.measure_field()
+            "Current (A)": self.magnet.current_setpoint,
+            # The wait_for_stable_field returns the stable field value
+            "Field (T)": self.magnet.wait_for_stable_field(interval=self.dwell_time,
+                                                           timeout=120,
+                                                           sleep_fn=self.sleep,
+                                                           should_stop=self.should_stop)
         }
 
         return data

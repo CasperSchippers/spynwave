@@ -106,6 +106,21 @@ class MagnetBase(metaclass=ABCMeta):
                               timeout=None,
                               sleep_fn=sleep,
                               should_stop=lambda: False):
+        """ Wait for the field to stabilise. Field measurements are performed until a stable value
+        is reached or the timeout has elapsed.
+
+        :param target: Wait until the target field (in T) is (stably) reached. Default is None
+        :param tolerance: The tolerance (in T) within which the field is considered stable
+            (default=0.0005)
+        :param update_delay: The interval between two field measurements
+        :param interval: The time (in s) for which the field needs to be within tolerance to be
+            considered stable.
+        :param timeout: The maximum time (in s) to wait for stability
+        :param sleep_fn: The sleep function to use for sleeping
+        :param should_stop: A function that returns True to abort the process
+
+        :return: The mean (stable) field, returns False if the timed out or if aborted (should_stop)
+        """
         start = time()
 
         number_of_fields = 2 if interval is None else int(round(interval / update_delay))
@@ -125,6 +140,11 @@ class MagnetBase(metaclass=ABCMeta):
                 break
 
             sleep_fn(update_delay)
+        else:
+            # Timed out or should_stop returned True
+            return False
+
+        return np.mean(fields)
 
     @property
     @abstractmethod
