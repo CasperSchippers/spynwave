@@ -5,7 +5,6 @@ This file is part of the SpynWave package.
 import os
 import sys
 import logging
-import ctypes
 
 from pyvisa import VisaIOError
 from pyvisa.constants import VI_ERROR_TMO
@@ -24,12 +23,8 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
-# Register as separate software
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("fna.MeasurementSoftware.SpynWave")
-ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
 
-
-class Window(ManagedWindow):
+class MagnetCalibrationWindow(ManagedWindow):
     def __init__(self):
         super().__init__(
             procedure_class=MagnetCalibrationProcedure,
