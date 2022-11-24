@@ -7,8 +7,10 @@ from time import time, sleep
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
+import pandas as pd
+from scipy.interpolate import interp1d
 
-from spynwave.constants import config
+from spynwave.constants import config, look_for_file
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -26,32 +28,76 @@ class MagnetBase(metaclass=ABCMeta):
     mirror_fields = False
     measurement_type = None
 
-    cal_type = None
-    cal_data = None
+    calibration = None
 
     def __init__(self,
                  mirror_fields=False,
                  measurement_type=None,
-                 calibration_type="linear interpolated"):
+                 calibration_type=None,
+                 calibration_source=None):
         self.mirror_fields = mirror_fields
         self.measurement_type = measurement_type
 
-        if calibration_type is not None:
-            self.load_calibration(calibration_type)
+        if calibration_type is None and "calibration" in config[self.name]:
+            calibration_type = config[self.name]["calibration"]["type"]
 
-    def load_calibration(self, calibration_type):
-        self.cal_type = calibration_type
+            if calibration_source is None and "source" in config[self.name]["calibration"]:
+                calibration_source = config[self.name]["calibration"]["source"]
+
+        self.load_calibration(calibration_type, calibration_source)
+
+    def load_calibration(self, source_type=None, source=None):
         conf = config[self.name]
-        if self.cal_type == "linear interpolated":
-            self.cal_data = dict(
-                data=None,
+
+        calibration = dict(
+            type="interpolated lookup table",
+            source_type=source_type,
+            source=source,
+        )
+
+        if source_type is None:
+            calibration.update(dict(
+                source="system extrema",
                 min_field=-conf["max field"],
                 max_field=+conf["max field"],
                 min_current=-conf["power-supply"]["max current"],
                 max_current=+conf["power-supply"]["max current"],
                 I_to_B=lambda I: (I * conf["max field"] / conf["power-supply"]["max current"]),
                 B_to_I=lambda B: (B * conf["power-supply"]["max current"] / conf["max field"]),
-            )
+            ))
+        elif source_type == "file":
+            file = look_for_file(source)
+            # Load the data from file
+            cal_data = pd.read_csv(file, comment="#", sep=",")
+
+            if not ("Current (A)" in cal_data and "Field (T)" in cal_data):
+                # Probably an old calibration file
+                cal_data = pd.read_csv(file, header=None, delim_whitespace=True,
+                                       names=["Current (A)", "Field (T)"], )
+
+                # Ensure everything is in SI base units; should be automated/checked with the file
+                cal_data["Field (T)"] *= 1e-3
+
+            # Average multiple scans, if any
+            cal_data = cal_data[["Current (A)", "Field (T)"]]\
+                .groupby("Current (A)", as_index=False)\
+                .mean()\
+                .reset_index(drop=True)
+
+            i_to_b = interp1d(cal_data["Current (A)"], cal_data["Field (T)"])
+            b_to_i = interp1d(cal_data["Field (T)"], cal_data["Current (A)"])
+
+            calibration.update(dict(
+                data=cal_data,
+                min_field=cal_data["Field (T)"].min(),
+                max_field=cal_data["Field (T)"].max(),
+                min_current=cal_data["Current (A)"].min(),
+                max_current=cal_data["Current (A)"].max(),
+                I_to_B=i_to_b,
+                B_to_I=b_to_i,
+            ))
+
+        self.calibration = calibration
 
     @abstractmethod
     def startup(self):
@@ -158,16 +204,15 @@ class MagnetBase(metaclass=ABCMeta):
 
     def _field_to_current(self, field):
         # Check if value within range of calibration
-        if not self.cal_data["min_field"] <= field <= self.cal_data["max_field"]:
+        if not self.calibration["min_field"] <= field <= self.calibration["max_field"]:
             raise ValueError(f"Field value ({field} T) out of bounds; should be between "
-                             f"{self.cal_data['min_field']} T and {self.cal_data['max_field']} T "
+                             f"{self.calibration['min_field']} T and {self.calibration['max_field']} T "
                              f"(with the present calibration).")
 
-        if self.cal_type is not None:
-            current = self.cal_data["B_to_I"](field)
+        if self.calibration is not None:
+            current = self.calibration["B_to_I"](field)
         else:
-            raise NotImplementedError(f"Current-field calibration type {self.cal_type} "
-                                      f"not implemented.")
+            raise NotImplementedError("No field calibration loaded.")
 
         self._check_current_within_bounds(current)
 
@@ -175,17 +220,16 @@ class MagnetBase(metaclass=ABCMeta):
 
     def _current_to_field(self, current):
         # Check if value within range of calibration
-        if not self.cal_data["min_current"] <= current <= self.cal_data["max_current"]:
+        if not self.calibration["min_current"] <= current <= self.calibration["max_current"]:
             raise ValueError(f"Current value ({current} A) out of bounds; should be between "
-                             f"{self.cal_data['min_current']} A and {self.cal_data['max_current']} "
+                             f"{self.calibration['min_current']} A and {self.calibration['max_current']} "
                              f"A (with the present calibration).")
         self._check_current_within_bounds(current)
 
-        if self.cal_type is not None:
-            field = self.cal_data["I_to_B"](current)
+        if self.calibration is not None:
+            field = self.calibration["I_to_B"](current)
         else:
-            raise NotImplementedError(f"Current-field calibration type {self.cal_type} "
-                                      f"not implemented.")
+            raise NotImplementedError("No field calibration loaded.")
 
         return field
 
@@ -193,7 +237,7 @@ class MagnetBase(metaclass=ABCMeta):
         if hasattr(self, "max_current"):
             max_current = self.max_current
         else:
-            max_current = self.cal_data["max_current"]
+            max_current = self.calibration["max_current"]
 
         if abs(current) > max_current:
             raise ValueError(f"Current value ({current} A) out of bounds for power supply (maximum "

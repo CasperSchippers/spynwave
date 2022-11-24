@@ -25,8 +25,9 @@ in-plane magnet:
   max field: 0.686  # T
   bipolar: False
 
-  calibration: "file"
-  calibration filename: "magnet_calibration_in_plane.txt"
+  calibration:
+    type: "file"
+    source: "magnet_calibration_in_plane.txt"
 
   power-supply:  # DeltaElektronika SM 120-13
     address: "ASRL3::INSTR"
@@ -53,8 +54,9 @@ out-of-plane magnet:
   max field: 1.92  # T
   bipolar: True
 
-  calibration: "file"
-  calibration filename: "magnet_calibration_out_of_plane.txt"
+  calibration:
+    type: "file"
+    source: "magnet_calibration_out_of_plane.txt"
 
   power-supply:  # Bruker B-MN 45/60 controlled by Bruker B-EC1
     address: "GPIB0::5::INSTR"

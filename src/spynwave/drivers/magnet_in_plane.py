@@ -7,9 +7,7 @@ import math
 from time import time, sleep
 
 from pyvisa.errors import VisaIOError, VI_ERROR_TMO
-import pandas as pd
 import numpy as np
-from scipy.interpolate import interp1d
 
 try:
     import u12  # LabJack library from labjackpython
@@ -74,8 +72,6 @@ class MagnetInPlane(LakeShore421Mixin, MagnetBase):
         )
 
     def startup(self):
-        self._load_calibration_from_file(config[self.name]["calibration file"])
-
         # Prepare current supply and labjack for magnetic field
         self.last_current = self.power_supply.current
         # self.power_supply.voltage
@@ -95,30 +91,6 @@ class MagnetInPlane(LakeShore421Mixin, MagnetBase):
         self._set_polarity(+1)
 
         self.startup_lakeshore()
-
-    def _load_calibration_from_file(self, file):
-        # TODO: should make this less hardcoded and define standard format for table (with header)
-        cal_data = pd.read_csv(file,
-                               header=None,
-                               names=["current", "field"],
-                               delim_whitespace=True)
-
-        # Ensure everything is in SI base units; should be automated/checked with the file
-        cal_data.field *= 1e-3
-
-        i_to_b = interp1d(cal_data.current, cal_data.field)
-        b_to_i = interp1d(cal_data.field, cal_data.current)
-
-        self.cal_type = "interpolated lookup table"
-        self.cal_data = dict(
-            data=cal_data,
-            min_field=cal_data.field.min(),
-            max_field=cal_data.field.max(),
-            min_current=cal_data.current.min(),
-            max_current=cal_data.current.max(),
-            I_to_B=i_to_b,
-            B_to_I=b_to_i,
-        )
 
     def _set_current(self, current, controlled=True):
         """ Set a current to the power-supply

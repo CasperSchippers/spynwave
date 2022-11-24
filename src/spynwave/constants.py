@@ -27,14 +27,9 @@ config['general']['visa-prefix'] = ""
 if config['general']['remote connection']:
     config['general']['visa-prefix'] = config['general']['remote visa-prefix']
 
-# Resolve the location of the calibration files
-# TODO: check if there is another calibration file
-# in-plane magnet
-DEFAULT_CALIBRATION_FILE = pkg_resources.resource_filename(
-    'spynwave', 'data/' + config["in-plane magnet"]["calibration filename"]
-)
-config["in-plane magnet"]["calibration file"] = DEFAULT_CALIBRATION_FILE
 
-if __name__ == "__main__":
-    import pprint
-    pprint.pprint(config)
+# Resolve the location of the files
+# TODO: check if there is another location the same file that takes precedence
+def look_for_file(filename):
+    file = pkg_resources.resource_filename('spynwave', 'data/' + filename)
+    return file
