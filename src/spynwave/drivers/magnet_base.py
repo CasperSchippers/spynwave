@@ -119,7 +119,7 @@ class MagnetBase(metaclass=ABCMeta):
         :param sleep_fn: The sleep function to use for sleeping
         :param should_stop: A function that returns True to abort the process
 
-        :return: The mean (stable) field, returns False if the timed out or if aborted (should_stop)
+        :return: The mean (stable) field, returns nan if the timed out or if aborted (should_stop)
         """
         start = time()
 
@@ -142,7 +142,7 @@ class MagnetBase(metaclass=ABCMeta):
             sleep_fn(update_delay)
         else:
             # Timed out or should_stop returned True
-            return False
+            return np.nan
 
         return np.mean(fields)
 
