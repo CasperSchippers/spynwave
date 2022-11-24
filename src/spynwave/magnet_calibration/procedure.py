@@ -40,7 +40,7 @@ class MagnetCalibrationProcedure(Procedure):
     )
     AB_filename_base = Parameter(
         "Filename base",
-        default="PSWS",
+        default="Magnet_calibration",
     )
 
     symmetric_currents = BooleanParameter(
@@ -88,7 +88,7 @@ class MagnetCalibrationProcedure(Procedure):
     # Metadata to be stored in the file
     measurement_date = Metadata("Measurement date", fget=datetime.now)
     start_time = Metadata("Measurement timestamp", fget=time)
-    magnet_setup = Metadata("Magnet calibrated for", fget="self.magnet.name")
+    magnet_setup = Metadata("Magnet calibrated for", fget="magnet.name")
 
     # Define data columns
     DATA_COLUMNS = [
@@ -139,13 +139,14 @@ class MagnetCalibrationProcedure(Procedure):
         """
         current_list = self.get_current_list()
 
-        for current in current_list:
+        for idx, current in enumerate(current_list, start=1):
             if self.should_stop():
                 break
 
             self.magnet.current_setpoint = current
             self.magnet._set_current(current)
             self.measure()
+            self.emit("progress", idx / len(current_list) * 100.)
 
     def get_datapoint(self):
         data = {

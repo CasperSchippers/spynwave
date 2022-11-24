@@ -129,6 +129,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     # Metadata to be stored in the file
     measurement_date = Metadata("Measurement date", fget=datetime.now)
     start_time = Metadata("Measurement timestamp", fget=time)
+    magnet_setup = Metadata("Magnet calibrated for", fget="magnet.name")
     VNA_calibrated = Metadata("VNA calibrated", fget="vna.vectorstar.ch_1.calibration_enabled")
     VNA_bandwidth = Metadata("RF bandwidth", fget="vna.vectorstar.ch_1.bandwidth", units="Hz")
     VNA_powerlevel = Metadata("RF power level", fget="vna.vectorstar.ch_1.pt_1.power_level",
