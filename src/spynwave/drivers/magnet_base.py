@@ -82,6 +82,7 @@ class MagnetBase(metaclass=ABCMeta):
             cal_data = cal_data[["Current (A)", "Field (T)"]]\
                 .groupby("Current (A)", as_index=False)\
                 .mean()\
+                .sort_values(by="Current (A)")\
                 .reset_index(drop=True)
 
             i_to_b = interp1d(cal_data["Current (A)"], cal_data["Field (T)"])
