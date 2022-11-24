@@ -57,7 +57,10 @@ class MagnetCryostat(MagnetBase):
         self.gauss_meter.field_setpoint = 0
         self.gauss_meter.field_control_enabled = False
 
-    def _set_field(self, field):
+    def _set_field(self, field, **kwargs):
+        if kwargs:
+            log.warning(f"Method _set_field does not support these kwargs: {kwargs}.")
+
         self.gauss_meter.field_setpoint = field
 
         return field

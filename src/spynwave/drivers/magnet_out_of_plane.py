@@ -68,13 +68,12 @@ class MagnetOutOfPlane(LakeShore421Mixin, MagnetBase):
 
         self.shutdown_lakeshore()
 
-    def _set_field(self, field):
-        current = self._field_to_current(field)
-        self._set_current(current)
-        return field
+    def _set_current(self, current, **kwargs):
+        if kwargs:
+            log.warning(f"Method _set_current does not support these kwargs: {kwargs}.")
 
-    def _set_current(self, current):
         self.power_supply.current = current
+        return current
 
     # def measure_field(self):
     #     """ Measure the field by querying the output current. Superseded by a gauss-meter

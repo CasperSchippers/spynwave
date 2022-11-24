@@ -120,26 +120,19 @@ class MagnetInPlane(LakeShore421Mixin, MagnetBase):
             B_to_I=b_to_i,
         )
 
-    def _set_field(self, field, controlled=True):
-        """ Apply a specified magnetic field.
-
-        :param field:  Field to apply in tesla.
+    def _set_current(self, current, controlled=True):
+        """ Set a current to the power-supply
         :param controlled: Boolean that controls the method for setting the current, if True a slow
             but safe and stable approach is used, if False a faster approach (for use in sweeps)
-
-        :return field: Returns the applied field
         """
-
-        current = self._field_to_current(field)
-
         if controlled:
-            self._ramp_current(current)
+            self._set_current_controlled(current)
         else:
-            self._set_current(current)
+            self._set_current_quick(current)
 
-        return field
+        return current
 
-    def _ramp_current(self, current):
+    def _set_current_controlled(self, current):
         """ Apply a specified current by nicely ramping to this current. """
         polarity = self._current_polarity(current)
 
@@ -151,7 +144,7 @@ class MagnetInPlane(LakeShore421Mixin, MagnetBase):
         self.power_supply.ramp_to_current(abs(current), self.current_ramp_rate)
         self.last_current = self.power_supply.current
 
-    def _set_current(self, current):
+    def _set_current_quick(self, current):
         """ Apply a specified current by instantly setting the current to the power supply.
         A few check are performed to ensure no breakage of the instruments.
         """
@@ -196,10 +189,6 @@ class MagnetInPlane(LakeShore421Mixin, MagnetBase):
             lowFirst=False,
         )
         self.polarity = polarity
-
-    def _get_set_field(self):
-        current = self._get_set_current()
-        return self._current_to_field(current)
 
     def _get_set_current(self):
         current = self.power_supply.current

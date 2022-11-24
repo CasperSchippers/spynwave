@@ -6,8 +6,8 @@ import os
 import sys
 import logging
 
-from pyvisa import VisaIOError
-from pyvisa.constants import VI_ERROR_TMO
+# from pyvisa import VisaIOError
+# from pyvisa.constants import VI_ERROR_TMO
 
 from pymeasure.display.Qt import QtWidgets, QtCore, QtGui
 from pymeasure.display.windows import ManagedWindow
@@ -66,7 +66,6 @@ class MagnetCalibrationWindow(ManagedWindow):
 
         if procedure.symmetric_currents:
             procedure.min_current = -procedure.max_current
-
 
         procedure.set_parameters({
             "AA_folder": folder,
@@ -194,7 +193,7 @@ class MagnetCalibrationWindow(ManagedWindow):
 def main():
     log.info("__main__.py")
     app = QtWidgets.QApplication(sys.argv)
-    window = Window()
+    window = MagnetCalibrationWindow()
     window.show()
     sys.exit(app.exec())
 

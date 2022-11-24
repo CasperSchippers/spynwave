@@ -14,7 +14,7 @@ from pymeasure.experiment import (
     IntegerParameter, Metadata
 )
 
-from spynwave.drivers import Magnet
+from spynwave.drivers import Magnet, MagnetBase
 
 # Setup logging
 log = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class MagnetCalibrationProcedure(Procedure):
     DATA_COLUMNS = [
         "Timestamp (s)",
         "Current (A)",
-        "Field (T)"
+        "Field (T)",
     ]
 
     # initialize instrument attributes
@@ -115,11 +115,20 @@ class MagnetCalibrationProcedure(Procedure):
         The devices are connected and the default parameters are set.
         """
         # Connect to instruments
-        # self.magnet = Magnet(mirror_fields=self.mirrored_field,
-        #                      measurement_type=self.measurement_type)
+        self.magnet = Magnet(mirror_fields=False)
+
+        # Check that this magnet is indeed current-regulated and not field-regulated;
+        # if it is field-regulated, there is no need for a calibration
+        if self.magnet._set_current == MagnetBase._set_current:
+            raise AssertionError("The connected magnet is field-regulated, there is no need for"
+                                 "calibration.")
+
+        # Check that the magnet features a gauss-meter
+        if self.magnet.gauss_meter is None:
+            raise AssertionError("The connected magnet does has no gauss-meter connected.")
 
         # Run general startup procedure
-        # self.magnet.startup()
+        self.magnet.startup()
 
     # Define measurement procedure
     def execute(self):
@@ -127,24 +136,25 @@ class MagnetCalibrationProcedure(Procedure):
         the measurement is defined, all the actual activities are handled by
         helper functions (in the helpers section of this class).
         """
-        fieldlist = self.get_fieldlist()
+        current_list = self.get_current_list()
 
+        for current in current_list:
+            self.magnet._set_current(current)
 
-    # def get_datapoint(self):
-    #     data = {
-    #         "Timestamp (s)": time(),
-    #         "Field (T)": self.magnet.measure_field()
-    #     }
-    #
-    #     return data
+    def get_datapoint(self):
+        data = {
+            "Timestamp (s)": time(),
+            "Field (T)": self.magnet.measure_field()
+        }
+
+        return data
 
     # Define stop sequence
     def shutdown(self):
         """ Wrap up the measurement.
         """
-
-        # if self.magnet is not None:
-        #     self.magnet.shutdown()
+        if self.magnet is not None:
+            self.magnet.shutdown()
 
     r"""
          _    _   ______   _        _____    ______   _____     _____
@@ -156,20 +166,20 @@ class MagnetCalibrationProcedure(Procedure):
 
     """
 
-    def get_fieldlist(self):
+    def get_current_list(self):
         start = -self.max_current if self.symmetric_currents else self.min_current
         stop = +self.max_current
         step = self.current_steps
         if start > stop:
             step *= -1
 
-        field_points = np.arange(start, stop + step / 2, step)
+        current_points = np.arange(start, stop + step / 2, step)
 
-        field_points = np.concatenate([
-            field_points, field_points[::-1]
+        current_points = np.concatenate([
+            current_points, current_points[::-1]
         ] * self.number_of_sweeps)
 
-        return field_points
+        return current_points
 
     def sleep(self, duration=0.1):
         start = time()
@@ -177,5 +187,5 @@ class MagnetCalibrationProcedure(Procedure):
             sleep(0.01)
 
     def get_estimates(self):
-        estimates = self.number_of_sweeps * len(self.get_fieldlist()) * self.dwell_time
+        estimates = self.number_of_sweeps * len(self.get_current_list()) * self.dwell_time
         return estimates

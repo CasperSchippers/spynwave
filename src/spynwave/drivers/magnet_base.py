@@ -61,21 +61,33 @@ class MagnetBase(metaclass=ABCMeta):
     def shutdown(self):
         pass
 
-    def set_field(self, field, *args, **kwargs):
+    def set_field(self, field, **kwargs):
         if self.mirror_fields:
             field *= -1
 
-        applied_field = self._set_field(field, *args, **kwargs)
+        applied_field, current = self._set_field(field, **kwargs)
 
         if applied_field != field:
             raise ValueError(f"Applied field ({applied_field} T) differs from provided value"
                              f"({field} T).")
 
-        return field
+        return field, current
 
-    @abstractmethod
-    def _set_field(self, field):
-        pass
+    def _set_field(self, field, **kwargs):
+
+        current = self._field_to_current(field)
+        applied_current = self._set_current(current, **kwargs)
+
+        if applied_current != current:
+            raise ValueError(f"Applied current ({applied_current} T) differs from provided value"
+                             f"({current} T).")
+
+        return field, current
+
+    def _set_current(self, current, **kwargs):
+        raise NotImplementedError("If this method is needed, it should be implemented by the"
+                                  "sub-class.")
+        return current
 
     @abstractmethod
     def measure_field(self):

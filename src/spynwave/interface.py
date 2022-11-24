@@ -25,7 +25,6 @@ log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 
-
 class PSWSWindow(ManagedWindow):
     def __init__(self):
         super().__init__(
