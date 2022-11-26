@@ -7,14 +7,8 @@ import logging
 
 from pymeasure.display.Qt import QtWidgets, QtCore, QtGui
 from pymeasure.display.windows import ManagedWindow
-from pymeasure.display.widgets import LogWidget, PlotWidget
 
-from pymeasure.experiment import Results, unique_filename
-#
-# from spynwave.procedure import PSWSProcedure
-# from spynwave.drivers import VNA
 from spynwave.widgets import SpynWaveSequencerWidget
-# from spynwave.pymeasure_patches.pandas_formatter import CSVFormatterPandas
 
 
 # Setup logging
@@ -30,6 +24,11 @@ class SpynWaveWindowBase(ManagedWindow):
         kwargs.setdefault("directory_input", True)
 
         super().__init__(*args, **kwargs)
+
+        # Ensure the normal plot-widget is always the first tab and open on start
+        if (number_of_tabs := len(self.widget_list)) > 2:
+            self.tabs.tabBar().moveTab(number_of_tabs - 2, 0)
+            self.tabs.setCurrentIndex(0)
 
         self._setup_log_widget()
         self.directory_line.setText(os.getcwd())
