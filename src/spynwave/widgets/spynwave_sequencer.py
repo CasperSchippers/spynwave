@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class SpinWaveSequencerWidget(QtWidgets.QWidget):
+class SpynWaveSequencerWidget(QtWidgets.QWidget):
     """ This class takes/copies some methods from pymeasure sequencer. """
 
     # TODO: is this the best way, or better to copy the code
