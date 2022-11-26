@@ -84,7 +84,7 @@ class MagnetInPlane(LakeShore421Mixin, MagnetBase):
         self.power_supply.voltage = self.max_voltage
         self.power_supply.current = 0
         # TODO: the labview code does not use SO:FU:RSD but SO:FU:OUTP; see what the difference is
-        # Now both are used in the enable and disable methods
+        #  Now both are used in the enable and disable methods
         self.power_supply.enable()
 
         # Set polarity to positive
@@ -207,5 +207,4 @@ class MagnetInPlane(LakeShore421Mixin, MagnetBase):
         if self.power_supply is not None:
             self.power_supply.shutdown()
 
-        # TODO: shutdown labjack?
         self.shutdown_lakeshore()

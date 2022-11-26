@@ -23,7 +23,7 @@ class InstrumentThread(StoppableThread):
         self._finished = InterruptableEvent()
         self.data_queue = queue.Queue()
 
-        # TODO: uitzoeken of dit nodig is
+        # TODO: Check whether this is required in within the thread
         global log
         log = logging.getLogger()
 

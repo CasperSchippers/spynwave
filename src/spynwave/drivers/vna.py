@@ -82,9 +82,6 @@ class VNA:
         self.vectorstar.clear()
         self.vectorstar.binary_data_byte_order = "NORM"
 
-        # 1B: DAQmx series create counter and trigger task
-        #     TODO: Uitzoeken hoe dit werkt
-
         # Configure single active channel for transmission/reflection measurements
         self.vectorstar.number_of_channels = 1
         self.vectorstar.active_channel = 1

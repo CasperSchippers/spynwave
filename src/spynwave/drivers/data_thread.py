@@ -31,7 +31,7 @@ class DataThread(StoppableThread):
         self.get_new_static_data(static_data)
         self.time_column = time_column
 
-        # TODO: uitzoeken of dit nodig is
+        # TODO: Check whether this is required in within the thread
         global log
         log = logging.getLogger()
 
@@ -100,7 +100,7 @@ class DataThread(StoppableThread):
                 if data is not None:
                     self.emit_data(data)
 
-            # Need a sleep to ensure smooth function of the GUI
+            # Need a sleep to ensure smooth function of the gui, threads and communication
             sleep(0.001)
 
         self.set_all_data_processed()
@@ -126,25 +126,10 @@ class DataStructure:
         assert len(self.time_lst) == len(self.data_lst)
         return len(self.time_lst) >= 2
 
-    # def first_datapoint_before_timestamp(self, timestamp):
-    #     if len(self.time_lst) == 0:
-    #         return False
-    #
-    #     return self.time_lst[0] < timestamp
-
-    # def get_first_datapoint(self):
-    #     return self.time_lst.pop(0), self.data_lst.pop(0)
-
     def index_until_timestamp(self, timestamp):
         for idx, time_value in enumerate(self.time_lst):
             if time_value > timestamp:
                 return idx
-
-    # def collect_data_before_timestamp(self, timestamp):
-    #     dataset = []
-    #     while self.first_datapoint_before_timestamp(timestamp):
-    #         dataset.append(self.get_first_datapoint()[1])  # This discards the timestamp
-    #     return dataset
 
     def get_first_interval(self):
         # TODO: can maybe be used to generalise this a bit
