@@ -13,23 +13,19 @@ try:
 except ImportError:
     from yaml import Loader
 
-# In the data-path, there are default/sample files
-DATA_PATH = pkg_resources.resource_filename('spynwave', 'data/')
-
-DEFAULT_CONFIG_FILE = pkg_resources.resource_filename('spynwave', 'data/config.yaml')
-
-# TODO: check if there is another config file:
-with open(DEFAULT_CONFIG_FILE, 'r') as configfile:
-    config = load(configfile, Loader)
-
-# Prefix the remote visa prefix if remote accessing
-config['general']['visa-prefix'] = ""
-if config['general']['remote connection']:
-    config['general']['visa-prefix'] = config['general']['remote visa-prefix']
-
 
 # Resolve the location of the files
 # TODO: check if there is another location the same file that takes precedence
 def look_for_file(filename):
     file = pkg_resources.resource_filename('spynwave', 'data/' + filename)
     return file
+
+
+config_file = look_for_file('config.yaml')
+with open(config_file, 'r') as file:
+    config = load(file, Loader)
+
+# Prefix the remote visa prefix if remote accessing
+config['general']['visa-prefix'] = ""
+if config['general']['remote connection']:
+    config['general']['visa-prefix'] = config['general']['remote visa-prefix']
