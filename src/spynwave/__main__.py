@@ -5,7 +5,6 @@ This file is part of the SpynWave package.
 import sys
 import logging
 import argparse
-import ctypes
 
 from pymeasure.display.Qt import QtWidgets
 
@@ -29,9 +28,6 @@ console_handler.setFormatter(logging.Formatter(
 ))
 console_handler.setLevel(logging.DEBUG)
 log.addHandler(console_handler)
-
-# Register as separate software
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("fna.MeasurementSoftware.SpynWave")
 
 
 def parse_args():
@@ -85,8 +81,6 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     window = Window()
     window.show()
-    # Minimize console window
-    ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
     sys.exit(app.exec())
 
 

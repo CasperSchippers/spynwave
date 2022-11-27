@@ -4,6 +4,7 @@ This file is part of the SpynWave package.
 
 import os
 import logging
+import ctypes
 
 from pymeasure.display.Qt import QtWidgets, QtCore, QtGui
 from pymeasure.display.windows import ManagedWindow
@@ -15,6 +16,9 @@ from spynwave.widgets import SpynWaveSequencerWidget
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
+
+# Register as separate software
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("fna.MeasurementSoftware.SpynWave")
 
 
 class SpynWaveWindowBase(ManagedWindow):
@@ -33,6 +37,9 @@ class SpynWaveWindowBase(ManagedWindow):
         self._setup_log_widget()
         self.directory_line.setText(os.getcwd())
         self.resize(1200, 900)
+
+        # Minimize console window
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
 
     def new_curve(self, *args, **kwargs):
         curve = super().new_curve(*args, **kwargs, connect="finite")
