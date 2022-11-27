@@ -28,8 +28,10 @@ class PSWSWindow(SpynWaveWindowBase):
         self.dock_widget = DockWidget("Multiple graphs", PSWSProcedure,
                                       ["Field (T)"],
                                       ["S11 real", "S22 real"])
-        self.image_widget = ImageWidget("2D plot", PSWSProcedure.DATA_COLUMNS,
-                                        "Field (T)", "Frequency (Hz)", "S11 real")
+
+        # TODO: this can be added, but needs some work to get it running
+        # self.image_widget = ImageWidget("2D plot", PSWSProcedure.DATA_COLUMNS,
+        #                                 "field", "frequency", "S11 real")
 
         super().__init__(
             procedure_class=PSWSProcedure,
@@ -61,7 +63,7 @@ class PSWSWindow(SpynWaveWindowBase):
                 "frequency_averages",
             ),
             sequencer=True,
-            widget_list=(self.dock_widget, self.image_widget)
+            widget_list=(self.dock_widget, )
         )
 
         # self.update_inputs_from_vna()
