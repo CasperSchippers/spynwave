@@ -43,9 +43,16 @@ class SpynWaveWindowBase(ManagedWindow):
 
     def new_curve(self, *args, **kwargs):
         curve = super().new_curve(*args, **kwargs, connect="finite")
+
         if curve is not None:
-            curve.setSymbol("o")
-            curve.setSymbolPen(curve.pen)
+            if isinstance(curve, (list, tuple)):
+                for c in curve:
+                    c.setSymbol("o")
+                    c.setSymbolPen(c.pen)
+            else:
+                curve.setSymbol("o")
+                curve.setSymbolPen(curve.pen)
+
         return curve
 
     def _setup_ui(self):
