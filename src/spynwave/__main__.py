@@ -40,15 +40,20 @@ def parse_args():
         description='Measurement software for propagating spin-wave spectroscopy',
         epilog='Developed by Casper Schippers',
     )
-    parser.add_argument(
-        "program",
-        metavar="Program",
-        nargs='?',
-        action="store",
-        choices=["psws", "magnet-calibration", "magcal"],
-        default="PSWS",
-        type=str.lower,
-        help="Which program to execute, 'PSWS' or 'magnet-calibration' (or 'magcal')",
+
+    alt_programs = parser.add_mutually_exclusive_group()
+    alt_programs.add_argument(
+        "-m", "--magnet-cal",
+        action="store_true",
+        dest="calibrate_magnet",
+        help="Run the magnet-calibration software",
+    )
+    alt_programs.add_argument(
+        "-i", "--init",
+        action="store_true",
+        dest="initialize",
+        help="Initialize the software after installation; creates shortcut on the desktop and "
+             "places the config and calibration files in an accessible place",
     )
     # TODO: find out how to propagate this info
     # parser.add_argument(
@@ -60,19 +65,22 @@ def parse_args():
     #          "'auto-detect', the software will automatically detect which magnet to use.",
     # )
     args = parser.parse_args()
+
     return args
 
 
 def main():
     args = parse_args()
-    if args.program.lower() == "psws":
-        log.info("Starting PSWS program")
-        from spynwave.interface import PSWSWindow as Window
-    elif args.program in ("magnet-calibration", "magcal"):
+
+    if args.initialize:
+        log.info("Initialize software")
+        return
+    elif args.calibrate_magnet:
         log.info("Starting magnet calibration program")
         from spynwave.magnet_calibration import MagnetCalibrationWindow as Window
     else:
-        log.warning(f"Program {args.program} is not supported.")
+        log.info("Starting PSWS program")
+        from spynwave.interface import PSWSWindow as Window
 
     app = QtWidgets.QApplication(sys.argv)
     window = Window()
