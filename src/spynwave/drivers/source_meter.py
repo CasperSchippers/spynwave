@@ -68,4 +68,5 @@ class SourceMeter:
 
     def shutdown(self, turn_off_output=True):
         if turn_off_output:
-            self.source_meter.shutdown()
+            if self.source_meter is not None:
+                self.source_meter.shutdown()
