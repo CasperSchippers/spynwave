@@ -14,7 +14,7 @@ Finally, the software also needs a running VISA library (such as NI-VISA, but fo
 ### Installation using git
 To install the package directly using git (which is the easiest way, if Git is installed), simply run:
 ```commandline
-pip install git+https://gitlab.tue.nl/fna/psws-python-measurement-suite.git
+pip install git+https://gitlab.tue.nl/fna/spynwave.git
 ```
 
 ### Installation from a local copy
