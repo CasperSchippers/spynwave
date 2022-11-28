@@ -46,4 +46,4 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-"spynwave.data" = ["*.yml", "*.txt"]
+"spynwave.data" = ["*.yaml", "*.txt"]
