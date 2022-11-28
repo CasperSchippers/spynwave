@@ -59,6 +59,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
             "Field sweep",
             "Frequency sweep",
             "Time sweep",
+            "DC sweep",
         ],
         default="Field sweep"
     )
@@ -152,6 +153,16 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         choices=[False, "Voltage", "Current"],
         default=False,
     )
+    dc_voltage = FloatParameter(
+        "DC voltage",
+        default=0,
+        units="V",
+    )
+    dc_current = FloatParameter(
+        "DC current",
+        default=0,
+        units="A",
+    )
 
     # Metadata to be stored in the file
     measurement_date = Metadata("Measurement date", fget=datetime.now)
@@ -223,13 +234,19 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         # TODO: Maybe this needs to be measurement-type
         self.magnet.startup()
 
-        self.source_meter.startup()
-
         if self.saturate_field_before_measurement:
             self.saturate_field()
 
         # Run measurement-type-specific startup
         self.get_mixin_method('startup')()
+
+        if self.source_meter is not None and not self.measurement_type == "DC sweep":
+            self.source_meter.startup(control=self.dc_control)
+
+            if self.dc_control == "Voltage":
+                self.source_meter.ramp_to_voltage(self.dc_voltage)
+            elif self.dc_control == "Current":
+                self.source_meter.ramp_to_current(self.dc_current)
 
         self.vna.reset_to_measure()
 
@@ -264,7 +281,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
             self.magnet.shutdown()
 
         if self.source_meter is not None:
-            self.source_meter.shutdown()
+            self.source_meter.shutdown(turn_off_output=True)
 
     r"""
          _    _   ______   _        _____    ______   _____     _____
