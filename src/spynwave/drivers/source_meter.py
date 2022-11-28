@@ -24,7 +24,16 @@ class SourceMeter:
 
     def __init__(self):
         self.source_meter = Keithley2400(
-            config["general"]["visa-prefix"] + config[self.name]["address"]
+            config["general"]["visa-prefix"] + config[self.name]["address"],
+            asrl=dict(
+                baud_rate=57600,
+                data_bits=8,
+                stop_bits=10,
+                parity=0,
+                # chunk_size=1024,
+                read_termination='\n',
+                write_termination='\n',
+            ),
         )
 
     def startup(self, control="Voltage"):
