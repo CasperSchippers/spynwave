@@ -8,7 +8,8 @@ from pymeasure.experiment import (
     FloatParameter,
 )
 
-from spynwave.drivers import DataThread, Magnet
+from spynwave.drivers import Magnet
+from spynwave.procedures.threaded_sweep_base import ThreadedSweepBase
 from spynwave.procedures.threads import (
     FieldSweepThread,
     GaussProbeThread,
@@ -22,7 +23,7 @@ log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 
-class MixinFieldSweep:
+class MixinFieldSweep(ThreadedSweepBase):
     # TODO: see if we can update the field-limits/etc to the setup?
     field_start = FloatParameter(
         "Start field",
@@ -77,54 +78,33 @@ class MixinFieldSweep:
         self.gauss_probe_thread = GaussProbeThread(self, self.magnet)
         self.vna_control_thread = VNAControlThread(self, self.vna, delay=0.001)
 
-        data_queues = [
-            self.gauss_probe_thread.data_queue,
-            self.vna_control_thread.data_queue,
-        ]
-
         if self.source_meter is not None:
             self.source_meter_thread = SourceMeterThread(self, self.source_meter, delay=0.001)
-            data_queues.append(self.source_meter_thread.data_queue)
 
-        self.data_thread = DataThread(self,
-                                      data_queues=data_queues,
-                                      static_data={"Frequency (Hz)": self.rf_frequency * 1e9},
-                                      time_column="Timestamp (s)",)
+        self.threads_startup(
+            data_producing_threads=[
+                self.gauss_probe_thread,  # First thread is expected to be slowest in producing data
+                self.vna_control_thread,
+                self.source_meter_thread,
+            ],
+            sweep_thread=self.field_sweep_thread,
+            static_data={"Frequency (Hz)": self.rf_frequency * 1e9},
+            time_column="Timestamp (s)",
+        )
 
     def execute_field_sweep(self):
-        self.data_thread.start()
-        self.vna_control_thread.start()
-        self.gauss_probe_thread.start()
-        self.source_meter_thread.start()
-        self.field_sweep_thread.start()
+        self.threads_start()
 
-        while not self.should_stop() and not self.field_sweep_thread.is_finished():
+        while not self.should_stop() and not self.threads_sweep_finished():
             self.sleep(0.1)
 
-        self.field_sweep_thread.stop()
-        self.source_meter_thread.stop()
-        self.gauss_probe_thread.stop()
-        self.vna_control_thread.stop()
-        self.data_thread.stop()
+        self.threads_stop()
 
-        while not self.should_stop() and not self.data_thread.all_data_processed():
+        while not self.should_stop() and not self.threads_data_processed():
             self.sleep(0.1)
 
     def shutdown_field_sweep(self):
-        if self.field_sweep_thread is not None:
-            self.field_sweep_thread.shutdown()
-
-        if self.source_meter_thread is not None:
-            self.source_meter_thread.shutdown()
-
-        if self.gauss_probe_thread is not None:
-            self.gauss_probe_thread.shutdown()
-
-        if self.vna_control_thread is not None:
-            self.vna_control_thread.shutdown()
-
-        if self.data_thread is not None:
-            self.data_thread.shutdown()
+        self.threads_shutdown()
 
     def get_estimates_field_sweep(self):
         magnet = Magnet.get_magnet_class()
