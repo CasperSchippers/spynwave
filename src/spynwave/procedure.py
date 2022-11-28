@@ -12,7 +12,7 @@ from pymeasure.experiment import (
     ListParameter, Metadata
 )
 
-from spynwave.drivers import Magnet, VNA
+from spynwave.drivers import Magnet, VNA, SourceMeter
 from spynwave.procedures import MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep
 
 # Setup logging
@@ -59,6 +59,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
             "Field sweep",
             "Frequency sweep",
             "Time sweep",
+            # "DC sweep",  # TODO: this should be implemented
         ],
         default="Field sweep"
     )
@@ -147,6 +148,28 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         group_condition=True,
     )
 
+    dc_control = ListParameter(
+        "Apply DC excitation",
+        choices=[False, "Voltage", "Current"],
+        default=False,
+    )
+    dc_voltage = FloatParameter(
+        "DC voltage",
+        default=0.1,
+        step=0.1,
+        units="V",
+        group_by="dc_control",
+        group_condition="Voltage",
+    )
+    dc_current = FloatParameter(
+        "DC current",
+        default=0.1,
+        step=0.1,
+        units="A",
+        group_by="dc_control",
+        group_condition="Current",
+    )
+
     # Metadata to be stored in the file
     measurement_date = Metadata("Measurement date", fget=datetime.now)
     start_time = Metadata("Measurement timestamp", fget=time)
@@ -180,6 +203,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     vna = None
     magnet = None
     data_thread = None
+    source_meter = None
 
     r"""
           ____    _    _   _______   _        _____   _   _   ______
@@ -202,6 +226,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         self.magnet = Magnet(mirror_fields=self.mirrored_field,
                              measurement_type=self.measurement_type)
 
+        if self.dc_control:
+            self.source_meter = SourceMeter()
+
         # Run general startup procedure
         self.vna.startup()
         self.vna.set_measurement_ports(self.measurement_ports)
@@ -218,6 +245,14 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
 
         # Run measurement-type-specific startup
         self.get_mixin_method('startup')()
+
+        if self.source_meter is not None and not self.measurement_type == "DC sweep":
+            self.source_meter.startup(control=self.dc_control)
+
+            if self.dc_control == "Voltage":
+                self.source_meter.ramp_to_voltage(self.dc_voltage)
+            elif self.dc_control == "Current":
+                self.source_meter.ramp_to_current(self.dc_current)
 
         self.vna.reset_to_measure()
 
@@ -250,6 +285,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
 
         if self.magnet is not None:
             self.magnet.shutdown()
+
+        if self.source_meter is not None:
+            self.source_meter.shutdown(turn_off_output=True)
 
     r"""
          _    _   ______   _        _____    ______   _____     _____

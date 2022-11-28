@@ -1,6 +1,7 @@
 """
 This file is part of the SpynWave package.
 """
+
 import logging
 from time import time
 
@@ -8,8 +9,13 @@ from pymeasure.experiment import (
     FloatParameter,
 )
 
-from spynwave.drivers import DataThread, Magnet
-from spynwave.procedures.threads import GaussProbeThread, VNAControlThread
+from spynwave.drivers import Magnet
+from spynwave.procedures.threaded_sweep_base import ThreadedSweepBase
+from spynwave.procedures.threads import (
+    GaussProbeThread,
+    VNAControlThread,
+    SourceMeterThread,
+)
 
 # Setup logging
 log = logging.getLogger(__name__)
@@ -17,7 +23,7 @@ log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 
-class MixinTimeSweep:
+class MixinTimeSweep(ThreadedSweepBase):
     time_duration = FloatParameter(
         "Time sweep duration",
         default=60.,
@@ -30,6 +36,7 @@ class MixinTimeSweep:
 
     gauss_probe_thread = None
     vna_control_thread = None
+    source_meter_thread = None
 
     def startup_time_sweep(self):
         log.info(f"Ramping field to {self.magnetic_field} mT")
@@ -43,15 +50,22 @@ class MixinTimeSweep:
         # Prepare the parallel methods for the sweep
         self.gauss_probe_thread = GaussProbeThread(self, self.magnet)
         self.vna_control_thread = VNAControlThread(self, self.vna, delay=0.001)
-        self.data_thread = DataThread(self, data_queues=[
-            self.gauss_probe_thread.data_queue,
-            self.vna_control_thread.data_queue,
-        ], static_data={"Frequency (Hz)": self.rf_frequency * 1e9}, time_column="Timestamp (s)",)
+
+        if self.source_meter is not None:
+            self.source_meter_thread = SourceMeterThread(self, self.source_meter, delay=0.001)
+
+        self.threads_startup(
+            data_producing_threads=[
+                self.gauss_probe_thread,  # First thread is expected to be slowest in producing data
+                self.vna_control_thread,
+                self.source_meter_thread,
+            ],
+            static_data={"Frequency (Hz)": self.rf_frequency * 1e9},
+            time_column="Timestamp (s)",
+        )
 
     def execute_time_sweep(self):
-        self.data_thread.start()
-        self.vna_control_thread.start()
-        self.gauss_probe_thread.start()
+        self.threads_start()
 
         end_time = self.start_time + self.time_duration
 
@@ -59,31 +73,13 @@ class MixinTimeSweep:
             self.emit('progress', (current_time - end_time) / self.time_duration * 100)
             self.sleep(0.1)
 
-        self.gauss_probe_thread.stop()
-        self.vna_control_thread.stop()
-        self.data_thread.stop()
+        self.threads_stop()
 
-        while not self.should_stop() and not self.data_thread.all_data_processed():
+        while not self.should_stop() and not self.threads_data_processed():
             self.sleep(0.1)
 
     def shutdown_time_sweep(self):
-        if self.gauss_probe_thread is not None and self.gauss_probe_thread.is_alive():
-            try:
-                self.gauss_probe_thread.join(2)
-            except RuntimeError as exc:
-                log.error(exc)
-
-        if self.vna_control_thread is not None and self.vna_control_thread.is_alive():
-            try:
-                self.vna_control_thread.join(2)
-            except RuntimeError as exc:
-                log.error(exc)
-
-        if self.data_thread is not None and self.data_thread.is_alive():
-            try:
-                self.data_thread.join(5)
-            except RuntimeError as exc:
-                log.error(exc)
+        self.threads_shutdown()
 
     def get_estimates_time_sweep(self):
         magnet = Magnet.get_magnet_class()

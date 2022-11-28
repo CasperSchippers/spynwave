@@ -74,6 +74,19 @@ class GaussProbeThread(InstrumentThread):
         log.info("Gauss probe Thread: stopped measuring")
 
 
+class SourceMeterThread(InstrumentThread):
+    def run(self):
+        log.info("Source-meter Thread: start measuring")
+
+        while not self.should_stop():
+            data = self.instrument.measure()
+            self.put_datapoint(data)
+
+            sleep(self.settings['delay'])
+
+        log.info("Source-meter Thread: stopped measuring")
+
+
 class VNAControlThread(InstrumentThread):
     def run(self):
         # try:

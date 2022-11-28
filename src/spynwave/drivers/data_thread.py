@@ -105,6 +105,13 @@ class DataThread(StoppableThread):
 
         self.set_all_data_processed()
 
+    def shutdown(self, timeout=5):
+        if self.is_alive():
+            try:
+                self.join(timeout)
+            except RuntimeError as exc:
+                log.error(exc)
+
 
 class DataStructure:
     def __init__(self, data_queue):
