@@ -47,6 +47,8 @@ def parse_args():
     alt_programs.add_argument(
         "-I", "--init",
         action="store_true",
+        # nargs="?",
+        # default="green",
         dest="initialize",
         help="Initialize the software after installation; creates shortcut on the desktop and "
              "places the config and calibration files in an accessible place",
@@ -74,11 +76,12 @@ def parse_args():
 def main():
     args = parse_args()
 
-    if args.initialize:
-        log.info("Initialize software")
-        raise NotImplementedError("Initialization is not yet implemented")
-    elif args.update:
+    if args.update:
         raise NotImplementedError("Updating is not yet implemented")
+    elif args.initialize:
+        log.info("Initialize software")
+        from spynwave.initialization import initialize_measurement_software
+        return initialize_measurement_software()
     elif args.calibrate_magnet:
         log.info("Starting magnet calibration program")
         from spynwave.magnet_calibration import MagnetCalibrationWindow as Window
