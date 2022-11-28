@@ -87,7 +87,6 @@ class SourceMeterThread(InstrumentThread):
         log.info("Source-meter Thread: stopped measuring")
 
 
-
 class VNAControlThread(InstrumentThread):
     def run(self):
         # try:

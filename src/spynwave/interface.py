@@ -9,7 +9,7 @@ from pyvisa.constants import VI_ERROR_TMO
 
 from pymeasure.experiment import Results, unique_filename
 from pymeasure.display.widgets.dock_widget import DockWidget
-from pymeasure.display.widgets import ImageWidget
+# from pymeasure.display.widgets import ImageWidget
 
 from spynwave.procedure import PSWSProcedure
 from spynwave.drivers import VNA
