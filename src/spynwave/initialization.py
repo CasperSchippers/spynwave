@@ -7,6 +7,7 @@ import sys
 import pkg_resources
 from pathlib import Path
 import shutil
+import subprocess
 
 from win32com.client import Dispatch
 
@@ -45,6 +46,9 @@ def copy_files_to_local_folder(overwrite=True):
 
         log.info(f"- Copying {source_file.name}.")
         shutil.copy2(source_file, target_dir)
+
+    # Open the folder in explorer
+    subprocess.Popen(fr'explorer "{str(target_dir)}"')
 
 
 def create_shortcut():
