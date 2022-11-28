@@ -6,6 +6,7 @@ the addresses of instruments, default properties for some instruments, and calib
 """
 
 import pkg_resources
+from pathlib import Path
 
 from yaml import load
 try:
@@ -17,8 +18,22 @@ except ImportError:
 # Resolve the location of the files
 # TODO: check if there is another location the same file that takes precedence
 def look_for_file(filename):
-    file = pkg_resources.resource_filename('spynwave', 'data/' + filename)
-    return file
+    """ Look for a file with filename in different folders, first it will look in the present
+    working directory, in the spynwave directory in the user home folder. If it cannot find the file
+    in one of these locations, it will look for the file in the internal packaged data folder.
+    """
+    search_directories = [
+        Path().absolute(),  # Current working directory
+        Path.home() / "spynwave",  # Spynwave folder in user home directory
+        Path(pkg_resources.resource_filename('spynwave', 'data/')),  # Package data folder
+    ]
+
+    for directory in search_directories:
+        if directory.exists() and (directory / filename).is_file():
+            return directory / filename
+
+    raise FileNotFoundError(f"Could not find a file called {filename} in any of the searching "
+                            f"directories: {'; '.join(str(d) for d in search_directories)}")
 
 
 config_file = look_for_file('config.yaml')
