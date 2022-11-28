@@ -3,11 +3,13 @@
 #
 
 general:
+  magnet: "in-plane magnet"
+  # Can be any of in-plane magnet, out-of-plane magnet or cryo magnet
+
   remote connection: False
 #  remote visa-prefix: "visa://131.155.126.195/" # For the in-plane magnet, port 3537
 #  remote visa-prefix: "visa://131.155.126.195:3538/" # For the cryostat magnet
-  remote visa-prefix: "visa://131.155.126.195:3539/" # For the out-of-plane magnet
-  magnet: "in-plane magnet"
+#  remote visa-prefix: "visa://131.155.126.195:3539/" # For the out-of-plane magnet
 
 vna:
   vectorstar:
