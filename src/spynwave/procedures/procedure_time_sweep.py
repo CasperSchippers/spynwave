@@ -67,23 +67,14 @@ class MixinTimeSweep:
             self.sleep(0.1)
 
     def shutdown_time_sweep(self):
-        if self.gauss_probe_thread is not None and self.gauss_probe_thread.is_alive():
-            try:
-                self.gauss_probe_thread.join(2)
-            except RuntimeError as exc:
-                log.error(exc)
+        if self.gauss_probe_thread is not None:
+            self.gauss_probe_thread.shutdown()
 
-        if self.vna_control_thread is not None and self.vna_control_thread.is_alive():
-            try:
-                self.vna_control_thread.join(2)
-            except RuntimeError as exc:
-                log.error(exc)
+        if self.vna_control_thread is not None:
+            self.vna_control_thread.shutdown()
 
-        if self.data_thread is not None and self.data_thread.is_alive():
-            try:
-                self.data_thread.join(5)
-            except RuntimeError as exc:
-                log.error(exc)
+        if self.data_thread is not None:
+            self.data_thread.shutdown()
 
     def get_estimates_time_sweep(self):
         magnet = Magnet.get_magnet_class()

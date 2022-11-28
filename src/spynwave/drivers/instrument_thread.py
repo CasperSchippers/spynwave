@@ -49,3 +49,10 @@ class InstrumentThread(StoppableThread):
 
     def run(self):
         raise NotImplementedError("Should be implemented for a specific purpose")
+
+    def shutdown(self, timeout=2):
+        if self.is_alive():
+            try:
+                self.join(timeout)
+            except RuntimeError as exc:
+                log.error(exc)
