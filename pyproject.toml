@@ -25,6 +25,7 @@ dependencies = [
     "labjackpython >= 2.1.0",  # not on conda
     "pyyaml >= 6.0",
     "nidaqmx >= 0.6.4",  # conda: niqdaqmx-python
+    "pywin32",
 ]
 
 [project.optional-dependencies]
