@@ -22,7 +22,7 @@ class SourceMeter:
 
     source_meter = None
 
-    def __int__(self):
+    def __init__(self):
         self.source_meter = Keithley2400(
             config["general"]["visa-prefix"] + config[self.name]["address"]
         )
