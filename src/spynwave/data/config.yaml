@@ -89,5 +89,5 @@ cryo magnet:
     autorange: "Hardware"  # can be one of: "Hardware", "None"
     reading frequency: 0.05  # seconds
 
-DC source:
+Source-meter:
   address: ""
