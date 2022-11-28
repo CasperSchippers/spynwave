@@ -4,7 +4,7 @@
 
 general:
   magnet: "in-plane magnet"
-  # Can be any of in-plane magnet, out-of-plane magnet or cryo magnet
+  # Can be any of "in-plane magnet", "out-of-plane magnet" or "cryo magnet"
 
   remote connection: False
 #  remote visa-prefix: "visa://131.155.126.195/" # For the in-plane magnet, port 3537

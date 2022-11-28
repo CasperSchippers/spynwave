@@ -63,7 +63,7 @@ def create_shortcut():
                                 f"{python_executable})")
 
     shell = Dispatch('WScript.Shell')
-    shortcut = shell.CreateShortCut(str(desktop / "spynwave.lnk"))
+    shortcut = shell.CreateShortCut(str(desktop / "SpynWave.lnk"))
     shortcut.Targetpath = str(python_executable)
     shortcut.WorkingDirectory = str(desktop)
     shortcut.Arguments = '-m spynwave'
