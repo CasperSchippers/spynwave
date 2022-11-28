@@ -39,17 +39,23 @@ def parse_args():
 
     alt_programs = parser.add_mutually_exclusive_group()
     alt_programs.add_argument(
-        "-m", "--magnet-cal",
+        "-M", "--magnet-cal",
         action="store_true",
         dest="calibrate_magnet",
         help="Run the magnet-calibration software",
     )
     alt_programs.add_argument(
-        "-i", "--init",
+        "-I", "--init",
         action="store_true",
         dest="initialize",
         help="Initialize the software after installation; creates shortcut on the desktop and "
              "places the config and calibration files in an accessible place",
+    )
+    alt_programs.add_argument(
+        "-U", "--update",
+        action="store_true",
+        dest="update",
+        help="Update the software by pulling a new version from the gitlab server",
     )
     # TODO: find out how to propagate this info
     # parser.add_argument(
@@ -70,7 +76,9 @@ def main():
 
     if args.initialize:
         log.info("Initialize software")
-        return
+        raise NotImplementedError("Initialization is not yet implemented")
+    elif args.update:
+        raise NotImplementedError("Updating is not yet implemented")
     elif args.calibrate_magnet:
         log.info("Starting magnet calibration program")
         from spynwave.magnet_calibration import MagnetCalibrationWindow as Window
