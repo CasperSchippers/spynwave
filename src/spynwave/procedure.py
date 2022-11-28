@@ -12,7 +12,7 @@ from pymeasure.experiment import (
     ListParameter, Metadata
 )
 
-from spynwave.drivers import Magnet, VNA
+from spynwave.drivers import Magnet, VNA, SourceMeter
 from spynwave.procedures import MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep
 
 # Setup logging
@@ -147,6 +147,12 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         group_condition=True,
     )
 
+    dc_control = ListParameter(
+        "Apply DC excitation",
+        choices=[False, "Voltage", "Current"],
+        default=False,
+    )
+
     # Metadata to be stored in the file
     measurement_date = Metadata("Measurement date", fget=datetime.now)
     start_time = Metadata("Measurement timestamp", fget=time)
@@ -180,6 +186,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     vna = None
     magnet = None
     data_thread = None
+    source_meter = None
 
     r"""
           ____    _    _   _______   _        _____   _   _   ______
@@ -202,6 +209,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         self.magnet = Magnet(mirror_fields=self.mirrored_field,
                              measurement_type=self.measurement_type)
 
+        if self.dc_control:
+            self.source_meter = SourceMeter()
+
         # Run general startup procedure
         self.vna.startup()
         self.vna.set_measurement_ports(self.measurement_ports)
@@ -212,6 +222,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
             )
         # TODO: Maybe this needs to be measurement-type
         self.magnet.startup()
+
+        self.source_meter.startup()
 
         if self.saturate_field_before_measurement:
             self.saturate_field()
@@ -250,6 +262,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
 
         if self.magnet is not None:
             self.magnet.shutdown()
+
+        if self.source_meter is not None:
+            self.source_meter.shutdown()
 
     r"""
          _    _   ______   _        _____    ______   _____     _____

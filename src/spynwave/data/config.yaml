@@ -88,3 +88,6 @@ cryo magnet:
     range: 3  # T, at the start of the measurement, not important when auto-ranging is used
     autorange: "Hardware"  # can be one of: "Hardware", "None"
     reading frequency: 0.05  # seconds
+
+DC source:
+  address: ""
