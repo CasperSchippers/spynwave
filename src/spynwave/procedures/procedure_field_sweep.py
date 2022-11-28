@@ -22,8 +22,8 @@ class MixinFieldSweep:
     field_start = FloatParameter(
         "Start field",
         default=0.,
-        minimum=-686,
-        maximum=+686,
+        # minimum=-686,
+        # maximum=+686,
         step=1,
         units="mT",
         group_by="measurement_type",
@@ -32,8 +32,8 @@ class MixinFieldSweep:
     field_stop = FloatParameter(
         "Stop field",
         default=200,
-        minimum=-686,
-        maximum=+686,
+        # minimum=-686,
+        # maximum=+686,
         step=1,
         units="mT",
         group_by="measurement_type",

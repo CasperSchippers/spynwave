@@ -62,10 +62,6 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         ],
         default="Field sweep"
     )
-    # average_nr = IntegerParameter(
-    #     "Average number",
-    #     default=0,
-    # )
 
     # Basic parameters
     rf_frequency = FloatParameter(
@@ -82,8 +78,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     magnetic_field = FloatParameter(
         "Magnetic field",
         default=0,
-        minimum=-686,
-        maximum=+686,
+        # minimum=-686,
+        # maximum=+686,
         step=1,
         units="mT",
         group_by="measurement_type",
@@ -133,8 +129,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     saturation_field = FloatParameter(
         "Saturation field",
         default=200,
-        minimum=-686,
-        maximum=+686,
+        # minimum=-686,
+        # maximum=+686,
         step=1,
         units="mT",
         group_by="saturate_field_before_measurement",
