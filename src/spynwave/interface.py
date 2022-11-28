@@ -51,6 +51,8 @@ class PSWSWindow(SpynWaveWindowBase):
                 "saturate_field_before_measurement",
                 "saturation_field",
                 "dc_control",
+                "dc_voltage",
+                "dc_current",
                 "rf_advanced_settings",
                 "measurement_ports",
                 "rf_power",
