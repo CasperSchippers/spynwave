@@ -155,14 +155,16 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     )
     dc_voltage = FloatParameter(
         "DC voltage",
-        default=0,
+        default=0.1,
+        step=0.1,
         units="V",
         group_by="dc_control",
         group_condition="Voltage",
     )
     dc_current = FloatParameter(
         "DC current",
-        default=0,
+        default=0.1,
+        step=0.1,
         units="A",
         group_by="dc_control",
         group_condition="Current",
