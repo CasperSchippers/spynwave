@@ -9,9 +9,6 @@ from pathlib import Path
 import shutil
 import subprocess
 
-from win32com.client import Dispatch
-
-
 # Setup logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -52,6 +49,8 @@ def copy_files_to_local_folder(overwrite=True):
 
 
 def create_shortcut():
+    from win32com.client import Dispatch
+
     log.info("Creating shortcut on desktop.")
     desktop = Path.home() / "Desktop"
     if not desktop.exists():
@@ -78,3 +77,6 @@ def initialize_measurement_software():
         create_shortcut()
     except NotADirectoryError or FileNotFoundError as exc:
         log.error(f"Could not create shortcut, create one manually. Exception: {exc}")
+    except ImportError:
+        log.error("Could not load win32com (part of pywin32); creating shortcuts is only supported "
+                  "on Windows.")
