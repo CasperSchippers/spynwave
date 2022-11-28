@@ -90,4 +90,11 @@ cryo magnet:
     reading frequency: 0.05  # seconds
 
 Source-meter:
-  address: ""
+  address: "ASRL7::INSTR"
+  rs232 settings:
+    baud_rate: 57600
+    data_bits: 8
+    stop_bits: 10
+    parity: 0
+    read_termination: '\n'
+    write_termination: '\n'
