@@ -36,21 +36,19 @@ class SourceMeter(DriverBase):
         )
         self.source_meter.clear()
 
-    def startup(self, control="Voltage", output_range=1, compliance=0.1):
+    def startup(self, control="Voltage", compliance=0.1):
         # Check if enabled
         if not self.source_meter.source_enabled:
             self.source_meter.source_current = 0
             self.source_meter.source_voltage = 0
 
         if control.lower() == "voltage":
-            self.source_meter.apply_voltage(voltage_range=output_range,
-                                            compliance_current=compliance)
+            self.source_meter.apply_voltage(compliance_current=compliance)
             self.source_meter.source_enabled = True
             self.source_meter.measure_current()
 
         elif control.lower() == "current":
-            self.source_meter.apply_current(current_range=output_range,
-                                            compliance_voltage=compliance)
+            self.source_meter.apply_current(compliance_voltage=compliance)
             self.source_meter.source_enabled = True
             self.source_meter.measure_voltage()
 
