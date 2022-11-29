@@ -188,10 +188,10 @@ class PSWSWindow(SpynWaveWindowBase):
         self.inputs.frequency_stop.setMaximum(frequency_max)
         self.inputs.frequency_stop.setValue(frequency_max)
 
-        # self.inputs.frequency_stepsize.setMaximum(frequency_steps)
-        stepsize = (frequency_max - frequency_min) / frequency_steps
-        self.inputs.frequency_stepsize.setValue(stepsize)
-        self.inputs.frequency_stepsize.setSingleStep(stepsize)
+        # self.inputs.frequency_step.setMaximum(frequency_steps)
+        step = (frequency_max - frequency_min) / frequency_steps
+        self.inputs.frequency_step.setValue(step)
+        self.inputs.frequency_step.setSingleStep(step)
 
         self.inputs.rf_frequency.setMinimum(frequency_min)
         self.inputs.rf_frequency.setMaximum(frequency_max)
