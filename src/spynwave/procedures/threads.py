@@ -79,7 +79,13 @@ class SourceMeterThread(InstrumentThread):
         log.info("Source-meter Thread: start measuring")
 
         while not self.should_stop():
-            data = self.instrument.measure()
+            try:
+                data = self.instrument.measure()
+            except VisaIOError as exc:
+                if not exc.error_code == VI_ERROR_TMO:
+                    raise exc
+                continue
+
             self.put_datapoint(data)
 
             sleep(self.settings['delay'])
