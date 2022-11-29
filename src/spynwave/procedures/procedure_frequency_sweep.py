@@ -68,7 +68,7 @@ class MixinFrequencySweep:
         self.vna.prepare_frequency_sweep(
             frequency_start=self.frequency_start * 1e9,
             frequency_stop=self.frequency_stop * 1e9,
-            frequency_stepsize=self.frequency_stepsize,
+            frequency_stepsize=self.frequency_stepsize * 1e9,
         )
 
         log.info(f"Ramping field to {self.magnetic_field} mT")
@@ -117,7 +117,6 @@ class MixinFrequencySweep:
 
         frequency_span = self.frequency_stop - self.frequency_start
         frequency_points = int(round(frequency_span / self.frequency_stepsize))
-        print(frequency_points)
         time_per_sweep = ports * time_per_point * frequency_points
 
         duration = self.frequency_averages * time_per_sweep
