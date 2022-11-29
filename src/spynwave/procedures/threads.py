@@ -102,6 +102,7 @@ class DCSweepThread(InstrumentThread):
                        (self.settings["stop"] - self.settings["start"])) * 100
 
         if self.settings["publish_data"]:
+            data["DC resistance (ohm)"] = data["DC voltage (V)"] / data["DC current (A)"]
             self.put_datapoint(data)
 
         self.procedure.emit("progress", progress)
