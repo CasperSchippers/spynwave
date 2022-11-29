@@ -164,23 +164,27 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
     )
     dc_voltage = FloatParameter(
         "DC voltage",
-        default=0.1,
+        default=1.,
         step=0.1,
+        minimum=-200,
+        maximum=+200,
         units="V",
         group_by=["dc_excitation", "dc_regulate", "measurement_type"],
         group_condition=[True, "Voltage", lambda v: v != "DC sweep"],
     )
     dc_current = FloatParameter(
         "DC current",
-        default=0.1,
+        default=1.,
         step=0.1,
-        units="A",
+        minimum=-1050.,
+        maximum=+1050.,
+        units="mA",
         group_by=["dc_excitation", "dc_regulate", "measurement_type"],
         group_condition=[True, "Current", lambda v: v != "DC sweep"],
     )
     dc_voltage_compliance = FloatParameter(
         "DC voltage compliance",
-        default=1,
+        default=25.,
         step=0.1,
         units="V",
         group_by=["dc_excitation", "dc_regulate"],
@@ -188,9 +192,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
     )
     dc_current_compliance = FloatParameter(
         "DC current compliance",
-        default=1,
+        default=1.,
         step=0.1,
-        units="A",
+        units="mA",
         group_by=["dc_excitation", "dc_regulate"],
         group_condition=[True, "Voltage"],
     )
@@ -276,13 +280,13 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
         if self.source_meter is not None:
             self.source_meter.startup(control=self.dc_regulate, compliance={
                 "Voltage": self.dc_voltage_compliance,
-                "Current": self.dc_current_compliance}[self.dc_regulate])
+                "Current": self.dc_current_compliance * 1e3}[self.dc_regulate])
 
             if not self.measurement_type == "DC sweep":
                 if self.dc_regulate == "Voltage":
                     self.source_meter.ramp_to_voltage(self.dc_voltage)
                 elif self.dc_regulate == "Current":
-                    self.source_meter.ramp_to_current(self.dc_current)
+                    self.source_meter.ramp_to_current(self.dc_current * 1e3)
 
         self.vna.reset_to_measure()
 

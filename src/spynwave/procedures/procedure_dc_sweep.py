@@ -55,8 +55,8 @@ class MixinDCSweep(ThreadedSweepBase):
     dc_current_start = FloatParameter(
         "Start current",
         default=0.,
-        minimum=-1000.,
-        maximum=+1000.,
+        minimum=-1050.,
+        maximum=+1050.,
         step=1.,
         units="mA",
         group_by=["measurement_type", "dc_regulate"],
@@ -65,8 +65,8 @@ class MixinDCSweep(ThreadedSweepBase):
     dc_current_stop = FloatParameter(
         "Stop current",
         default=10.,
-        minimum=-1000.,
-        maximum=+1000.,
+        minimum=-1050.,
+        maximum=+1050.,
         step=1.,
         units="mA",
         group_by=["measurement_type", "dc_regulate"],
