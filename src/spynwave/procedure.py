@@ -279,8 +279,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
 
         if self.source_meter is not None:
             self.source_meter.startup(control=self.dc_regulate, compliance={
-                "Voltage": self.dc_voltage_compliance,
-                "Current": self.dc_current_compliance * 1e-3}[self.dc_regulate])
+                "Current": self.dc_voltage_compliance,
+                "Voltage": self.dc_current_compliance * 1e-3}[self.dc_regulate])
 
             if not self.measurement_type == "DC sweep":
                 if self.dc_regulate == "Voltage":
