@@ -21,7 +21,6 @@ class MagnetCalibrationWindow(SpynWaveWindowBase):
         super().__init__(
             procedure_class=MagnetCalibrationProcedure,
             inputs=(
-                "AB_filename_base",
                 "max_current",
                 "symmetric_currents",
                 "min_current",
@@ -44,7 +43,7 @@ class MagnetCalibrationWindow(SpynWaveWindowBase):
             procedure = self.make_procedure()
 
         folder = self.directory
-        filename = procedure.AB_filename_base
+        filename = self.filename
 
         if procedure.symmetric_currents:
             procedure.min_current = -procedure.max_current

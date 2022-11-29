@@ -36,7 +36,6 @@ class PSWSWindow(SpynWaveWindowBase):
         super().__init__(
             procedure_class=PSWSProcedure,
             inputs=(
-                "AB_filename_base",
                 "measurement_type",
                 "rf_frequency",
                 "magnetic_field",
@@ -90,7 +89,7 @@ class PSWSWindow(SpynWaveWindowBase):
             procedure = self.make_procedure()
 
         folder = self.directory
-        filename = procedure.AB_filename_base
+        filename = self.filename
         measurement_type = procedure.measurement_type
 
         procedure.set_parameters({

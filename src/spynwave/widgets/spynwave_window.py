@@ -8,8 +8,9 @@ import ctypes
 
 from pymeasure.display.Qt import QtWidgets, QtCore, QtGui
 from pymeasure.display.windows import ManagedWindow
-
+from pymeasure.experiment.parameters import Parameter
 from pymeasure.display.inputs import IntegerInput, ListInput, ScientificInput
+
 from spynwave.widgets import SpynWaveSequencerWidget
 
 
@@ -23,7 +24,8 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("fna.MeasurementSo
 
 
 class SpynWaveWindowBase(ManagedWindow):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, filename_input=True, **kwargs):
+        self.filename_input = filename_input
 
         kwargs.setdefault("inputs_in_scrollarea", True)
         kwargs.setdefault("directory_input", True)
@@ -57,7 +59,8 @@ class SpynWaveWindowBase(ManagedWindow):
         return curve
 
     def _setup_ui(self):
-        """ Re-implementation of the _setup_ui method to include the customized sequencer widget
+        """ Re-implementation of the _setup_ui method to include customization.
+        This includes a customized sequencer, a changed inputs-widget layout, a filename-input
         """
         if use_sequencer := self.use_sequencer:
             self.sequencer = SpynWaveSequencerWidget(parent=self)
@@ -74,6 +77,40 @@ class SpynWaveWindowBase(ManagedWindow):
 
         # Update the layout of the inputs widget
         self._change_layout_inputs()
+
+        if self.filename_input:
+            filename_name = "Filename"
+            filename_default = "Data"
+
+            # Search for an input with
+            for key in self.procedure_class.__dict__.keys():
+                if "filename" in key and type(getattr(self.procedure_class, key)) == Parameter:
+                    filename_name = getattr(self.procedure_class, key).name
+                    filename_default = getattr(self.procedure_class, key).default
+                    break
+
+            self.filename_label = QtWidgets.QLabel(self)
+            self.filename_label.setText(filename_name)
+            self.filename_line = QtWidgets.QLineEdit(parent=self)
+            self.filename_line.setText(filename_default)
+
+    def _layout(self):
+        """ Re-implementation of the _layout method to include customization.
+        Includes placement of the filename-input
+        """
+        super()._layout()
+
+        if self.filename_input:
+            vbox = self.directory_label.parent().layout()
+            vbox.insertWidget(1, self.filename_label)
+            vbox.insertWidget(2, self.filename_line)
+
+
+    @property
+    def filename(self):
+        if not self.filename_input:
+            raise ValueError("No directory input in the ManagedWindow")
+        return self.filename_line.text()
 
     def _change_layout_inputs(self):
         old_layout = self.inputs.layout()
