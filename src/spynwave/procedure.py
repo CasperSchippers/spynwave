@@ -61,7 +61,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
             "Field sweep",
             "Frequency sweep",
             "Time sweep",
-            # "DC sweep",
+            "DC sweep",
         ],
         default="Field sweep"
     )

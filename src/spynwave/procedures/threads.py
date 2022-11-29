@@ -74,6 +74,43 @@ class GaussProbeThread(InstrumentThread):
         log.info("Gauss probe Thread: stopped measuring")
 
 
+class DCSweepThread(InstrumentThread):
+    def run(self):
+        log.info("Source-meter sweep Thread: start sweeping")
+
+        try:
+            self.instrument.sweep(
+                self.settings["start"],
+                self.settings["stop"],
+                self.settings["ramp_rate"],
+                regulate=self.settings["regulate"],
+                should_stop=self.should_stop,
+                callback_fn=self.dc_callback,
+            )
+        except Exception as exc:
+            raise exc
+        finally:
+            self.finished()
+
+        log.info("Source-meter sweep Thread: stopped sweeping")
+
+    def dc_callback(self, value):
+        progress = abs((value - self.settings["start"]) /
+                       (self.settings["stop"] - self.settings["start"])) * 100
+
+        if self.settings["publish_data"]:
+            try:
+                if self.settings["regulate"] == "Current":
+                    self.data_queue.put_nowait((time, {"Current (A)": value}))
+                else:
+                    self.data_queue.put_nowait((time, {"Voltage (V)": value}))
+            except queue.Full:
+                log.warning("Field sweep Thread: data-queue is full, continuing without "
+                            "putting field-data to the queue.")
+
+        self.procedure.emit("progress", progress)
+
+
 class SourceMeterThread(InstrumentThread):
     def run(self):
         log.info("Source-meter Thread: start measuring")

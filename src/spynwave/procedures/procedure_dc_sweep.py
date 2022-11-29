@@ -10,6 +10,7 @@ from pymeasure.experiment import (
 
 from spynwave.procedures.threaded_sweep_base import ThreadedSweepBase
 from spynwave.procedures.threads import (
+    DCSweepThread,
     GaussProbeThread,
     VNAControlThread,
     SourceMeterThread,
@@ -93,7 +94,16 @@ class MixinDCSweep(ThreadedSweepBase):
                                           should_stop=self.should_stop)
 
         # Prepare the parallel methods for the sweep
-        self.dc_sweep_thread
+        start = {"Current": self.dc_current_start * 1e3,
+                 "Voltage": self.dc_voltage_start}[self.dc_regulate]
+        stop = {"Current": self.dc_current_stop * 1e3,
+                "Voltage": self.dc_voltage_stop}[self.dc_regulate]
+        rate = {"Current": self.dc_current_rate * 1e3,
+                "Voltage": self.dc_voltage_rate}[self.dc_regulate]
+
+        self.dc_sweep_thread = DCSweepThread(self, self.source_meter, regulate=self.dc_regulate,
+                                             start=start, stop=stop, ramp_rate=rate,
+                                             publish_data=False,)
 
         self.gauss_probe_thread = GaussProbeThread(self, self.magnet)
         self.vna_control_thread = VNAControlThread(self, self.vna, delay=0.001)

@@ -3,18 +3,22 @@ This file is part of the SpynWave package.
 """
 
 import logging
+from time import sleep, time
+import math
 
-
-from spynwave.constants import config
+import numpy as np
 
 from pymeasure.instruments.keithley import Keithley2400
+
+from spynwave.drivers.driver_base import DriverBase
+from spynwave.constants import config
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 
-class SourceMeter:
+class SourceMeter(DriverBase):
     """ Class that represents the sourcemeter (Keithley 2400) to apply a DC excitation to the
     device under test. Can control either the current or the voltage.
     """
@@ -53,6 +57,13 @@ class SourceMeter:
         if not self.source_meter.source_mode == "current":
             raise ValueError("Trying to apply current when the source-meter is sourcing voltage.")
         self.source_meter.ramp_to_current(current)
+
+    def sweep(self, *args, regulate="voltage", **kwargs):
+        regulate = regulate.lower()
+        update_fn = {"current": self.set_current,
+                     "voltage": self.set_voltage}[regulate]
+
+        super().sweep(*args, setter=update_fn, **kwargs)
 
     def measure(self):
         data = {}
