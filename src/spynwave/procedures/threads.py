@@ -42,7 +42,7 @@ class FieldSweepThread(InstrumentThread):
 
         if self.settings["publish_data"]:
             try:
-                self.data_queue.put_nowait((time, field, progress))
+                self.data_queue.put_nowait((time, {"Field (T)": field}))
             except queue.Full:
                 log.warning("Field sweep Thread: data-queue is full, continuing without "
                             "putting field-data to the queue.")
