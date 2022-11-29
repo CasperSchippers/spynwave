@@ -148,26 +148,47 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         group_condition=True,
     )
 
-    dc_control = ListParameter(
+    dc_excitation = BooleanParameter(
         "Apply DC excitation",
-        choices=[False, "Voltage", "Current"],
         default=False,
+    )
+    dc_regulate = ListParameter(
+        "Source-meter regulate",
+        choices=["Voltage", "Current"],
+        group_by="dc_excitation",
+        group_condition=True,
     )
     dc_voltage = FloatParameter(
         "DC voltage",
         default=0.1,
         step=0.1,
         units="V",
-        group_by="dc_control",
-        group_condition="Voltage",
+        group_by=["dc_excitation", "dc_regulate"],
+        group_condition=[True, "Voltage"],
     )
     dc_current = FloatParameter(
         "DC current",
         default=0.1,
         step=0.1,
         units="A",
-        group_by="dc_control",
-        group_condition="Current",
+        group_by=["dc_excitation", "dc_regulate"],
+        group_condition=[True, "Current"],
+    )
+    dc_voltage_compliance = FloatParameter(
+        "DC voltage compliance",
+        default=1,
+        step=0.1,
+        units="V",
+        group_by=["dc_excitation", "dc_regulate"],
+        group_condition=[True, "Current"],
+    )
+    dc_current_compliance = FloatParameter(
+        "DC current compliance",
+        default=1,
+        step=0.1,
+        units="A",
+        group_by=["dc_excitation", "dc_regulate"],
+        group_condition=[True, "Voltage"],
     )
 
     # Metadata to be stored in the file
@@ -226,7 +247,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         self.magnet = Magnet(mirror_fields=self.mirrored_field,
                              measurement_type=self.measurement_type)
 
-        if self.dc_control:
+        if self.dc_excitation or self.measurement_type == "DC sweep":
             self.source_meter = SourceMeter()
 
         # Run general startup procedure
@@ -246,13 +267,16 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         # Run measurement-type-specific startup
         self.get_mixin_method('startup')()
 
-        if self.source_meter is not None and not self.measurement_type == "DC sweep":
-            self.source_meter.startup(control=self.dc_control)
+        if self.source_meter is not None:
+            self.source_meter.startup(control=self.dc_regulate, compliance={
+                "Voltage": self.dc_voltage_compliance,
+                "Current": self.dc_current_compliance}[self.dc_regulate])
 
-            if self.dc_control == "Voltage":
-                self.source_meter.ramp_to_voltage(self.dc_voltage)
-            elif self.dc_control == "Current":
-                self.source_meter.ramp_to_current(self.dc_current)
+            if not self.measurement_type == "DC sweep":
+                if self.dc_regulate == "Voltage":
+                    self.source_meter.ramp_to_voltage(self.dc_voltage)
+                elif self.dc_regulate == "Current":
+                    self.source_meter.ramp_to_current(self.dc_current)
 
         self.vna.reset_to_measure()
 
