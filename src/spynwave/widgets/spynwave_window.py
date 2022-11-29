@@ -9,6 +9,7 @@ import ctypes
 from pymeasure.display.Qt import QtWidgets, QtCore, QtGui
 from pymeasure.display.windows import ManagedWindow
 
+from pymeasure.display.inputs import IntegerInput, ListInput, ScientificInput
 from spynwave.widgets import SpynWaveSequencerWidget
 
 
@@ -71,8 +72,44 @@ class SpynWaveWindowBase(ManagedWindow):
             self.inputs.measurement_type.currentTextChanged.connect(self.sequencer.set_pane_focus)
             self.sequencer.set_pane_focus(self.inputs.measurement_type.currentText())
 
-        # remove margin
-        self.inputs.layout().setContentsMargins(0, 0, 0, 0)
+        # Update the layout of the inputs widget
+        self._change_layout_inputs()
+
+    def _change_layout_inputs(self):
+        old_layout = self.inputs.layout()
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
+
+        for name in self.inputs._inputs:
+            widget = getattr(self.inputs, name)
+
+            # Remove from old layout
+            old_layout.removeWidget(widget)
+
+            if name in self.inputs.labels:
+                label = self.inputs.labels[name]
+
+                # Remove from old layout
+                old_layout.removeWidget(label)
+
+                if isinstance(widget, (IntegerInput, ScientificInput, ListInput, )):
+                    sublayout = QtWidgets.QHBoxLayout()
+                    sublayout.setContentsMargins(0, 0, 0, 0)
+                    sublayout.addWidget(label)
+                    sublayout.addWidget(widget)
+                    layout.addLayout(sublayout)
+                else:
+                    layout.addWidget(label)
+                    layout.addWidget(widget)
+            else:
+                layout.addWidget(widget)
+
+        # Remove the old layout
+        QtCore.QObjectCleanupHandler().add(old_layout)
+
+        self.inputs.setLayout(layout)
 
     def _setup_log_widget(self):
         """ Adjust the log-widget.
