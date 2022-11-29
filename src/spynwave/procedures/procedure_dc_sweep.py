@@ -94,11 +94,11 @@ class MixinDCSweep(ThreadedSweepBase):
                                           should_stop=self.should_stop)
 
         # Prepare the parallel methods for the sweep
-        start = {"Current": self.dc_current_start * 1e3,
+        start = {"Current": self.dc_current_start * 1e-3,
                  "Voltage": self.dc_voltage_start}[self.dc_regulate]
-        stop = {"Current": self.dc_current_stop * 1e3,
+        stop = {"Current": self.dc_current_stop * 1e-3,
                 "Voltage": self.dc_voltage_stop}[self.dc_regulate]
-        rate = {"Current": self.dc_current_rate * 1e3,
+        rate = {"Current": self.dc_current_rate * 1e-3,
                 "Voltage": self.dc_voltage_rate}[self.dc_regulate]
 
         self.dc_sweep_thread = DCSweepThread(self, self.source_meter, regulate=self.dc_regulate,
