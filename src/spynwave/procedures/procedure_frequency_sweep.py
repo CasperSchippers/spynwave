@@ -100,7 +100,7 @@ class MixinFrequencySweep:
         data["Timestamp (s)"] = (stop + start) / 2
         data["Field (T)"] = sum(field_points) / len(field_points)
 
-        self.emit("results", data)
+        self.emit_data(data)
 
     def shutdown_frequency_sweep(self):
         pass

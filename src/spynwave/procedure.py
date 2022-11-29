@@ -7,6 +7,8 @@ import logging
 from time import time, sleep
 from datetime import datetime
 
+import pandas as pd
+
 from pymeasure.experiment import (
     Procedure, Parameter, FloatParameter, BooleanParameter,
     ListParameter, Metadata
@@ -206,6 +208,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
     # Define data columns
     DATA_COLUMNS = [
         "Timestamp (s)",
+        "Runtime (s)",  # Time since the start of the measurement (i.e. Timestamp - start-time)
         "Field (T)",
         "Frequency (Hz)",
         "Temperature (K)",
@@ -221,6 +224,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
         "S22 real",
         "S22 imag",
     ]
+    STATIC_DATA = {}
 
     # initialize instrument attributes
     vna = None
@@ -290,14 +294,6 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
         """
         self.get_mixin_method('execute')()
 
-    # def get_datapoint(self):
-    #     data = {
-    #         "Timestamp (s)": time(),
-    #         "Field (T)": self.magnet.measure_field()
-    #     }
-    #
-    #     return data
-
     # Define stop sequence
     def shutdown(self):
         """ Wrap up the measurement.
@@ -344,6 +340,24 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
         start = time()
         while time() - start < duration and not self.should_stop():
             sleep(0.01)
+
+    def emit_data(self, data):
+        if isinstance(data, dict):
+            data.update(self.STATIC_DATA)
+
+        elif isinstance(data, pd.DataFrame):
+            for key, value in self.STATIC_DATA.items():
+                data[key] = value
+
+        # Add the timestamp column (if not existing)
+        if "Timestamp (s)" not in data:
+            data["Timestamp (s)"] = time()
+
+        # Add the runtime column
+        if "Runtime (s)" not in data:
+            data["Runtime (s)"] = data["Timestamp (s)"] - self.start_time
+
+        self.emit("results", data)
 
     def get_estimates(self):
         estimates = self.get_mixin_method('get_estimates')()

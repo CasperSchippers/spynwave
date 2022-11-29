@@ -55,7 +55,7 @@ class DataThread(StoppableThread):
             self.static_data = new_data
 
     def emit_data(self, data):
-        self.procedure.emit("results", data | self.static_data)
+        self.procedure.emit_data(data | self.static_data)
 
     def matching_possible(self):
         """ Check if all structs sufficient data for matching
