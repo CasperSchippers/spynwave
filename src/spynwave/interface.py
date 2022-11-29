@@ -9,7 +9,7 @@ from pyvisa.constants import VI_ERROR_TMO
 
 from pymeasure.experiment import Results, unique_filename
 from pymeasure.display.widgets.dock_widget import DockWidget
-# from pymeasure.display.widgets import ImageWidget
+from pymeasure.display.widgets import ImageWidget
 
 from spynwave.procedure import PSWSProcedure
 from spynwave.drivers import VNA
@@ -30,8 +30,8 @@ class PSWSWindow(SpynWaveWindowBase):
                                       ["S11 real", "S22 real"])
 
         # TODO: this can be added, but needs some work to get it running
-        # self.image_widget = ImageWidget("2D plot", PSWSProcedure.DATA_COLUMNS,
-        #                                 "field", "frequency", "S11 real")
+        self.image_widget = ImageWidget("2D plot", PSWSProcedure.DATA_COLUMNS,
+                                        "field", "frequency", "S11 real")
 
         super().__init__(
             procedure_class=PSWSProcedure,
@@ -44,7 +44,7 @@ class PSWSWindow(SpynWaveWindowBase):
                 "frequency_stepsize",
                 "frequency_averages",
                 "field_start",
-                "field_stop",
+                "field_end",
                 "field_ramp_rate",
                 "time_duration",
                 "dc_excitation",
@@ -74,7 +74,7 @@ class PSWSWindow(SpynWaveWindowBase):
                 "frequency_averages",
             ),
             sequencer=True,
-            widget_list=(self.dock_widget, )
+            widget_list=(self.dock_widget, self.image_widget)
         )
 
         # self.update_inputs_from_vna()

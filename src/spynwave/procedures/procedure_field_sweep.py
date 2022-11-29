@@ -35,7 +35,7 @@ class MixinFieldSweep(ThreadedSweepBase):
         group_by="measurement_type",
         group_condition="Field sweep",
     )
-    field_stop = FloatParameter(
+    field_end = FloatParameter(
         "Stop field",
         default=200,
         # minimum=-686,
@@ -71,9 +71,9 @@ class MixinFieldSweep(ThreadedSweepBase):
         # Prepare the parallel methods for the sweep
         self.field_sweep_thread = FieldSweepThread(self, self.magnet,
                                                    field_start=self.field_start * 1e-3,
-                                                   field_stop=self.field_stop * 1e-3,
+                                                   field_stop=self.field_end * 1e-3,
                                                    field_ramp_rate=self.field_ramp_rate * 1e-3,
-                                                   publish_data=False,)
+                                                   publish_data=False, )
 
         self.gauss_probe_thread = GaussProbeThread(self, self.magnet)
         self.vna_control_thread = VNAControlThread(self, self.vna, delay=0.001)
@@ -112,6 +112,6 @@ class MixinFieldSweep(ThreadedSweepBase):
         overhead = 10  # Just a very poor estimate
         duration_sat = self.saturation_time + \
             abs(2 * self.saturation_field * 1e-3 / magnet.field_ramp_rate)
-        duration_sweep = abs((self.field_start - self.field_stop) / self.field_ramp_rate) + \
-            self.field_stop * 1e-3 / magnet.field_ramp_rate
+        duration_sweep = abs((self.field_start - self.field_end) / self.field_ramp_rate) + \
+                         self.field_end * 1e-3 / magnet.field_ramp_rate
         return overhead + duration_sat + duration_sweep

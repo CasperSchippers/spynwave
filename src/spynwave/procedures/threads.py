@@ -23,7 +23,7 @@ class FieldSweepThread(InstrumentThread):
         try:
             self.instrument.sweep_field(
                 self.settings["field_start"],
-                self.settings["field_stop"],
+                self.settings["field_end"],
                 self.settings["field_ramp_rate"],
                 should_stop=self.should_stop,
                 callback_fn=self.field_callback,
@@ -39,7 +39,7 @@ class FieldSweepThread(InstrumentThread):
     def field_callback(self, field):
         field = np.round(field, 10)  # rounding to remove float-rounding-errors
         progress = abs((field - self.settings["field_start"]) /
-                       (self.settings["field_stop"] - self.settings["field_start"])) * 100
+                       (self.settings["field_end"] - self.settings["field_start"])) * 100
 
         if self.settings["publish_data"]:
             try:
