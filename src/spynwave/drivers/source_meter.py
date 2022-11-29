@@ -89,6 +89,6 @@ class SourceMeter(DriverBase):
 
     def shutdown(self, turn_off_output=True):
         if self.source_meter is not None:
-            if self.source_meter.output_enabled:
+            if self.source_meter.source_enabled:
                 if turn_off_output:
                     self.source_meter.shutdown()
