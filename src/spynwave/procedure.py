@@ -13,7 +13,7 @@ from pymeasure.experiment import (
 )
 
 from spynwave.drivers import Magnet, VNA, SourceMeter
-from spynwave.procedures import MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep
+from spynwave.procedures import MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinDCSweep
 
 # Setup logging
 log = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 
-class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Procedure):
+class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinDCSweep, Procedure):
     r"""
      _____        _____            __  __ ______ _______ ______ _____   _____
     |  __ \ /\   |  __ \     /\   |  \/  |  ____|__   __|  ____|  __ \ / ____|
@@ -59,7 +59,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
             "Field sweep",
             "Frequency sweep",
             "Time sweep",
-            # "DC sweep",  # TODO: this should be implemented
+            "DC sweep",
         ],
         default="Field sweep"
     )
@@ -151,6 +151,8 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
     dc_excitation = BooleanParameter(
         "Apply DC excitation",
         default=False,
+        group_by="measurement_type",
+        group_condition=lambda v: v != "DC sweep",
     )
     dc_regulate = ListParameter(
         "Source-meter regulate",
@@ -163,16 +165,16 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, Proced
         default=0.1,
         step=0.1,
         units="V",
-        group_by=["dc_excitation", "dc_regulate"],
-        group_condition=[True, "Voltage"],
+        group_by=["dc_excitation", "dc_regulate", "measurement_type"],
+        group_condition=[True, "Voltage", lambda v: v != "DC sweep"],
     )
     dc_current = FloatParameter(
         "DC current",
         default=0.1,
         step=0.1,
         units="A",
-        group_by=["dc_excitation", "dc_regulate"],
-        group_condition=[True, "Current"],
+        group_by=["dc_excitation", "dc_regulate", "measurement_type"],
+        group_condition=[True, "Current", lambda v: v != "DC sweep"],
     )
     dc_voltage_compliance = FloatParameter(
         "DC voltage compliance",

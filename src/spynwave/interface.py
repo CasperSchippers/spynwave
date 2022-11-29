@@ -43,17 +43,23 @@ class PSWSWindow(SpynWaveWindowBase):
                 "frequency_start",
                 "frequency_stop",
                 "frequency_stepsize",
+                "frequency_averages",
                 "field_start",
                 "field_stop",
                 "field_ramp_rate",
                 "time_duration",
                 "dc_excitation",
                 "dc_regulate",
+                "dc_voltage_start",
+                "dc_voltage_stop",
+                "dc_voltage_rate",
+                "dc_current_start",
+                "dc_current_stop",
+                "dc_current_rate",
                 "dc_voltage",
                 "dc_current",
                 "dc_voltage_compliance",
                 "dc_current_compliance",
-                "frequency_averages",
                 "saturate_field_before_measurement",
                 "saturation_field",
                 "rf_advanced_settings",
@@ -73,6 +79,11 @@ class PSWSWindow(SpynWaveWindowBase):
         )
 
         # self.update_inputs_from_vna()
+
+        # Link the dc excitation checkbox to the measurement type
+        # Required for some dc-sweep parameters to show up
+        self.inputs.measurement_type.currentTextChanged.connect(self._set_dc_excitation)
+        self._set_dc_excitation(self.inputs.measurement_type.currentText())
 
     def queue(self, procedure=None):
         if procedure is None:
@@ -117,6 +128,16 @@ class PSWSWindow(SpynWaveWindowBase):
     #################################################################
     # Methods below extend the ManagedWindow with custom components #
     #################################################################
+
+    _old_dc_checked_state = None
+
+    def _set_dc_excitation(self, value):
+        if value == "DC sweep":
+            self._old_dc_checked_state = self.inputs.dc_excitation.isChecked()
+            self.inputs.dc_excitation.setChecked(True)
+        elif self._old_dc_checked_state is not None:
+            self.inputs.dc_excitation.setChecked(self._old_dc_checked_state)
+            self._old_dc_checked_state = None
 
     def update_inputs_from_vna(self):
         """ Inquire values for the frequency range and bandwidth from the VNA and set them as new
