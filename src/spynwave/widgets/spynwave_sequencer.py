@@ -16,6 +16,8 @@ from pymeasure.display.Qt import QtWidgets
 from pymeasure.display.widgets import SequencerWidget
 from pymeasure.display.inputs import ScientificInput
 
+import pymeasure.display.widgets
+
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 

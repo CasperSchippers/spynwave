@@ -10,7 +10,10 @@ from pymeasure.display.Qt import QtWidgets, QtCore, QtGui
 from pymeasure.display.curves import ResultsCurve
 from pymeasure.display.windows import ManagedWindow
 from pymeasure.experiment.parameters import Parameter
-from pymeasure.display.inputs import IntegerInput, ListInput, ScientificInput
+from pymeasure.display.widgets import InputsWidget, SequencerWidget
+
+# Load monkey-patches
+from spynwave.widgets.pymeasure_monkey_patches import patched_layout_inputs_widget
 
 from spynwave.widgets import SpynWaveSequencerWidget
 
@@ -19,6 +22,9 @@ from spynwave.widgets import SpynWaveSequencerWidget
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
+
+# Apply monkeypatches
+InputsWidget._layout = patched_layout_inputs_widget
 
 # Register as separate software
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("fna.MeasurementSoftware.SpynWave")
@@ -76,9 +82,6 @@ class SpynWaveWindowBase(ManagedWindow):
             self.inputs.measurement_type.currentTextChanged.connect(self.sequencer.set_pane_focus)
             self.sequencer.set_pane_focus(self.inputs.measurement_type.currentText())
 
-        # Update the layout of the inputs widget
-        self._change_layout_inputs()
-
         if self.filename_input:
             filename_name = "Filename"
             filename_default = "Data"
@@ -106,48 +109,11 @@ class SpynWaveWindowBase(ManagedWindow):
             vbox.insertWidget(1, self.filename_label)
             vbox.insertWidget(2, self.filename_line)
 
-
     @property
     def filename(self):
         if not self.filename_input:
             raise ValueError("No directory input in the ManagedWindow")
         return self.filename_line.text()
-
-    def _change_layout_inputs(self):
-        old_layout = self.inputs.layout()
-
-        layout = QtWidgets.QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(6)
-
-        for name in self.inputs._inputs:
-            widget = getattr(self.inputs, name)
-
-            # Remove from old layout
-            old_layout.removeWidget(widget)
-
-            if name in self.inputs.labels:
-                label = self.inputs.labels[name]
-
-                # Remove from old layout
-                old_layout.removeWidget(label)
-
-                if isinstance(widget, (IntegerInput, ScientificInput, ListInput, )):
-                    sublayout = QtWidgets.QHBoxLayout()
-                    sublayout.setContentsMargins(0, 0, 0, 0)
-                    sublayout.addWidget(label)
-                    sublayout.addWidget(widget)
-                    layout.addLayout(sublayout)
-                else:
-                    layout.addWidget(label)
-                    layout.addWidget(widget)
-            else:
-                layout.addWidget(widget)
-
-        # Remove the old layout
-        QtCore.QObjectCleanupHandler().add(old_layout)
-
-        self.inputs.setLayout(layout)
 
     def _setup_log_widget(self):
         """ Adjust the log-widget.
