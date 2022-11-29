@@ -58,7 +58,7 @@ class SpynWaveSequencerWidget(QtWidgets.QWidget):
         self.frequency_inputs = SweepInputPanel(self._parent.procedure_class,
                                                 "frequency", "field",
                                                 "frequency_start",
-                                                "frequency_stop",
+                                                "frequency_end",
                                                 "magnetic_field")
         # self.time_inputs = InputPanel()
 

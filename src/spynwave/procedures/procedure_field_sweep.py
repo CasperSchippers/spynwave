@@ -55,6 +55,10 @@ class MixinFieldSweep(ThreadedSweepBase):
         group_by="measurement_type",
         group_condition="Field sweep",
     )
+    @property
+    def field_step(self):
+        # Estimate the field step size for 2d plotting purpose
+        return self.field_ramp_rate * 0.1
 
     field_sweep_thread = None
     gauss_probe_thread = None

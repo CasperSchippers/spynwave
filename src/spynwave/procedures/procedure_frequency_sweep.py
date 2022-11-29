@@ -31,7 +31,7 @@ class MixinFrequencySweep:
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
-    frequency_stop = FloatParameter(
+    frequency_end = FloatParameter(
         "Stop frequency",
         default=15,
         minimum=0,
@@ -41,7 +41,7 @@ class MixinFrequencySweep:
         group_by="measurement_type",
         group_condition="Frequency sweep",
     )
-    frequency_stepsize = FloatParameter(
+    frequency_step = FloatParameter(
         "Frequency step size",
         default=0.1,
         minimum=0.000404904,
@@ -69,8 +69,8 @@ class MixinFrequencySweep:
 
         self.vna.prepare_frequency_sweep(
             frequency_start=self.frequency_start * 1e9,
-            frequency_stop=self.frequency_stop * 1e9,
-            frequency_stepsize=self.frequency_stepsize * 1e9,
+            frequency_stop=self.frequency_end * 1e9,
+            frequency_stepsize=self.frequency_step * 1e9,
         )
 
         log.info(f"Ramping field to {self.magnetic_field} mT")
@@ -125,8 +125,8 @@ class MixinFrequencySweep:
         ports = 2.1 if self.measurement_ports == "2-port" else 1.
         time_per_point = 1.04 / self.rf_bandwidth
 
-        frequency_span = self.frequency_stop - self.frequency_start
-        frequency_points = int(round(frequency_span / self.frequency_stepsize))
+        frequency_span = self.frequency_end - self.frequency_start
+        frequency_points = int(round(frequency_span / self.frequency_step))
         time_per_sweep = ports * time_per_point * frequency_points
 
         duration = self.frequency_averages * time_per_sweep
