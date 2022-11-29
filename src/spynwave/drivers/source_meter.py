@@ -3,10 +3,7 @@ This file is part of the SpynWave package.
 """
 
 import logging
-from time import sleep, time
-import math
-
-import numpy as np
+from time import sleep
 
 from pymeasure.instruments.keithley import Keithley2400
 
@@ -79,7 +76,7 @@ class SourceMeter(DriverBase):
     def set_voltage(self, voltage):
         self.source_meter.source_voltage = voltage
 
-    def sweep(self, *args, regulate="voltage", callback_fn=lambda v: {}, **kwargs):
+    def sweep(self, *args, regulate="voltage", callback_fn=lambda v, data: {}, **kwargs):
         regulate = regulate.lower()
         set_fn = {"current": self.set_current,
                   "voltage": self.set_voltage}[regulate]

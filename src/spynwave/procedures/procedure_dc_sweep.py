@@ -13,7 +13,6 @@ from spynwave.procedures.threads import (
     DCSweepThread,
     GaussProbeThread,
     VNAControlThread,
-    SourceMeterThread,
 )
 
 # Setup logging
