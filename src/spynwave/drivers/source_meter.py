@@ -29,8 +29,12 @@ class SourceMeter(DriverBase):
     def __init__(self):
         self.source_meter = Keithley2400(
             config["general"]["visa-prefix"] + config[self.name]["address"],
-            asrl=config[self.name]["rs232 settings"],
+            asrl=config[self.name]["rs232 settings"] | dict(
+                read_termination="\n",
+                write_termination="\n",
+            ),
         )
+        self.source_meter.clear()
 
     def startup(self, control="Voltage", compliance=0.1):
         # Check if enabled
