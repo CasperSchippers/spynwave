@@ -5,6 +5,8 @@ This file is part of the SpynWave package.
 import logging
 from time import time
 
+import pandas as pd
+
 from pymeasure.experiment import (
     FloatParameter, IntegerParameter
 )
@@ -81,6 +83,8 @@ class MixinFrequencySweep:
         start = time()
 
         field_points = [self.magnet.measure_field()]
+        if self.source_meter is not None:
+            source_points = [self.source_meter.measure()]
 
         while not self.should_stop():
             cnt = self.vna.averages_done()
@@ -88,6 +92,8 @@ class MixinFrequencySweep:
 
             # Measure the field while waiting
             field_points.append(self.magnet.measure_field())
+            if self.source_meter is not None:
+                source_points.append(self.source_meter.measure())
 
             if cnt >= self.frequency_averages:
                 break
@@ -99,6 +105,10 @@ class MixinFrequencySweep:
 
         data["Timestamp (s)"] = (stop + start) / 2
         data["Field (T)"] = sum(field_points) / len(field_points)
+
+        if self.source_meter is not None:
+            for k, v in pd.DataFrame(source_points).mean().to_dict().items():
+                data[k] = v
 
         self.emit_data(data)
 
