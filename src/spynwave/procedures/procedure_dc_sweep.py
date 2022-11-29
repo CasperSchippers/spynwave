@@ -74,8 +74,8 @@ class MixinDCSweep(ThreadedSweepBase):
     )
     dc_current_rate = FloatParameter(
         "Current sweep rate",
-        default=10.,
-        step=1.,
+        default=0.1,
+        step=0.1,
         units="mA/s",
         group_by=["measurement_type", "dc_regulate"],
         group_condition=["DC sweep", "Current"],
@@ -93,6 +93,11 @@ class MixinDCSweep(ThreadedSweepBase):
                                           sleep_fn=self.sleep,
                                           should_stop=self.should_stop)
 
+        if self.dc_regulate == "Voltage":
+            self.source_meter.ramp_to_voltage(self.dc_voltage_start)
+        else:
+            self.source_meter.ramp_to_current(self.dc_current_start * 1e-3)
+
         # Prepare the parallel methods for the sweep
         start = {"Current": self.dc_current_start * 1e-3,
                  "Voltage": self.dc_voltage_start}[self.dc_regulate]
@@ -103,18 +108,19 @@ class MixinDCSweep(ThreadedSweepBase):
 
         self.dc_sweep_thread = DCSweepThread(self, self.source_meter, regulate=self.dc_regulate,
                                              start=start, stop=stop, ramp_rate=rate,
-                                             publish_data=False,)
+                                             publish_data=True,)
 
         self.gauss_probe_thread = GaussProbeThread(self, self.magnet)
         self.vna_control_thread = VNAControlThread(self, self.vna, delay=0.001)
 
-        self.source_meter_thread = SourceMeterThread(self, self.source_meter, delay=0.001)
+        # self.source_meter_thread = SourceMeterThread(self, self.source_meter, delay=0.001)
 
         self.threads_startup(
             data_producing_threads=[
                 self.gauss_probe_thread,  # First thread is expected to be slowest in producing data
                 self.vna_control_thread,
-                self.source_meter_thread,
+                self.dc_sweep_thread,
+                # self.source_meter_thread,
             ],
             sweep_thread=self.dc_sweep_thread,
             static_data={"Frequency (Hz)": self.rf_frequency * 1e9},

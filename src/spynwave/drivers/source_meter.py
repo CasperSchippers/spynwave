@@ -65,12 +65,35 @@ class SourceMeter(DriverBase):
             raise ValueError("Trying to apply current when the source-meter is sourcing voltage.")
         self.source_meter.ramp_to_current(current)
 
-    def sweep(self, *args, regulate="voltage", **kwargs):
-        regulate = regulate.lower()
-        update_fn = {"current": self.set_current,
-                     "voltage": self.set_voltage}[regulate]
+    def set_current(self, current):
+        self.source_meter.source_current = current
 
-        super().sweep(*args, setter=update_fn, **kwargs)
+    def set_voltage(self, voltage):
+        self.source_meter.source_voltage = voltage
+
+    def sweep(self, *args, regulate="voltage", callback_fn=lambda v: {}, **kwargs):
+        regulate = regulate.lower()
+        set_fn = {"current": self.set_current,
+                  "voltage": self.set_voltage}[regulate]
+
+        if self.source_meter.source_mode == "voltage":
+            def cbfn(v):
+                sleep(0.05)
+                data = {
+                    "DC voltage (V)": self.source_meter.source_voltage,
+                    "DC current (A)": self.source_meter.current,
+                }
+                callback_fn(v, data=data)
+        else:
+            def cbfn(v):
+                sleep(0.05)
+                data = {
+                    "DC current (A)": self.source_meter.source_current,
+                    "DC voltage (V)": self.source_meter.voltage,
+                }
+                callback_fn(v, data=data)
+
+        super().sweep(*args, set_fn=set_fn, callback_fn=cbfn, **kwargs)
 
     def measure(self):
         data = {}

@@ -29,6 +29,7 @@ class FieldSweepThread(InstrumentThread):
                 callback_fn=self.field_callback,
             )
         except Exception as exc:
+            log.error(exc)
             raise exc
         finally:
             self.finished()
@@ -88,25 +89,20 @@ class DCSweepThread(InstrumentThread):
                 callback_fn=self.dc_callback,
             )
         except Exception as exc:
+            log.error(exc)
             raise exc
         finally:
             self.finished()
 
         log.info("Source-meter sweep Thread: stopped sweeping")
 
-    def dc_callback(self, value):
+    def dc_callback(self, value, data):
+        log.info(f"{value}")
         progress = abs((value - self.settings["start"]) /
                        (self.settings["stop"] - self.settings["start"])) * 100
 
         if self.settings["publish_data"]:
-            try:
-                if self.settings["regulate"] == "Current":
-                    self.data_queue.put_nowait((time, {"Current (A)": value}))
-                else:
-                    self.data_queue.put_nowait((time, {"Voltage (V)": value}))
-            except queue.Full:
-                log.warning("Field sweep Thread: data-queue is full, continuing without "
-                            "putting field-data to the queue.")
+            self.put_datapoint(data)
 
         self.procedure.emit("progress", progress)
 
