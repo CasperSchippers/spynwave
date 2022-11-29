@@ -7,6 +7,7 @@ import logging
 import ctypes
 
 from pymeasure.display.Qt import QtWidgets, QtCore, QtGui
+from pymeasure.display.curves import ResultsCurve
 from pymeasure.display.windows import ManagedWindow
 from pymeasure.experiment.parameters import Parameter
 from pymeasure.display.inputs import IntegerInput, ListInput, ScientificInput
@@ -52,7 +53,7 @@ class SpynWaveWindowBase(ManagedWindow):
                 for c in curve:
                     c.setSymbol("o")
                     c.setSymbolPen(c.pen)
-            else:
+            elif isinstance(curve, ResultsCurve):
                 curve.setSymbol("o")
                 curve.setSymbolPen(curve.pen)
 

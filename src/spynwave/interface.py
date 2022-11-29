@@ -3,13 +3,18 @@ This file is part of the SpynWave package.
 """
 
 import logging
+from types import MethodType
 
 from pyvisa import VisaIOError
 from pyvisa.constants import VI_ERROR_TMO
 
 from pymeasure.experiment import Results, unique_filename
+from pymeasure.display.Qt import QtGui
 from pymeasure.display.widgets.dock_widget import DockWidget
 from pymeasure.display.widgets import ImageWidget
+
+# For patching the ResultsImage with a working method
+from pymeasure.display.curves import ResultsImage
 
 from spynwave.procedure import PSWSProcedure
 from spynwave.drivers import VNA
@@ -29,7 +34,6 @@ class PSWSWindow(SpynWaveWindowBase):
                                       ["Field (T)"],
                                       ["S11 real", "S22 real"])
 
-        # TODO: this can be added, but needs some work to get it running
         self.image_widget = ImageWidget("2D plot", PSWSProcedure.DATA_COLUMNS,
                                         "field", "frequency", "S11 real")
 
@@ -199,3 +203,20 @@ class PSWSWindow(SpynWaveWindowBase):
 
         self.inputs.rf_bandwidth.setValue(bandwidth)
         self.inputs.rf_power.setValue(power_level)
+
+
+# Monkeypatch the ResultsImage, because it is not working correctly presently
+def scale(self, x, y):
+    tr = QtGui.QTransform()  # prepare ImageItem transformation:
+    tr.scale(x, y)
+    super(ResultsImage, self).setTransform(tr)
+
+
+def translate(self, x, y):
+    tr = QtGui.QTransform()  # prepare ImageItem transformation:
+    tr.translate(x, y)
+    super(ResultsImage, self).setTransform(tr)
+
+
+ResultsImage.scale = scale
+ResultsImage.translate = translate
