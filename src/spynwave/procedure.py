@@ -257,7 +257,7 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
         self.magnet = Magnet(mirror_fields=self.mirrored_field,
                              measurement_type=self.measurement_type)
 
-        if self.dc_excitation or self.measurement_type == "DC sweep":
+        if self.dc_excitation:
             self.source_meter = SourceMeter()
 
         # Run general startup procedure
@@ -274,9 +274,6 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
         if self.saturate_field_before_measurement:
             self.saturate_field()
 
-        # Run measurement-type-specific startup
-        self.get_mixin_method('startup')()
-
         if self.source_meter is not None:
             # output_range = {"Current": self.dc_current * 1e-3,
             #                 "Voltage": self.dc_voltage}[self.dc_regulate]
@@ -291,6 +288,9 @@ class PSWSProcedure(MixinFieldSweep, MixinFrequencySweep, MixinTimeSweep, MixinD
                     self.source_meter.ramp_to_voltage(self.dc_voltage)
                 elif self.dc_regulate == "Current":
                     self.source_meter.ramp_to_current(self.dc_current * 1e-3)
+
+        # Run measurement-type-specific startup
+        self.get_mixin_method('startup')()
 
         self.vna.reset_to_measure()
 
