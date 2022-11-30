@@ -4,13 +4,8 @@ This file is part of the SpynWave package.
 
 import logging
 
-# import re
-# from functools import partial
-# from collections import ChainMap
 import numpy as np
 from itertools import product
-
-# from inspect import signature
 
 from pymeasure.display.Qt import QtWidgets
 from pymeasure.display.widgets import SequencerWidget
@@ -103,6 +98,18 @@ class SpynWaveSequencerWidget(QtWidgets.QWidget):
     def toggle_tabwidget(self, state):
         self.pane_widget.setEnabled(state == 2)
 
+    def update_dc_inputs(self, *args):
+        for idx in range(self.pane_widget.count()):
+            wdg = self.pane_widget.widget(idx)
+            if hasattr(wdg, "dc_toggle_enabled"):
+                wdg.dc_toggle_enabled(*args)
+
+    def update_dc_label(self, *args):
+        for idx in range(self.pane_widget.count()):
+            wdg = self.pane_widget.widget(idx)
+            if hasattr(wdg, "dc_update_label"):
+                wdg.dc_update_label(*args)
+
     def get_sequence(self):
         """ Generate the sequence from the entered parameters. Returns a list of tuples; each tuple
         represents one measurement, containing dicts with the parameters for that measurement. This
@@ -133,7 +140,50 @@ class SpynWaveSequencerWidget(QtWidgets.QWidget):
         return self.get_sequence()
 
 
+SAFE_FUNCTIONS = {
+    'range': range,
+    'sorted': sorted,
+    'list': list,
+    'arange': np.arange,
+    'linspace': np.linspace,
+    'arccos': np.arccos,
+    'arcsin': np.arcsin,
+    'arctan': np.arctan,
+    'arctan2': np.arctan2,
+    'ceil': np.ceil,
+    'cos': np.cos,
+    'cosh': np.cosh,
+    'degrees': np.degrees,
+    'e': np.e,
+    'exp': np.exp,
+    'fabs': np.fabs,
+    'floor': np.floor,
+    'fmod': np.fmod,
+    'frexp': np.frexp,
+    'hypot': np.hypot,
+    'ldexp': np.ldexp,
+    'log': np.log,
+    'log10': np.log10,
+    'modf': np.modf,
+    'pi': np.pi,
+    'power': np.power,
+    'radians': np.radians,
+    'sin': np.sin,
+    'sinh': np.sinh,
+    'sqrt': np.sqrt,
+    'tan': np.tan,
+    'tanh': np.tanh,
+}
+
+
+class SequenceEvaluationException(Exception):
+    """Raised when the evaluation of a sequence string goes wrong."""
+    pass
+
+
 class SweepInputPanel(QtWidgets.QWidget):
+    dc_param = "dc_voltage"
+
     def __init__(self, procedure, sweep_name, param_name,
                  param_class_name):
         self.procedure = procedure
@@ -165,6 +215,9 @@ class SweepInputPanel(QtWidgets.QWidget):
         self.steps_box = QtWidgets.QSpinBox()
         self.steps_box.setMinimum(2)
         self.steps_box.setSuffix(" steps")
+
+        self.dc_line = QtWidgets.QLineEdit()
+        self.dc_label = QtWidgets.QLabel("V")
 
     def _layout(self):
         layout = QtWidgets.QFormLayout(self)
@@ -199,10 +252,24 @@ class SweepInputPanel(QtWidgets.QWidget):
         interp_row.addWidget(self.steps_box)
         interp_row.addStretch(2)
 
+        dc_row = QtWidgets.QHBoxLayout()
+        dc_row.setContentsMargins(0, 0, 0, 0)
+        dc_row.addWidget(self.dc_line)
+        dc_row.addWidget(self.dc_label)
+
         layout.addRow(" ", header_row)
         layout.addRow("First", first_row)
         layout.addRow(" ", interp_row)
         layout.addRow("Last", final_row)
+        layout.addRow("DC", dc_row)
+
+    def dc_toggle_enabled(self, state):
+        self.dc_line.setEnabled(state)
+        self.dc_label.setEnabled(state)
+
+    def dc_update_label(self, regulate):
+        self.dc_param = "dc_" + regulate.lower()
+        self.dc_label.setText("V" if self.dc_param == "dc_voltage" else "mA")
 
     def get_sequence(self):
         param_first = self.first_param.value()
@@ -222,19 +289,73 @@ class SweepInputPanel(QtWidgets.QWidget):
         else:
             raise NotImplementedError(f"Interpolation method {interpolation} not implemented.")
 
+        dc_list = self.get_dc_sequence()
+
         param_step = abs(param_list[1] - param_list[0])
 
         sequence = []
-        for param, start, stop in zip(param_list, start_list, stop_list):
-            sequence.append((
-                {self.param_class_name: param},
-                {self.sweep_name + "_start": start},
-                {self.sweep_name + "_end": stop},
-                {self.param_name + "_start": param_first},
-                {self.param_name + "_end": param_final},
-                ({self.param_name + "_step": param_step} if  # Quick and dirty fix
-                    not self.param_name == "field" else
-                    {self.param_name + "_ramp_rate": param_step * 10})
-            ))
+        for dc_value in dc_list:
+            for param, start, stop in zip(param_list, start_list, stop_list):
+                param_set = (
+                    {self.param_class_name: param},
+                    {self.sweep_name + "_start": start},
+                    {self.sweep_name + "_end": stop},
+                    {self.param_name + "_start": param_first},
+                    {self.param_name + "_end": param_final},
+                    ({self.param_name + "_step": param_step} if  # Quick and dirty fix
+                        not self.param_name == "field" else
+                        {self.param_name + "_ramp_rate": param_step * 10})
+                )
+
+                if dc_value is not None:
+                    param_set += ({self.dc_param: dc_value}, )
+
+                sequence.append(param_set)
 
         return sequence
+
+    def get_dc_sequence(self):
+        string = self.dc_line.text()
+        values = [None]
+
+        if len(string) > 0:
+            try:
+                values = self.eval_string(string)
+            except SequenceEvaluationException:
+                pass
+
+        return values
+
+    # Method taken from the pymeasure sequencer, copied to prevent future issues
+    @staticmethod
+    def eval_string(string):
+        """
+        Evaluate the given string. The string is evaluated using a list of
+        pre-defined functions that are deemed safe to use, to prevent the
+        execution of malicious code. For this purpose, also any built-in
+        functions or global variables are not available.
+
+        :param string: String to be interpreted.
+        """
+
+        evaluated_string = None
+        if len(string) > 0:
+            try:
+                evaluated_string = eval(
+                    string, {"__builtins__": None}, SAFE_FUNCTIONS
+                )
+            except TypeError as exc:
+                log.warning(f"TypeError, likely a typo in one of the functions: {exc}")
+                raise SequenceEvaluationException()
+            except SyntaxError as exc:
+                log.warning(f"SyntaxError, likely unbalanced brackets: {exc}")
+                raise SequenceEvaluationException()
+            except ValueError as exc:
+                log.warning(f"ValueError, likely wrong function argument: {exc}")
+                raise SequenceEvaluationException()
+        else:
+            log.warning("No sequence entered")
+            raise SequenceEvaluationException("No sequence entered")
+
+        evaluated_string = np.array(evaluated_string)
+        return evaluated_string

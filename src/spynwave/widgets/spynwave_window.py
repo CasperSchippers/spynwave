@@ -82,6 +82,12 @@ class SpynWaveWindowBase(ManagedWindow):
             self.inputs.measurement_type.currentTextChanged.connect(self.sequencer.set_pane_focus)
             self.sequencer.set_pane_focus(self.inputs.measurement_type.currentText())
 
+            self.inputs.dc_excitation.toggled.connect(self.sequencer.update_dc_inputs)
+            self.sequencer.update_dc_inputs(self.inputs.dc_excitation.isChecked())
+
+            self.inputs.dc_regulate.currentTextChanged.connect(self.sequencer.update_dc_label)
+            self.sequencer.update_dc_label(self.inputs.dc_regulate.currentText())
+
         if self.filename_input:
             filename_name = "Filename"
             filename_default = "Data"
