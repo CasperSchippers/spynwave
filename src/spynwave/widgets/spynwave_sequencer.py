@@ -150,8 +150,8 @@ class SweepInputPanel(QtWidgets.QWidget):
 
     def _setup_ui(self):
         param_class = getattr(self.procedure, self.param_class_name)
-        start_class = getattr(self.procedure, self.start_class_name)
-        stop_class = getattr(self.procedure, self.stop_class_name)
+        start_class = getattr(self.procedure, self.sweep_name + "_start")
+        stop_class = getattr(self.procedure, self.sweep_name + "_end")
 
         self.first_param = ScientificInput(param_class)
         self.final_param = ScientificInput(param_class)
