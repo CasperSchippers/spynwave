@@ -210,13 +210,13 @@ class PSWSWindow(SpynWaveWindowBase):
 def scale(self, x, y):
     tr = QtGui.QTransform()  # prepare ImageItem transformation:
     tr.scale(x, y)
-    super(ResultsImage, self).setTransform(tr)
+    self.setTransform(tr)
 
 
 def translate(self, x, y):
     tr = QtGui.QTransform()  # prepare ImageItem transformation:
     tr.translate(x, y)
-    super(ResultsImage, self).setTransform(tr)
+    self.setTransform(tr)
 
 
 ResultsImage.scale = scale
