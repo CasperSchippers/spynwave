@@ -89,7 +89,7 @@ cryo magnet:
     autorange: "Hardware"  # can be one of: "Hardware", "None"
     reading frequency: 0.05  # seconds
 
-Source-meter:
+source-meter:
   address: "ASRL7::INSTR"
   rs232 settings:
     baud_rate: 57600
