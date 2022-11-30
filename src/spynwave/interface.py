@@ -227,8 +227,8 @@ def new_curve(self, results, color=None, **kwargs):
     """ Creates a new image """
     image = ResultsImage(results,
                          wdg=self,
-                         x=self.image_frame.x_axix,
-                         y=self.image_frame.y_axix,
+                         x=self.image_frame.x_axis,
+                         y=self.image_frame.y_axis,
                          z=self.image_frame.z_axis,
                          **kwargs
                          )
