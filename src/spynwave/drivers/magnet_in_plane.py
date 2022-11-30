@@ -15,6 +15,7 @@ except ImportError:
     u12 = None  # Happens if the dll is not installed
 
 from spynwave.constants import config
+from spynwave.drivers.driver_base import DriverBase
 from spynwave.drivers.magnet_base import MagnetBase
 from spynwave.drivers.magnet_lakeshore421 import LakeShore421Mixin
 
@@ -26,7 +27,7 @@ log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
 
-class MagnetInPlane(LakeShore421Mixin, MagnetBase):
+class MagnetInPlane(LakeShore421Mixin, DriverBase, MagnetBase):
     """ This class represents the magnet that is used on the crystat/blackhole spinwave setup.
 
     It uses a Delta-Elektronika SM120-13 unipolar power supply, router via a home-built switchbox

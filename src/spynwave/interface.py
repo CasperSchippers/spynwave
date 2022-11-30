@@ -3,10 +3,10 @@ This file is part of the SpynWave package.
 """
 
 import logging
-from types import MethodType
 
 from pyvisa import VisaIOError
 from pyvisa.constants import VI_ERROR_TMO
+import pyqtgraph as pg
 
 from pymeasure.experiment import Results, unique_filename
 from pymeasure.display.Qt import QtGui
@@ -35,7 +35,9 @@ class PSWSWindow(SpynWaveWindowBase):
                                       ["S11 real", "S22 real"])
 
         self.image_widget = ImageWidget("2D plot", PSWSProcedure.DATA_COLUMNS,
-                                        "field", "frequency", "S11 real")
+                                        "Field (T)", "Frequency (Hz)", "S11 real")
+        self.image_widget.x_param_name = "field"
+        self.image_widget.y_param_name = "frequency"
 
         super().__init__(
             procedure_class=PSWSProcedure,
@@ -220,3 +222,18 @@ def translate(self, x, y):
 
 ResultsImage.scale = scale
 ResultsImage.translate = translate
+
+
+def new_curve(self, results, color=pg.intColor(0), **kwargs):
+    """ Creates a new image """
+    image = ResultsImage(results,
+                         wdg=self,
+                         x=self.x_param_name,
+                         y=self.y_param_name,
+                         z=self.image_frame.z_axis,
+                         **kwargs
+                         )
+    return image
+
+
+ImageWidget.new_curve = new_curve
