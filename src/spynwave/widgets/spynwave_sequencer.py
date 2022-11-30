@@ -232,7 +232,9 @@ class SweepInputPanel(QtWidgets.QWidget):
                 {self.sweep_name + "_end": stop},
                 {self.param_name + "_start": param_first},
                 {self.param_name + "_end": param_final},
-                {self.param_name + "_step": param_step},
+                ({self.param_name + "_step": param_step} if  # Quick and dirty fix
+                    not self.param_name == "field" else
+                    {self.param_name + "_ramp_rate": param_step * 10})
             ))
 
         return sequence
