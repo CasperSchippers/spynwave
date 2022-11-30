@@ -223,11 +223,20 @@ ResultsImage.scale = scale
 ResultsImage.translate = translate
 
 
-def __init__(self, *args, **kwargs):
-    super(ResultsImage, self).__init__(*args, **kwargs)
+def new_curve(self, results, color=None, **kwargs):
+    """ Creates a new image """
+    image = ResultsImage(results,
+                         wdg=self,
+                         x=self.image_frame.x_axix,
+                         y=self.image_frame.y_axix,
+                         z=self.image_frame.z_axis,
+                         **kwargs
+                         )
 
-    self.x = self.wdg.x_column_name
-    self.y = self.wdg.y_column_name
+    image.x = self.x_column_name
+    image.y = self.y_column_name
+
+    return image
 
 
-ResultsImage.__init__ = __init__
+ImageWidget.new_curve = new_curve
