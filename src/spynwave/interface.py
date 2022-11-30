@@ -236,6 +236,18 @@ def new_curve(self, results, color=None, **kwargs):
     image.x = self.x_column_name
     image.y = self.y_column_name
 
+    scales = {"field": 1e-3, "frequency": 1e9}
+    image.xstart *= scales[self.image_frame.x_axis]
+    image.xend *= scales[self.image_frame.x_axis]
+    image.xstep *= scales[self.image_frame.x_axis]
+    image.ystart *= scales[self.image_frame.y_axis]
+    image.yend *= scales[self.image_frame.y_axis]
+    image.ystep *= scales[self.image_frame.y_axis]
+
+    image.scale(image.xstep, image.ystep)
+    image.translate(int(image.xstart / image.xstep) - 0.5,
+                    int(image.ystart / image.ystep) - 0.5)
+
     return image
 
 
