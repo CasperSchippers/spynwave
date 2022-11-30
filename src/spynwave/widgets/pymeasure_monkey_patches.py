@@ -2,15 +2,7 @@
 This file is part of the SpynWave package.
 """
 
-import os
-import logging
-import ctypes
-
-from pymeasure.display.Qt import QtWidgets, QtCore, QtGui
-from pymeasure.display.curves import ResultsCurve
-from pymeasure.display.windows import ManagedWindow
-from pymeasure.experiment.parameters import Parameter
-from pymeasure.display.widgets import InputsWidget
+from pymeasure.display.Qt import QtWidgets
 from pymeasure.display.inputs import IntegerInput, ListInput, ScientificInput
 
 

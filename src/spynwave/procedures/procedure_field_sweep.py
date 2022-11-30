@@ -55,6 +55,7 @@ class MixinFieldSweep(ThreadedSweepBase):
         group_by="measurement_type",
         group_condition="Field sweep",
     )
+
     @property
     def field_step(self):
         # Estimate the field step size for 2d plotting purpose
@@ -117,5 +118,5 @@ class MixinFieldSweep(ThreadedSweepBase):
         duration_sat = self.saturation_time + \
             abs(2 * self.saturation_field * 1e-3 / magnet.field_ramp_rate)
         duration_sweep = abs((self.field_start - self.field_end) / self.field_ramp_rate) + \
-                         self.field_end * 1e-3 / magnet.field_ramp_rate
+            self.field_end * 1e-3 / magnet.field_ramp_rate
         return overhead + duration_sat + duration_sweep

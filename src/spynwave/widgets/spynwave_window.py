@@ -10,7 +10,7 @@ from pymeasure.display.Qt import QtWidgets, QtCore, QtGui
 from pymeasure.display.curves import ResultsCurve
 from pymeasure.display.windows import ManagedWindow
 from pymeasure.experiment.parameters import Parameter
-from pymeasure.display.widgets import InputsWidget, SequencerWidget
+from pymeasure.display.widgets import InputsWidget
 
 # Load monkey-patches
 from spynwave.widgets.pymeasure_monkey_patches import patched_layout_inputs_widget
