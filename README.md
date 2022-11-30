@@ -11,10 +11,10 @@ Alternatively, you can manually copy the files.
 
 Finally, the software also needs a running VISA library (such as NI-VISA, but for most lab-PCs, the VISA library by National Instruments is already installed.)
 
-### Installation using git
+### Installation and update using git
 To install the package directly using git (which is the easiest way, if Git is installed), simply run:
 ```commandline
-pip install git+https://gitlab.tue.nl/fna/spynwave.git
+pip install -U git+https://gitlab.tue.nl/fna/spynwave.git
 ```
 
 ### Installation from a local copy
@@ -51,35 +51,38 @@ These drivers can be found on the [website of LabJack](https://labjack.com/pages
 ## Usage
 If the initialization has been run, you can start the software by double-clicking the shortcut on the desktop.
 
-Alternatively, you can run the software from a command window by running
+Alternatively, you can run the software from a command window by running:
 ```commandline
 python -m spynwave
 ```
 
-To view all the possible options that this command takes, use
+To view all the possible options that this command takes, use:
 ```commandline
 python -m spynwave -h
 ```
 
 ### Filenames
-The filename can be be automatically filled with parameter (input) values. For example, to put the CW frequency (for a field sweep) in the filename, you can use a filename `PSWS_{magnetic_field}mT`.
-This uses the standard python string formatting techniques (e.g. to have a constant number of digits with no decimals, you can use `{magnetic_field:03.0f}`).
-The variable names that can be used here are the variable names of the parameters in the procedure class.
+The filename can be filled automatically with parameter (input) values by referencing the name of the input parameter (i.e. the label associated with the input parameter).
+For example, to put the CW frequency (for a field sweep) in the filename, you can use a filename `PSWS_{Magnetic field}mT`.
+This uses the standard python string formatting techniques (e.g. to have a constant number of digits with no decimals, you can use `{Magnetic field:03.0f}`).
 Presently that list contains:
-`measurement_type`, `rf_frequency`, `magnetic_field`, `frequency_start`, `frequency_end`,
-`frequency_step`, `frequency_averages`, `field_start`, `field_end`,`field_ramp_rate`,
-`time_duration`, `dc_excitation`, `dc_regulate`, `dc_voltage_start`, `dc_voltage_end`,
-`dc_voltage_rate`, `dc_current_start`, `dc_current_end`, `dc_current_rate`, `dc_voltage`,
-`dc_current`, `dc_voltage_compliance`, `dc_current_compliance`, `saturate_field_before_measurement`,
-`saturation_field`, `rf_advanced_settings`, `measurement_ports`, `rf_power`, `rf_bandwidth`.
-I assume that the most names speak for themselves; the sweep-values are append with `_start`, `_end`, `(_ramp)_rate`, `_step`.
-Static values (if others are sweeping) are `rf_frequency`, `magnetic_field`, `dc_voltage`, and `dc_current`.
+`Advanced RF settings`, `Apply DC excitation`, `Averaging type`, `CW Frequency`,
+`Current sweep rate`, `DC current`, `DC current compliance`, `DC voltage`, `DC voltage compliance`,
+`Field sweep rate`, `Filename base`, `Folder`, `Frequency step size`, `Magnetic field`,
+`Measurement ports`, `Number of averages (VNA)`, `Perform with mirrored field`, `RF bandwidth`,
+`RF output power`, `Saturate field before measurement`, `Saturation `, `Saturation field`,
+`Source-meter regulate`, `Start current`, `Start field`, `Start frequency`, `Start voltage`,
+`Stop current`, `Stop field`, `Stop frequency`, `Stop voltage`, `Time sweep duration`,
+`Type of measurement`, `Voltage sweep rate`.
+I assume that the most names speak for themselves; the sweep-values contain terms as `start`, `Stop`, `step size`, `sweep rate`.
+Static values (if others are sweeping) are `CW Frequency`, `DC current`, `DC voltage`, and `Magnetic field`.
 
 ### Calibrating the magnet
 When a new calibration for a magnet is required, this can be done using the packed calibration software.
-To run this software, open a command window and run
+To run this software, open a command window and run:
 ```commandline
 python -m spynwave -M
 ```
 
 A window will open that allows you to calibrate the magnet.
+After the calibration is finished, the file should be placed in the "spynwave" folder in the user home directory (e.g. C:/users/PhysFna2/spynwave) and the filename should match the filename for the calibration that is mentioned in the config.yaml file for the specific setup.

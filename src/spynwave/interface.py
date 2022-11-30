@@ -82,6 +82,7 @@ class PSWSWindow(SpynWaveWindowBase):
             widget_list=(self.dock_widget, self.image_widget)
         )
 
+        # TODO: this should somehow be done, but not upon initialisation
         # self.update_inputs_from_vna()
 
         # Link the dc excitation checkbox to the measurement type

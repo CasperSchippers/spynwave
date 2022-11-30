@@ -53,13 +53,16 @@ def parse_args():
         help="Initialize the software after installation; creates shortcut on the desktop and "
              "places the config and calibration files in an accessible place",
     )
-    alt_programs.add_argument(
-        "-U", "--update",
-        action="store_true",
-        dest="update",
-        help="Update the software by pulling a new version from the gitlab server",
-    )
-    # TODO: find out how to propagate this info
+
+    # TODO: future option
+    # alt_programs.add_argument(
+    #     "-U", "--update",
+    #     action="store_true",
+    #     dest="update",
+    #     help="Update the software by pulling a new version from the gitlab server",
+    # )
+
+    # TODO: future option / is this useful?
     # parser.add_argument(
     #     "-s", "-setup",
     #     action="store",
@@ -76,9 +79,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    if args.update:
-        raise NotImplementedError("Updating is not yet implemented")
-    elif args.initialize:
+    if args.initialize:
         log.info("Initialize software")
         from spynwave.initialization import initialize_measurement_software
         return initialize_measurement_software()
