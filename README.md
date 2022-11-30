@@ -41,6 +41,9 @@ This yaml file contains a lot of configuration regarding the setup.
 The most important attribute is the general - magnet property, which controls whatever setup the software runs on and should be adjusted accordingly.
 This property can be set to one of the following three options: "in-plane magnet", "out-of-plane magnet", "cryo magnet".
 
+This file also contains the addresses of the instruments (e.g. under in-plane magnet: power-supply: address, or source-meter: address) and for some instruments (e.g. the Keithley 2400 source-meter) also some communication setting.
+You can have a look at these setting (and modify them as needed) when there are communication issues (or if you changed addresses).
+
 ### Note for using the in-plane magnet
 When you want to use the in-plane magnet, you additionally need drivers to control the LabJack (U12) that is used to select the polarity of the magnet.
 These drivers can be found on the [website of LabJack](https://labjack.com/pages/support?doc=/software-driver/installer-downloads/u12-software-installer-u12/), or in the requirements folder of this repository.
