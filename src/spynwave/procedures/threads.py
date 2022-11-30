@@ -97,7 +97,6 @@ class DCSweepThread(InstrumentThread):
         log.info("Source-meter sweep Thread: stopped sweeping")
 
     def dc_callback(self, value, data):
-        log.info(f"{value}")
         progress = abs((value - self.settings["start"]) /
                        (self.settings["stop"] - self.settings["start"])) * 100
 
