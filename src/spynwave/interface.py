@@ -225,30 +225,34 @@ ResultsImage.translate = translate
 
 def new_curve(self, results, color=None, **kwargs):
     """ Creates a new image """
-    image = ResultsImage(results,
-                         wdg=self,
-                         x=self.image_frame.x_axis,
-                         y=self.image_frame.y_axis,
-                         z=self.image_frame.z_axis,
-                         **kwargs
-                         )
+    try:
+        image = ResultsImage(results,
+                             wdg=self,
+                             x=self.image_frame.x_axis,
+                             y=self.image_frame.y_axis,
+                             z=self.image_frame.z_axis,
+                             **kwargs
+                             )
 
-    image.x = self.x_column_name
-    image.y = self.y_column_name
+        image.x = self.x_column_name
+        image.y = self.y_column_name
 
-    scales = {"field": 1e-3, "frequency": 1e9}
-    image.xstart *= scales[self.image_frame.x_axis]
-    image.xend *= scales[self.image_frame.x_axis]
-    image.xstep *= scales[self.image_frame.x_axis]
-    image.ystart *= scales[self.image_frame.y_axis]
-    image.yend *= scales[self.image_frame.y_axis]
-    image.ystep *= scales[self.image_frame.y_axis]
+        scales = {"field": 1e-3, "frequency": 1e9}
+        image.xstart *= scales[self.image_frame.x_axis]
+        image.xend *= scales[self.image_frame.x_axis]
+        image.xstep *= scales[self.image_frame.x_axis]
+        image.ystart *= scales[self.image_frame.y_axis]
+        image.yend *= scales[self.image_frame.y_axis]
+        image.ystep *= scales[self.image_frame.y_axis]
 
-    image.scale(image.xstep, image.ystep)
-    image.translate(int(image.xstart / image.xstep) - 0.5,
-                    int(image.ystart / image.ystep) - 0.5)
+        image.scale(image.xstep, image.ystep)
+        image.translate(int(image.xstart / image.xstep) - 0.5,
+                        int(image.ystart / image.ystep) - 0.5)
 
-    return image
+        return image
+    except Exception as exc:
+        log.warning(f"Could not create an image for some reason, continuing without: {exc}")
+        return None
 
 
 ImageWidget.new_curve = new_curve
