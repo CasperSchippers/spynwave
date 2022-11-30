@@ -54,13 +54,9 @@ class SpynWaveSequencerWidget(QtWidgets.QWidget):
 
         self.field_inputs = SweepInputPanel(self._parent.procedure_class,
                                             "field", "frequency",
-                                            "field_start",
-                                            "field_end",
                                             "rf_frequency")
         self.frequency_inputs = SweepInputPanel(self._parent.procedure_class,
                                                 "frequency", "field",
-                                                "frequency_start",
-                                                "frequency_end",
                                                 "magnetic_field")
         # self.time_inputs = InputPanel()
 
@@ -141,12 +137,10 @@ class SpynWaveSequencerWidget(QtWidgets.QWidget):
 
 class SweepInputPanel(QtWidgets.QWidget):
     def __init__(self, procedure, sweep_name, param_name,
-                 start_class_name, stop_class_name, param_class_name):
+                 param_class_name):
         self.procedure = procedure
         self.sweep_name = sweep_name
         self.param_name = param_name
-        self.start_class_name = start_class_name
-        self.stop_class_name = stop_class_name
         self.param_class_name = param_class_name
 
         super().__init__()
@@ -230,12 +224,17 @@ class SweepInputPanel(QtWidgets.QWidget):
         else:
             raise NotImplementedError(f"Interpolation method {interpolation} not implemented.")
 
+        param_step = abs(param_list[1] - param_list[0])
+
         sequence = []
         for param, start, stop in zip(param_list, start_list, stop_list):
             sequence.append((
                 {self.param_class_name: param},
-                {self.start_class_name: start},
-                {self.stop_class_name: stop},
+                {self.sweep_name + "_start": start},
+                {self.sweep_name + "_end": stop},
+                {self.param_name + "_start": param_first},
+                {self.param_name + "_end": param_final},
+                {self.param_name + "_step": param_step},
             ))
 
         return sequence

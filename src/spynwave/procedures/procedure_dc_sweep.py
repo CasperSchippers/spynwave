@@ -32,7 +32,7 @@ class MixinDCSweep(ThreadedSweepBase):
         group_by=["measurement_type", "dc_regulate"],
         group_condition=["DC sweep", "Voltage"],
     )
-    dc_voltage_stop = FloatParameter(
+    dc_voltage_end = FloatParameter(
         "Stop voltage",
         default=10.,
         minimum=-200.,
@@ -61,7 +61,7 @@ class MixinDCSweep(ThreadedSweepBase):
         group_by=["measurement_type", "dc_regulate"],
         group_condition=["DC sweep", "Current"],
     )
-    dc_current_stop = FloatParameter(
+    dc_current_end = FloatParameter(
         "Stop current",
         default=10.,
         minimum=-1050.,
@@ -100,8 +100,8 @@ class MixinDCSweep(ThreadedSweepBase):
         # Prepare the parallel methods for the sweep
         start = {"Current": self.dc_current_start * 1e-3,
                  "Voltage": self.dc_voltage_start}[self.dc_regulate]
-        stop = {"Current": self.dc_current_stop * 1e-3,
-                "Voltage": self.dc_voltage_stop}[self.dc_regulate]
+        stop = {"Current": self.dc_current_end * 1e-3,
+                "Voltage": self.dc_voltage_end}[self.dc_regulate]
         rate = {"Current": self.dc_current_rate * 1e-3,
                 "Voltage": self.dc_voltage_rate}[self.dc_regulate]
 
