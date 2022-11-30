@@ -74,9 +74,9 @@ class MixinFieldSweep(ThreadedSweepBase):
 
         # Prepare the parallel methods for the sweep
         self.field_sweep_thread = FieldSweepThread(self, self.magnet,
-                                                   field_start=self.field_start * 1e-3,
-                                                   field_stop=self.field_end * 1e-3,
-                                                   field_ramp_rate=self.field_ramp_rate * 1e-3,
+                                                   start=self.field_start * 1e-3,
+                                                   stop=self.field_end * 1e-3,
+                                                   ramp_rate=self.field_ramp_rate * 1e-3,
                                                    publish_data=False, )
 
         self.gauss_probe_thread = GaussProbeThread(self, self.magnet)

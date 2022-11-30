@@ -22,11 +22,11 @@ class FieldSweepThread(InstrumentThread):
         log.info("Field sweep Thread: start sweeping.")
         try:
             self.instrument.sweep_field(
-                self.settings["field_start"],
-                self.settings["field_end"],
-                self.settings["field_ramp_rate"],
+                self.settings["start"],
+                self.settings["stop"],
+                self.settings["ramp_rate"],
                 should_stop=self.should_stop,
-                callback_fn=self.field_callback,
+                callback_fn=self.callback,
             )
         except Exception as exc:
             log.error(exc)
@@ -36,10 +36,10 @@ class FieldSweepThread(InstrumentThread):
 
         log.info("Field sweep Thread: finished sweeping.")
 
-    def field_callback(self, field):
+    def callback(self, field):
         field = np.round(field, 10)  # rounding to remove float-rounding-errors
-        progress = abs((field - self.settings["field_start"]) /
-                       (self.settings["field_end"] - self.settings["field_start"])) * 100
+        progress = abs((field - self.settings["start"]) /
+                       (self.settings["stop"] - self.settings["start"])) * 100
 
         if self.settings["publish_data"]:
             try:
@@ -86,7 +86,7 @@ class DCSweepThread(InstrumentThread):
                 self.settings["ramp_rate"],
                 regulate=self.settings["regulate"],
                 should_stop=self.should_stop,
-                callback_fn=self.dc_callback,
+                callback_fn=self.callback,
             )
         except Exception as exc:
             log.error(exc)
@@ -96,7 +96,7 @@ class DCSweepThread(InstrumentThread):
 
         log.info("Source-meter sweep Thread: stopped sweeping")
 
-    def dc_callback(self, value, data):
+    def callback(self, value, data):
         progress = abs((value - self.settings["start"]) /
                        (self.settings["stop"] - self.settings["start"])) * 100
 
