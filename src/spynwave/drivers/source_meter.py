@@ -19,7 +19,7 @@ class SourceMeter(DriverBase):
     """ Class that represents the sourcemeter (Keithley 2400) to apply a DC excitation to the
     device under test. Can control either the current or the voltage.
     """
-    name = "Source-meter"
+    name = "source-meter"
 
     source_meter = None
 
