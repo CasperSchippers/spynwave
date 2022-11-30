@@ -58,6 +58,20 @@ To view all the possible options that this command takes, use
 python -m spynwave -h
 ```
 
+### Filenames
+The filename can be be automatically filled with parameter (input) values. For example, to put the CW frequency (for a field sweep) in the filename, you can use a filename `PSWS_{magnetic_field}mT`.
+This uses the standard python string formatting techniques (e.g. to have a constant number of digits with no decimals, you can use `{magnetic_field:03.0f}`).
+The variable names that can be used here are the variable names of the parameters in the procedure class.
+Presently that list contains:
+`measurement_type`, `rf_frequency`, `magnetic_field`, `frequency_start`, `frequency_end`,
+`frequency_step`, `frequency_averages`, `field_start`, `field_end`,`field_ramp_rate`,
+`time_duration`, `dc_excitation`, `dc_regulate`, `dc_voltage_start`, `dc_voltage_end`,
+`dc_voltage_rate`, `dc_current_start`, `dc_current_end`, `dc_current_rate`, `dc_voltage`,
+`dc_current`, `dc_voltage_compliance`, `dc_current_compliance`, `saturate_field_before_measurement`,
+`saturation_field`, `rf_advanced_settings`, `measurement_ports`, `rf_power`, `rf_bandwidth`.
+I assume that the most names speak for themselves; the sweep-values are append with `_start`, `_end`, `(_ramp)_rate`, `_step`.
+Static values (if others are sweeping) are `rf_frequency`, `magnetic_field`, `dc_voltage`, and `dc_current`.
+
 ### Calibrating the magnet
 When a new calibration for a magnet is required, this can be done using the packed calibration software.
 To run this software, open a command window and run
