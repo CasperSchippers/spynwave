@@ -63,7 +63,7 @@ class MagnetCryostat(MagnetBase):
 
         self.gauss_meter.field_setpoint = field
 
-        return field
+        return field, 0.
 
     def measure_field(self):
         # TODO: look at the high speed binary field readings (RDGFAST?)
