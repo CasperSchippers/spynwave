@@ -18,7 +18,7 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
 #    "pymeasure >= 0.11",  # TODO: see if it is best to use the production or git version
-    "pymeasure @ git+https://github.com/pymeasure/pymeasure.git",
+    "pymeasure @ git+https://github.com/pymeasure/pymeasure.git@cf87c23b933389c94fb8b329e7ed8673847084c9",
     "PyQt5 >= 5.15.7",
     "pandas >= 1.5.1",
     "scipy >= 1.9.3",
