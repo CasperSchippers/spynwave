@@ -112,7 +112,7 @@ class LakeShore475(LakeShore400Family):
         is turned off), and the control slope limit of the analog output (in V/minute, between 0.01
         and 1000). Can be set.
         """,
-        set_process=lambda l: ",".join(["%G" % v for v in l]),
+        set_process=lambda lst: ",".join(["%G" % v for v in lst]),
         values=[(1e-2, 1e3), (1e-4, 1e3), (0, math.inf), (1e-2, 1e3)],
         validator=joined_list_validator([strict_range] * 4),
     )

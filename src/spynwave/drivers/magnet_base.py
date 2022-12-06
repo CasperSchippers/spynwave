@@ -62,8 +62,8 @@ class MagnetBase(metaclass=ABCMeta):
                 max_field=+conf["max field"],
                 min_current=-conf["power-supply"]["max current"],
                 max_current=+conf["power-supply"]["max current"],
-                I_to_B=lambda I: (I * conf["max field"] / conf["power-supply"]["max current"]),
-                B_to_I=lambda B: (B * conf["power-supply"]["max current"] / conf["max field"]),
+                I_to_B=lambda i: (i * conf["max field"] / conf["power-supply"]["max current"]),
+                B_to_I=lambda b: (b * conf["power-supply"]["max current"] / conf["max field"]),
             ))
         elif source_type == "file":
             file = look_for_file(source)
