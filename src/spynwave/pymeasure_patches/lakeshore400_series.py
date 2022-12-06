@@ -127,6 +127,6 @@ class LakeShore400Family(Instrument):
 
         self.last_write_time = time()
 
-    def write(self, command):
+    def write(self, command, **kwargs):
         self.delay_write()
         super().write(command)
